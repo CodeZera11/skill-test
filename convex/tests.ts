@@ -1,7 +1,44 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
+
+// Types
+export type TestWithDetails = {
+  _id: Id<"tests">;
+  name: string;
+  description?: string;
+  subCategoryId: Id<"subCategories">;
+  totalQuestions: number;
+  duration?: number;
+  createdAt: number;
+  updatedAt: number;
+  subCategory: {
+    _id: Id<"subCategories">;
+    name: string;
+  };
+};
 
 // Queries
+export const listWithDetails = query({
+  handler: async (ctx) => {
+    const tests = await ctx.db.query("tests").order("desc").collect();
+
+    return await Promise.all(
+      tests.map(async (test) => {
+        const subCategory = await ctx.db.get(test.subCategoryId);
+
+        return {
+          ...test,
+          subCategory: {
+            _id: subCategory!._id,
+            name: subCategory!.name,
+          },
+        };
+      })
+    );
+  },
+});
+
 export const list = query({
   handler: async (ctx) => {
     return await ctx.db.query("tests").collect();
@@ -84,3 +121,4 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
   },
 });
+

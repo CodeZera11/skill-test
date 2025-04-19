@@ -10,6 +10,7 @@ import { useMutation } from "convex/react"
 import { api } from "../../../../../../convex/_generated/api"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import TextAreaElement from "@/components/form-elements/textarea-element"
 
 interface AddCategoryFormProps {
   afterSubmit?: () => void
@@ -22,6 +23,7 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ afterSubmit }) => {
     resolver: zodResolver(AddCategorySchema),
     defaultValues: {
       name: "",
+      description: "",
     }
   })
 
@@ -52,6 +54,11 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ afterSubmit }) => {
           name="name"
           label="Category Name"
           placeholder="Enter category name"
+        />
+        <TextAreaElement
+          name="description"
+          label="Description"
+          placeholder="Enter category description (optional)"
         />
         <Button type="submit" className="w-full">
           Add Category

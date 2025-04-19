@@ -14,6 +14,7 @@ import SelectElement from "@/components/form-elements/select-element"
 import NumberInputElement from "@/components/form-elements/number-input-element"
 import TextareaElement from "@/components/form-elements/textarea-element"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 
 const AddTestForm = () => {
   const router = useRouter()
@@ -27,19 +28,29 @@ const AddTestForm = () => {
       subCategoryId: "",
       description: "",
       duration: 30,
-      passingPercentage: 60,
+      totalQuestions: 1,
     }
   })
 
   const onSubmit = async (values: AddTestRequest) => {
     try {
-      await createTest({
-        name: values.name,
-        description: values.description,
-        subCategoryId: values.subCategoryId as Id<"subCategories">,
-        duration: values.duration,
-        totalQuestions: 0 // Start with 0 questions, they'll be added later
-      })
+      toast.promise(
+        createTest({
+          name: values.name,
+          description: values.description || undefined,
+          subCategoryId: values.subCategoryId as Id<"subCategories">,
+          duration: values.duration,
+          totalQuestions: values.totalQuestions
+        }),
+        {
+          loading: "Creating test...",
+          success: () => {
+            router.push("/dashboard/tests")
+            return "Test created successfully"
+          },
+          error: "Failed to create test"
+        }
+      )
       router.push("/dashboard/tests")
     } catch (error) {
       console.error("Failed to create test:", error)
@@ -78,14 +89,12 @@ const AddTestForm = () => {
               <NumberInputElement
                 name="duration"
                 label="Duration (minutes)"
-                placeholder="Enter test duration"
-
+                placeholder="Enter test duration (optional)"
               />
               <NumberInputElement
-                name="passingPercentage"
-                label="Passing Percentage"
-                placeholder="Enter passing percentage"
-
+                name="totalQuestions"
+                label="Total Questions"
+                placeholder="Enter total questions"
               />
             </div>
             <Button type="submit" className="w-full">

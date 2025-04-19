@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation"
 import { api } from "../../../../../../convex/_generated/api"
 import { Id } from "../../../../../../convex/_generated/dataModel"
 import { toast } from "sonner"
+import TextAreaElement from "@/components/form-elements/textarea-element"
 
 interface AddSubCategoryFormProps {
   afterSubmit?: () => void
@@ -28,6 +29,7 @@ const AddSubCategoryForm: React.FC<AddSubCategoryFormProps> = ({ afterSubmit }) 
     defaultValues: {
       name: "",
       categoryId: "",
+      description: "",
     }
   })
 
@@ -36,7 +38,8 @@ const AddSubCategoryForm: React.FC<AddSubCategoryFormProps> = ({ afterSubmit }) 
       toast.promise(
         createSubCategory({
           name: values.name,
-          categoryId: values.categoryId as Id<"categories">
+          categoryId: values.categoryId as Id<"categories">,
+          description: values.description || undefined
         }),
         {
           loading: "Creating sub category...",
@@ -71,6 +74,11 @@ const AddSubCategoryForm: React.FC<AddSubCategoryFormProps> = ({ afterSubmit }) 
           name="name"
           label="Sub Category Name"
           placeholder="Enter sub category name"
+        />
+        <TextAreaElement
+          name="description"
+          label="Description"
+          placeholder="Enter sub category description (optional)"
         />
         <Button type="submit" className="w-full mt-4">
           Add Sub Category
