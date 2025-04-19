@@ -1,3 +1,9 @@
+import AddSubCategoryForm from "./_components/add-subcategory-form";
+
 export default function AddSubCategoryPage() {
-  return <div className="p-4">Add Sub Category Page</div>;
+  return (
+    <div className="container py-6">
+      <AddSubCategoryForm />
+    </div>
+  );
 }

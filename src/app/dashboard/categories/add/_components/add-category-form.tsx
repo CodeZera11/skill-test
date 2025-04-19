@@ -1,0 +1,66 @@
+"use client"
+
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import { AddCategoryRequest, AddCategorySchema } from "./add-category.schema"
+import { Form } from "@/components/ui/form"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import InputElement from "@/components/form-elements/input-element"
+import { Button } from "@/components/ui/button"
+import { useMutation } from "convex/react"
+import { api } from "../../../../../../convex/_generated/api"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+
+const AddCategoryForm = () => {
+  const router = useRouter()
+  const createCategory = useMutation(api.categories.create)
+  const form = useForm<AddCategoryRequest>({
+    resolver: zodResolver(AddCategorySchema),
+    defaultValues: {
+      name: "",
+    }
+  })
+
+  const onSubmit = async (values: AddCategoryRequest) => {
+    try {
+      toast.promise(
+        createCategory(values),
+        {
+          loading: "Creating category...",
+          success: "Category created successfully",
+          error: "Failed to create category"
+        }
+      )
+      // await createCategory(values)
+      router.push("/dashboard/categories")
+    } catch (error) {
+      console.error("Failed to create category:", error)
+    }
+  }
+
+  return (
+    <Card className="max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle>Add New Category</CardTitle>
+        <CardDescription>Create a new category for organizing content</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <InputElement
+              name="name"
+              label="Category Name"
+              placeholder="Enter category name"
+            />
+            <Button type="submit" className="w-full">
+              Add Category
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+    </Card>
+  )
+}
+
+export default AddCategoryForm
