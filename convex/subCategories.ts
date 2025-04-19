@@ -1,7 +1,54 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { Id } from "./_generated/dataModel";
+
+// Types
+export type SubCategoryWithTests = {
+  _id: Id<"subCategories">;
+  name: string;
+  description?: string;
+  categoryId: Id<"categories">;
+  createdAt: number;
+  updatedAt: number;
+  category: {
+    _id: Id<"categories">;
+    name: string;
+  };
+  tests: {
+    _id: Id<"tests">;
+    name: string;
+  }[];
+};
 
 // Queries
+export const listWithTests = query({
+  handler: async (ctx) => {
+    const subCategories = await ctx.db.query("subCategories").order("desc").collect();
+
+    return await Promise.all(
+      subCategories.map(async (subCategory) => {
+        const category = await ctx.db.get(subCategory.categoryId);
+        const tests = await ctx.db
+          .query("tests")
+          .filter((q) => q.eq(q.field("subCategoryId"), subCategory._id))
+          .collect();
+
+        return {
+          ...subCategory,
+          category: {
+            _id: category!._id,
+            name: category!.name,
+          },
+          tests: tests.map((test) => ({
+            _id: test._id,
+            name: test.name,
+          })),
+        };
+      })
+    );
+  },
+});
+
 export const list = query({
   handler: async (ctx) => {
     return await ctx.db.query("subCategories").collect();
