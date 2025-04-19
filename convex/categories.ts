@@ -4,7 +4,23 @@ import { v } from "convex/values";
 // Queries
 export const list = query({
   handler: async (ctx) => {
-    return await ctx.db.query("categories").collect();
+    const categories = await ctx.db
+      .query("categories")
+      .order("desc")
+      .collect();
+    const categoriesWithSubcategories = await Promise.all(
+      categories.map(async (category) => {
+        const subcategories = await ctx.db
+          .query("subCategories")
+          .filter((q) => q.eq(q.field("categoryId"), category._id))
+          .collect();
+        return {
+          ...category,
+          subcategories,
+        };
+      })
+    );
+    return categoriesWithSubcategories;
   },
 });
 
@@ -53,3 +69,24 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+export type Category = {
+  _id: string;
+  name: string;
+  description?: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type SubCategory = {
+  _id: string;
+  name: string;
+  description?: string;
+  categoryId: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type CategoryWithSubcategories = Category & {
+  subcategories: SubCategory[];
+};
