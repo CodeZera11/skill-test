@@ -20,8 +20,6 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className={cn(state === "expanded" ? "p-4" : "p-2")}>
-
-
         <div className={cn(
           "flex items-center justify-center w-full",
           state === "expanded"
@@ -33,7 +31,7 @@ export function AppSidebar() {
         {state === "expanded" && <span className="font-semibold">Quiz Admin</span>}
       </SidebarHeader>
 
-      <SidebarMenu className={cn(state === "expanded" ? "" : "w-full flex items-center justify-center")}>
+      <SidebarMenu className={cn(state === "expanded" ? "px-2" : "w-full flex items-center justify-center")}>
         {/* <SidebarMenuButton
           asChild
           isActive={pathname === "/dashboard"}

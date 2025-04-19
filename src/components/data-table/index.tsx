@@ -48,8 +48,10 @@ interface DataTableProps<TData, TValue> {
 
   // pagination options
   showPagination?: boolean
-  totalPages?: number
+  pageCount?: number
   currentPage?: number
+  onPageChange?: (page: number) => void
+  onPageSizeChange?: (size: number) => void
 
   showViewOptions?: boolean
 
@@ -78,11 +80,13 @@ export function DataTable<TData, TValue>({
   inputClassName,
   toolbarClassName,
   currentPage,
-  totalPages,
+  pageCount,
   searchTerm,
   backendSearch,
   backendFilter,
   showLocalFilter,
+  onPageChange,
+  onPageSizeChange
 }: DataTableProps<TData, TValue>) {
   // const router = useRouter()
   // const pathname = usePathname()
@@ -236,11 +240,13 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      {showPagination && currentPage && totalPages && (
+      {showPagination && (
         <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
+          currentPage={currentPage || 1}
+          pageCount={pageCount || 1}
           isLoading={isLoading}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
         />
       )}
     </div>

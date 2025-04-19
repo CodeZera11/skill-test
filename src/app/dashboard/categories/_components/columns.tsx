@@ -3,9 +3,11 @@
 import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
-import { CategoryWithSubcategories } from "../../../../../convex/categories";
+import { Doc } from "../../../../../convex/_generated/dataModel";
 
-export const columns: ColumnDef<CategoryWithSubcategories>[] = [
+type CategoryWithCount = Doc<"categories"> & { _subcategoriesCount: number };
+
+export const columns: ColumnDef<CategoryWithCount>[] = [
   {
     accessorKey: "id",
     header: ({ column }) => (
@@ -39,7 +41,7 @@ export const columns: ColumnDef<CategoryWithSubcategories>[] = [
       const category = row.original;
 
       return (
-        <span className="">{category.subcategories.length}</span>
+        <span className="">{category._subcategoriesCount}</span>
       )
     },
     enableSorting: false,

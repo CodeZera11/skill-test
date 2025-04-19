@@ -1,26 +1,61 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { Doc, Id } from "./_generated/dataModel";
+
+type TCategory = Doc<"categories">;
+type TSubCategory = Doc<"subCategories">;
 
 // Queries
 export const list = query({
-  handler: async (ctx) => {
-    const categories = await ctx.db
-      .query("categories")
-      .order("desc")
-      .collect();
-    const categoriesWithSubcategories = await Promise.all(
-      categories.map(async (category) => {
+  args: {
+    searchQuery: v.optional(v.string()),
+    page: v.optional(v.number()),
+    limit: v.optional(v.number()),
+    sortBy: v.optional(v.union(v.literal("name"), v.literal("createdAt"))),
+    sortOrder: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+  },
+  handler: async (ctx, args) => {
+    const { searchQuery, page = 1, limit = 10, sortBy = "createdAt", sortOrder = "desc" } = args;
+
+    let query = ctx.db.query("categories");
+
+    // Apply search filter
+    if (searchQuery) {
+      query = query.filter((q) => 
+        q.field("name").eq(searchQuery)
+      );
+    }
+
+    // Get total count
+    const totalCount = await query.collect().then(items => items.length);
+
+    // Apply sorting and pagination
+    const skip = (page - 1) * limit;
+    query = query.order("createdAt", "desc").take(limit);
+
+    const items = await query.collect();
+
+    // Get subcategory counts
+    const categoriesWithCounts = await Promise.all(
+      items.map(async (category) => {
         const subcategories = await ctx.db
           .query("subCategories")
           .filter((q) => q.eq(q.field("categoryId"), category._id))
           .collect();
+
         return {
           ...category,
-          subcategories,
+          _subcategoriesCount: subcategories.length,
         };
       })
     );
-    return categoriesWithSubcategories;
+
+    return {
+      items: categoriesWithCounts,
+      totalCount,
+      pageCount: Math.ceil(totalCount / limit),
+      currentPage: page
+    };
   },
 });
 
