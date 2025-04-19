@@ -16,7 +16,6 @@ import type {
 import type * as categories from "../categories.js";
 import type * as questions from "../questions.js";
 import type * as subCategories from "../subCategories.js";
-import type * as tasks from "../tasks.js";
 import type * as tests from "../tests.js";
 
 /**
@@ -31,7 +30,6 @@ declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   questions: typeof questions;
   subCategories: typeof subCategories;
-  tasks: typeof tasks;
   tests: typeof tests;
 }>;
 export declare const api: FilterApi<
