@@ -16,7 +16,7 @@ export default function TestsPage() {
   if (tests === null) return <div className="p-4">No tests found</div>;
 
   return (
-    <div className="p-4">
+    <div className="p-4 w-full bg-red-500">
       <h1 className="text-2xl font-bold mb-4">Tests</h1>
       <div className="grid gap-4">
         {tests?.map((test) => (
