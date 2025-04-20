@@ -8,12 +8,12 @@ export const list = query({
   },
 });
 
-export const getByTestId = query({
-  args: { testId: v.id("tests") },
+export const getBySectionId = query({
+  args: { sectionId: v.id("sections") },
   handler: async (ctx, args) => {
     return await ctx.db
       .query("questions")
-      .filter((q) => q.eq(q.field("testId"), args.testId))
+      .filter((q) => q.eq(q.field("sectionId"), args.sectionId))
       .collect();
   },
 });
@@ -31,7 +31,7 @@ export const create = mutation({
     question: v.string(),
     options: v.array(v.string()),
     correctAnswer: v.number(),
-    testId: v.id("tests"),
+    sectionId: v.id("sections"),
     explanation: v.optional(v.string()),
     marks: v.optional(v.number()),
     negativeMarks: v.optional(v.number()),
@@ -52,7 +52,7 @@ export const update = mutation({
     question: v.string(),
     options: v.array(v.string()),
     correctAnswer: v.number(),
-    testId: v.id("tests"),
+    sectionId: v.id("sections"),
     explanation: v.optional(v.string()),
     marks: v.optional(v.number()),
     negativeMarks: v.optional(v.number()),
@@ -86,7 +86,7 @@ export const bulkCreate = mutation({
         negativeMarks: v.optional(v.number()),
       })
     ),
-    testId: v.id("tests"),
+    sectionId: v.id("sections"),
   },
   handler: async (ctx, args) => {
     const timestamp = Date.now();
@@ -95,7 +95,7 @@ export const bulkCreate = mutation({
     for (const q of args.questions) {
       const questionId = await ctx.db.insert("questions", {
         ...q,
-        testId: args.testId,
+        sectionId: args.sectionId,
         createdAt: timestamp,
         updatedAt: timestamp,
       });

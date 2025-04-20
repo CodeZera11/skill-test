@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as categories from "../categories.js";
 import type * as questions from "../questions.js";
+import type * as sections from "../sections.js";
 import type * as subCategories from "../subCategories.js";
 import type * as tests from "../tests.js";
 
@@ -29,6 +30,7 @@ import type * as tests from "../tests.js";
 declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   questions: typeof questions;
+  sections: typeof sections;
   subCategories: typeof subCategories;
   tests: typeof tests;
 }>;

@@ -30,7 +30,7 @@ export default defineSchema({
     name: v.string(),
     description: v.optional(v.string()),
     subCategoryId: v.id("subCategories"),
-    totalQuestions: v.number(),
+    totalQuestions: v.optional(v.number()),
     duration: v.optional(v.number()), // in minutes
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -38,12 +38,24 @@ export default defineSchema({
     searchField: "name",
   }),
 
-  // Questions within each test
+  // Sections within each test (e.g., "General Knowledge", "Mathematics")
+  sections: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    testId: v.id("tests"),
+    totalQuestions: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).searchIndex("search_name", {
+    searchField: "name",
+  }),
+
+  // Questions within each section
   questions: defineTable({
     question: v.string(),
     options: v.array(v.string()),
     correctAnswer: v.number(), // Index of the correct option
-    testId: v.id("tests"),
+    sectionId: v.id("sections"),
     explanation: v.optional(v.string()),
     marks: v.optional(v.number()), // marks for this question
     negativeMarks: v.optional(v.number()), // negative marking if any
