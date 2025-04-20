@@ -48,8 +48,18 @@ export const AddTestSchema = z.object({
         .string()
         .max(500, { message: "Explanation must be less than 500 characters" })
         .optional(),
-      marks: z.number().optional(),
-      negativeMarks: z.number().optional(),
+      marks: z
+        .string()
+        .refine((value) => !isNaN(Number(value)), {
+          message: "Marks must be a number",
+        })
+        .optional(),
+      negativeMarks: z
+        .string()
+        .refine((value) => !isNaN(Number(value)), {
+          message: "Negative marks must be a number",
+        })
+        .optional(),
     })
   ),
 
