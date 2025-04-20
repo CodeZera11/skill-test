@@ -13,13 +13,13 @@ export const TableSkeleton = ({
 }: TableSkeletonProps) => {
   return (
     <div className="w-full space-y-4">
-      <div className="flex items-center justify-between">
+      {/* <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Skeleton className="h-8 w-24" />
           <Skeleton className="h-8 w-[70px]" />
         </div>
         <Skeleton className="h-8 w-[250px]" />
-      </div>
+      </div> */}
       <div className="rounded-md border">
         <div className="border-b">
           <div className="grid grid-cols-5 gap-4 p-4">

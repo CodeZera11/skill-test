@@ -1,41 +1,47 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { Doc, Id } from "./_generated/dataModel";
-
-type TCategory = Doc<"categories">;
-type TSubCategory = Doc<"subCategories">;
 
 // Queries
 export const list = query({
   args: {
     searchQuery: v.optional(v.string()),
-    page: v.optional(v.number()),
-    limit: v.optional(v.number()),
-    sortBy: v.optional(v.union(v.literal("name"), v.literal("createdAt"))),
+    // sortBy: v.optional(v.union(v.literal("name"), v.literal("createdAt"))),
     sortOrder: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+    // paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
-    const { searchQuery, page = 1, limit = 10, sortBy = "createdAt", sortOrder = "desc" } = args;
+    const { searchQuery, sortOrder } = args;
+    const query = ctx.db.query("categories").order(sortOrder ? sortOrder : "asc");
 
-    let query = ctx.db.query("categories");
-
-    // Apply search filter
     if (searchQuery) {
-      query = query.filter((q) => 
-        q.field("name").eq(searchQuery)
+      const searchData = await ctx.db
+        .query("categories")
+        .withSearchIndex("search_name", (q) => {
+          return q.search("name", searchQuery);
+        })
+        .collect();
+
+      const filteredCategoriesWithSubcategories = await Promise.all(
+        searchData.map(async (category) => {
+          const subcategories = await ctx.db
+            .query("subCategories")
+            .filter((q) => q.eq(q.field("categoryId"), category._id))
+            .collect();
+          return {
+            ...category,
+            _subcategoriesCount: subcategories.length,
+          };
+        })
       );
+      return filteredCategoriesWithSubcategories;
     }
 
-    // Get total count
-    const totalCount = await query.collect().then(items => items.length);
-
-    // Apply sorting and pagination
-    const skip = (page - 1) * limit;
-    query = query.order("createdAt", "desc").take(limit);
+    // if (sortOrder) {
+      
+    // }
 
     const items = await query.collect();
 
-    // Get subcategory counts
     const categoriesWithCounts = await Promise.all(
       items.map(async (category) => {
         const subcategories = await ctx.db
@@ -50,12 +56,7 @@ export const list = query({
       })
     );
 
-    return {
-      items: categoriesWithCounts,
-      totalCount,
-      pageCount: Math.ceil(totalCount / limit),
-      currentPage: page
-    };
+    return categoriesWithCounts;
   },
 });
 

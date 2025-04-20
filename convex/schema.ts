@@ -8,6 +8,9 @@ export default defineSchema({
     description: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
+  }).searchIndex("search_name", {
+    searchField: "name",
+    filterFields: ["createdAt", "updatedAt"],
   }),
 
   // Sub-categories (e.g., "Memory Based Papers", "Practice Papers")
