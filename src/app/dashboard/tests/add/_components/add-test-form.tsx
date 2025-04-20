@@ -144,6 +144,11 @@ const AddTestForm = () => {
         {
           loading: "Creating test...",
           success: () => {
+
+            steps.forEach((step) => {
+              localStorage.removeItem(step.key)
+            })
+
             router.push("/dashboard/tests")
             return "Test created successfully"
           },
@@ -222,26 +227,21 @@ const AddTestForm = () => {
 
             {currentStep === 0 && (
               <div className="space-y-4">
-                <SelectElement
-                  name="subCategoryId"
-                  label="Sub Category"
-                  placeholder="Select a sub category"
-                  className="w-full"
-                  options={subCategories?.map((subCategory: { name: string, _id: string }) => ({
-                    label: subCategory.name,
-                    value: subCategory._id,
-                  })) ?? []}
-                />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <InputElement
                     name="name"
                     label="Test Name"
                     placeholder="Enter test name"
                   />
-                  <NumberInputElement
-                    name="duration"
-                    label="Duration (minutes)"
-                    placeholder="Enter test duration (optional)"
+                  <SelectElement
+                    name="subCategoryId"
+                    label="Sub Category"
+                    placeholder="Select a sub category"
+                    className="w-full"
+                    options={subCategories?.map((subCategory: { name: string, _id: string }) => ({
+                      label: subCategory.name,
+                      value: subCategory._id,
+                    })) ?? []}
                   />
                 </div>
                 <TextareaElement

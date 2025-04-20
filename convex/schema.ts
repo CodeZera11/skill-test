@@ -32,6 +32,7 @@ export default defineSchema({
     description: v.optional(v.string()),
     subCategoryId: v.id("subCategories"),
     totalQuestions: v.optional(v.number()),
+    totalMarks: v.optional(v.number()),
     duration: v.optional(v.number()), // in minutes
     createdAt: v.number(),
     updatedAt: v.number(),

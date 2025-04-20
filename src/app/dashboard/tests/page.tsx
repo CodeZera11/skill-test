@@ -2,12 +2,11 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { CircleHelp, Clock, Filter, Plus, Search, SortAsc } from "lucide-react"
+import { CircleCheck, CircleHelp, Clock, Plus, Search, SortAsc } from "lucide-react"
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
@@ -67,20 +66,6 @@ export default function TestsPage() {
           />
         </div>
         <div className="flex gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="shrink-0">
-                <Filter className="mr-2 h-4 w-4" />
-                Filter
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[200px]">
-              <DropdownMenuItem>All Tests</DropdownMenuItem>
-              <DropdownMenuItem>Recently Updated</DropdownMenuItem>
-              <DropdownMenuItem>No Time Limit</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           <Select value={sortOrder} onValueChange={(val: TSortOrder) => setSortOrder(val)}>
             <SelectTrigger className="w-[180px] shrink-0">
               <SortAsc className="mr-2 h-4 w-4" />
@@ -159,16 +144,22 @@ export default function TestsPage() {
                 </div>
               </CardHeader>
               <CardContent className="flex-1">
-                <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="flex items-center justify-between gap-2 text-sm">
                   <div className="flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5 text-emerald-500" />
                     <p>{test.duration ? `${test.duration} min` : "No time limit"}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <CircleCheck className="h-3.5 w-3.5 text-orange-500" />
+                    <span className="font-medium">{test.totalMarks}</span>
+                    <span className="text-muted-foreground">marks</span>
                   </div>
                   <div className="flex items-center gap-1.5 justify-end">
                     <CircleHelp className="h-3.5 w-3.5 text-blue-500" />
                     <span className="font-medium">{test.totalQuestions}</span>
                     <span className="text-muted-foreground">questions</span>
                   </div>
+                  
                 </div>
                 <div className="mt-4 flex items-center gap-1.5">
                   {/* <span className="text-sm text-muted-foreground">Sub-Category:</span> */}

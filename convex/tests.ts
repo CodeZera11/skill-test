@@ -205,10 +205,6 @@ export const create = mutation({
   handler: async (ctx, args) => {
     const timestamp = Date.now();
 
-    // 1. Create the test
-    // 2. Create sections
-    // 3. Create questions
-
     const test = await ctx.db.insert("tests", {
       name: args.name,
       description: args.description || undefined,
@@ -216,6 +212,10 @@ export const create = mutation({
       totalQuestions: args.questions.length,
       duration: args.sections.reduce(
         (acc, section) => acc + (section.duration || 0),
+        0
+      ),
+      totalMarks: args.questions.reduce(
+        (acc, question) => acc + Number(question.marks || 0),
         0
       ),
       createdAt: timestamp,
@@ -247,6 +247,7 @@ export const create = mutation({
               options: question.options,
               correctAnswer: question.correctAnswer,
               sectionId,
+              explanation: question.explanation || undefined,
               marks: Number(question.marks),
               negativeMarks: Number(question.negativeMarks),
               createdAt: timestamp,
@@ -304,6 +305,10 @@ export const update = mutation({
       description: description || undefined,
       subCategoryId,
       totalQuestions,
+      totalMarks: questions.reduce(
+        (acc, question) => acc + Number(question.marks || 0),
+        0
+      ),
       duration: duration || undefined,
       updatedAt: Date.now(),
     });
