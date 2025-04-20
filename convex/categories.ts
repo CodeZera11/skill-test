@@ -5,9 +5,7 @@ import { v } from "convex/values";
 export const list = query({
   args: {
     searchQuery: v.optional(v.string()),
-    // sortBy: v.optional(v.union(v.literal("name"), v.literal("createdAt"))),
     sortOrder: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
-    // paginationOpts: paginationOptsValidator,
   },
   handler: async (ctx, args) => {
     const { searchQuery, sortOrder } = args;

@@ -20,6 +20,9 @@ export default defineSchema({
     categoryId: v.id("categories"),
     createdAt: v.number(),
     updatedAt: v.number(),
+  }).searchIndex("search_name", {
+    searchField: "name",
+    filterFields: ["createdAt", "updatedAt"],
   }),
 
   // Tests (e.g., "Test 1", "Test 2" under Memory Based Papers)

@@ -20,7 +20,7 @@ export const AddTestSchema = z.object({
   totalQuestions: z
     .number()
     .min(1, { message: "Total questions must be at least 1" })
-    .max(100, { message: "Total questions must be less than 100" }),
+    .max(200, { message: "Total questions must be less than 200" }),
 });
 
 export type AddTestRequest = z.infer<typeof AddTestSchema>;

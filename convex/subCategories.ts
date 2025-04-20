@@ -20,13 +20,52 @@ export type SubCategoryWithTests = {
   }[];
 };
 
-// Queries
 export const listWithTests = query({
-  handler: async (ctx) => {
-    const subCategories = await ctx.db.query("subCategories").order("desc").collect();
+  args: {
+    searchQuery: v.optional(v.string()),
+    sortOrder: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+  },
+  handler: async (ctx, args) => {
+    const { searchQuery, sortOrder } = args;
+    const subCategories = await ctx.db
+      .query("subCategories")
+      .order(sortOrder ? sortOrder : "asc");
 
-    return await Promise.all(
-      subCategories.map(async (subCategory) => {
+    if (searchQuery) {
+      const searchData = await ctx.db
+        .query("subCategories")
+        .withSearchIndex("search_name", (q) => {
+          return q.search("name", searchQuery);
+        }).collect();
+
+      const filteredSubCategoriesWithTests = await Promise.all(
+        searchData.map(async (subCategory) => {
+          const category = await ctx.db.get(subCategory.categoryId);
+          const tests = await ctx.db
+            .query("tests")
+            .filter((q) => q.eq(q.field("subCategoryId"), subCategory._id))
+            .collect();
+
+          return {
+            ...subCategory,
+            category: {
+              _id: category!._id,
+              name: category!.name,
+            },
+            tests: tests.map((test) => ({
+              _id: test._id,
+              name: test.name,
+            })),
+          };
+        })
+      );
+      return filteredSubCategoriesWithTests;
+    }
+
+    const items = await subCategories.collect();
+
+    const data = await Promise.all(
+      items.map(async (subCategory) => {
         const category = await ctx.db.get(subCategory.categoryId);
         const tests = await ctx.db
           .query("tests")
@@ -46,6 +85,8 @@ export const listWithTests = query({
         };
       })
     );
+
+    return data;
   },
 });
 

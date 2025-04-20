@@ -8,13 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
 import { TableSkeleton } from '@/components/skeletons/table-skeleton';
-
-type SortOrderType = "asc" | "desc";
+import { TSortOrder } from '@/types';
 
 const CategoriesTable = () => {
   const [inputValue, setInputValue] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortOrder, setSortOrder] = useState<SortOrderType>("desc");
+  const [sortOrder, setSortOrder] = useState<TSortOrder>("desc");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -24,7 +23,6 @@ const CategoriesTable = () => {
   })
 
   useEffect(() => {
-
     if (inputValue.length === 0) {
       setSearchQuery("");
       return;
@@ -38,49 +36,6 @@ const CategoriesTable = () => {
     }
   }, [inputValue])
 
-  // if (categories === undefined) {
-  //   return (
-  //     <div className="space-y-4">
-  //       <div className="flex items-center gap-4">
-  //         <div className="flex-1 relative">
-  //           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-  //           <Input
-  //             placeholder="Search categories..."
-  //             value={inputValue}
-  //             onChange={(e) => setInputValue(e.target.value)}
-  //             className="pl-8"
-  //           />
-  //         </div>
-  //         {/* <Select
-  //           value={sortBy}
-  //           onValueChange={(value: SortByType) => setSortBy(value)}
-  //         >
-  //           <SelectTrigger className="w-[180px]">
-  //             <SelectValue placeholder="Sort by" />
-  //           </SelectTrigger>
-  //           <SelectContent>
-  //             <SelectItem value="name">Name</SelectItem>
-  //             <SelectItem value="createdAt">Created Date</SelectItem>
-  //           </SelectContent>
-  //         </Select> */}
-  //         <Select
-  //           value={sortOrder}
-  //           onValueChange={(value: SortOrderType) => setSortOrder(value)}
-  //         >
-  //           <SelectTrigger className="w-[180px]">
-  //             <SelectValue placeholder="Sort order" />
-  //           </SelectTrigger>
-  //           <SelectContent>
-  //             <SelectItem value="asc">Ascending</SelectItem>
-  //             <SelectItem value="desc">Descending</SelectItem>
-  //           </SelectContent>
-  //         </Select>
-  //       </div>
-
-  //     </div>)
-  // }
-
-
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4">
@@ -93,21 +48,9 @@ const CategoriesTable = () => {
             className="pl-8"
           />
         </div>
-        {/* <Select
-          value={sortBy}
-          onValueChange={(value: SortByType) => setSortBy(value)}
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="name">Name</SelectItem>
-            <SelectItem value="createdAt">Created Date</SelectItem>
-          </SelectContent>
-        </Select> */}
         <Select
           value={sortOrder}
-          onValueChange={(value: SortOrderType) => setSortOrder(value)}
+          onValueChange={(value: TSortOrder) => setSortOrder(value)}
         >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Sort order" />
