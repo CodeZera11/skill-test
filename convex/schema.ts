@@ -34,6 +34,8 @@ export default defineSchema({
     duration: v.optional(v.number()), // in minutes
     createdAt: v.number(),
     updatedAt: v.number(),
+  }).searchIndex("search_name", {
+    searchField: "name",
   }),
 
   // Questions within each test

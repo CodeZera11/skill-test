@@ -20,8 +20,40 @@ export type TestWithDetails = {
 
 // Queries
 export const listWithDetails = query({
-  handler: async (ctx) => {
-    const tests = await ctx.db.query("tests").order("desc").collect();
+  args: {
+    searchQuery: v.optional(v.string()),
+    sortOrder: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+  },
+  handler: async (ctx, args) => {
+    const { searchQuery, sortOrder } = args;
+
+    if (searchQuery) {
+      const searchData = await ctx.db
+        .query("tests")
+        .withSearchIndex("search_name", (q) => {
+          return q.search("name", searchQuery.toLowerCase());
+        })
+        .collect();
+
+      return await Promise.all(
+        searchData?.map(async (test) => {
+          const subCategory = await ctx.db.get(test.subCategoryId);
+
+          return {
+            ...test,
+            subCategory: {
+              _id: subCategory!._id,
+              name: subCategory!.name,
+            },
+          };
+        })
+      );
+    }
+
+    const tests = await ctx.db
+      .query("tests")
+      .order(sortOrder ?? "desc")
+      .collect();
 
     return await Promise.all(
       tests.map(async (test) => {
@@ -121,4 +153,3 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
   },
 });
-
