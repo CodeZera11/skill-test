@@ -63,5 +63,5 @@ export default defineSchema({
     negativeMarks: v.optional(v.number()), // negative marking if any
     createdAt: v.number(),
     updatedAt: v.number(),
-  }),
+  }).index("by_section", ["sectionId"]),
 });

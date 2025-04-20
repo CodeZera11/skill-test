@@ -1,4 +1,5 @@
 import { mutation, query } from "./_generated/server";
+import { Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 
@@ -91,6 +92,38 @@ export const getById = query({
   args: { id: v.id("tests") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
+  },
+});
+
+// Get test with all details for editing
+export const getTestWithDetails = query({
+  args: { testId: v.id("tests") },
+  handler: async (ctx, args) => {
+    const test = await ctx.db.get(args.testId);
+    if (!test) throw new Error("Test not found");
+
+    const sections = await ctx.db
+      .query("sections")
+      .filter((q) => q.eq(q.field("testId"), args.testId))
+      .collect();
+
+    const questions: Doc<"questions">[] = [];
+    for (const section of sections) {
+      const sectionQuestions = await ctx.db
+        .query("questions")
+        .withIndex("by_section")
+        .filter((q) => q.eq(q.field("sectionId"), section._id))
+        .collect();
+      questions.push(...sectionQuestions);
+    }
+
+    return {
+      ...test,
+      sections: sections.map(section => ({
+        ...section,
+        questions: questions.filter(q => q.sectionId === section._id)
+      }))
+    };
   },
 });
 
