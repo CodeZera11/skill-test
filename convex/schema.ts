@@ -44,6 +44,7 @@ export default defineSchema({
     name: v.string(),
     description: v.optional(v.string()),
     testId: v.id("tests"),
+    duration: v.optional(v.number()),
     totalQuestions: v.number(),
     createdAt: v.number(),
     updatedAt: v.number(),

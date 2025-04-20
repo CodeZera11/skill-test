@@ -43,7 +43,7 @@ export const AddTestSchema = z.object({
         .min(2, { message: "At least two options are required" }),
       // Index of the correct option
       correctAnswer: z.number(),
-      sectionId: z.string().min(1, { message: "Section is required" }),
+      sectionKey: z.string().min(1, { message: "Section is required" }),
       explanation: z
         .string()
         .max(500, { message: "Explanation must be less than 500 characters" })

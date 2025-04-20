@@ -99,7 +99,9 @@ const AddTestForm = () => {
           options: ["", "", "", ""],
           correctAnswer: 0,
           explanation: "",
-          sectionId: "",
+          sectionKey: "",
+          marks: "1",
+          negativeMarks: "0"
         }
       ]
     }
@@ -128,6 +130,7 @@ const AddTestForm = () => {
 
   const handleSubmit = async () => {
     const values = form.getValues();
+    console.log({ values })
     try {
       toast.promise(
         createTest({
@@ -135,7 +138,9 @@ const AddTestForm = () => {
           description: values.description || undefined,
           subCategoryId: values.subCategoryId as Id<"subCategories">,
           duration: values.duration,
-          totalQuestions: values.totalQuestions
+          totalQuestions: values.questions.length,
+          sections: values.sections,
+          questions: values.questions
         }),
         {
           loading: "Creating test...",
@@ -201,7 +206,7 @@ const AddTestForm = () => {
 
   const sectionOptions = form.watch("sections").map((section) => ({
     label: section.name,
-    value: section.name.replace(" ", "_"),
+    value: section.name.toLowerCase().replace(" ", "_"),
   }))
 
 
@@ -342,7 +347,7 @@ const AddTestForm = () => {
                           <h3 className="text-xl font-medium">Question {questionIndex + 1}</h3>
                           <div className="flex items-end md:gap-3  flex-wrap md:flex-nowrap gap-10">
                             <SelectElement
-                              name={`questions.${questionIndex}.sectionId`}
+                              name={`questions.${questionIndex}.sectionKey`}
                               label="Section"
                               placeholder="Select section"
                               className="w-[80px] md:w-[180px] h-9"
@@ -461,7 +466,7 @@ const AddTestForm = () => {
                         question: "",
                         options: ["", "", "", ""],
                         correctAnswer: 0,
-                        sectionId: "general",
+                        sectionKey: "",
                         explanation: "",
                         marks: `1`,
                         negativeMarks: `0`,

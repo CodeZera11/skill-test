@@ -118,14 +118,80 @@ export const create = mutation({
     subCategoryId: v.id("subCategories"),
     totalQuestions: v.optional(v.number()),
     duration: v.optional(v.number()),
+    questions: v.array(
+      v.object({
+        question: v.string(),
+        options: v.array(v.string()),
+        correctAnswer: v.number(),
+        sectionKey: v.string(),
+        explanation: v.optional(v.string()),
+        marks: v.optional(v.string()),
+        negativeMarks: v.optional(v.string()),
+      })
+    ),
+    sections: v.array(
+      v.object({
+        name: v.string(),
+        description: v.optional(v.string()),
+        duration: v.optional(v.number()),
+        totalQuestions: v.optional(v.number()),
+      })
+    ),
   },
   handler: async (ctx, args) => {
     const timestamp = Date.now();
-    return await ctx.db.insert("tests", {
-      ...args,
+
+    // 1. Create the test
+    // 2. Create sections
+    // 3. Create questions
+
+    const test = await ctx.db.insert("tests", {
+      name: args.name,
+      description: args.description || undefined,
+      subCategoryId: args.subCategoryId,
+      totalQuestions: args.questions.length,
+      duration: args.sections.reduce(
+        (acc, section) => acc + (section.duration || 0),
+        0
+      ),
       createdAt: timestamp,
       updatedAt: timestamp,
     });
+
+    await Promise.all(
+      args.sections.map(async (section) => {
+        const sectionQuestions = section.totalQuestions || 0;
+        const sectionId = await ctx.db.insert("sections", {
+          name: section.name,
+          description: section.description || undefined,
+          duration: section.duration,
+          totalQuestions: sectionQuestions,
+          testId: test,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        });
+
+        const questionsBySection = args.questions.filter(
+          (question) =>
+            question.sectionKey === section.name.toLowerCase().replace(" ", "_")
+        );
+
+        await Promise.all(
+          questionsBySection.map(async (question) => {
+            return await ctx.db.insert("questions", {
+              question: question.question,
+              options: question.options,
+              correctAnswer: question.correctAnswer,
+              sectionId,
+              marks: Number(question.marks),
+              negativeMarks: Number(question.negativeMarks),
+              createdAt: timestamp,
+              updatedAt: timestamp,
+            });
+          })
+        );
+      })
+    );
   },
 });
 
