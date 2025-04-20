@@ -22,7 +22,6 @@ export default function TestsPage() {
   const [sortOrder, setSortOrder] = useState<TSortOrder>("asc")
 
   useEffect(() => {
-
     if (inputValue.length === 0) {
       setSearchQuery("")
       return
@@ -41,6 +40,8 @@ export default function TestsPage() {
     sortOrder
   });
   const deleteTest = useMutation(api.tests.remove)
+
+  console.log("tests", tests)
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -97,7 +98,7 @@ export default function TestsPage() {
 
       <Separator />
 
-      {tests === null ? (
+      {(tests === null || tests?.length === 0) ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="rounded-full bg-muted p-3">
             <Search className="h-6 w-6 text-muted-foreground" />
@@ -163,7 +164,7 @@ export default function TestsPage() {
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5 text-emerald-500" />
-                    <span>{test.duration ? `${test.duration} min` : "No time limit"}</span>
+                    <p>{test.duration ? `${test.duration} min` : "No time limit"}</p>
                   </div>
                   <div className="flex items-center gap-1.5 justify-end">
                     <CircleHelp className="h-3.5 w-3.5 text-blue-500" />

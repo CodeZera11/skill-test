@@ -18,6 +18,7 @@ export default defineSchema({
     name: v.string(),
     description: v.optional(v.string()),
     categoryId: v.id("categories"),
+    imageStorageId: v.id("_storage"),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).searchIndex("search_name", {

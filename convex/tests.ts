@@ -96,14 +96,14 @@ export const getById = query({
 
 // Get test with its questions
 export const getTestWithQuestions = query({
-  args: { testId: v.id("tests") },
+  args: { sectionId: v.id("sections") },
   handler: async (ctx, args) => {
-    const test = await ctx.db.get(args.testId);
+    const test = await ctx.db.get(args.sectionId);
     if (!test) return null;
 
     const questions = await ctx.db
       .query("questions")
-      .filter((q) => q.eq(q.field("testId"), args.testId))
+      .filter((q) => q.eq(q.field("sectionId"), args.sectionId))
       .collect();
 
     return { ...test, questions };
@@ -116,7 +116,7 @@ export const create = mutation({
     name: v.string(),
     description: v.optional(v.string()),
     subCategoryId: v.id("subCategories"),
-    totalQuestions: v.number(),
+    totalQuestions: v.optional(v.number()),
     duration: v.optional(v.number()),
   },
   handler: async (ctx, args) => {

@@ -62,7 +62,7 @@ export default function DashboardLayout({
               <ModeToggle />
             </div>
           </header>
-          <main className="flex-1 w-full">
+          <main className="flex-1 w-full px-4">
             {children}
           </main>
         </SidebarInset>

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const AddSubCategorySchema = z.object({
+  imageStorageId: z.string().min(1, { message: "Logo is required" }),
   name: z
     .string()
     .min(1, { message: "Name is required" })

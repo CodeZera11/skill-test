@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as categories from "../categories.js";
+import type * as files from "../files.js";
 import type * as questions from "../questions.js";
 import type * as sections from "../sections.js";
 import type * as subCategories from "../subCategories.js";
@@ -29,6 +30,7 @@ import type * as tests from "../tests.js";
  */
 declare const fullApi: ApiFromModules<{
   categories: typeof categories;
+  files: typeof files;
   questions: typeof questions;
   sections: typeof sections;
   subCategories: typeof subCategories;

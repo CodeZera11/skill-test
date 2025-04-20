@@ -28,7 +28,6 @@ const AddTestForm = () => {
       subCategoryId: "",
       description: "",
       duration: 30,
-      totalQuestions: 1,
     }
   })
 
@@ -70,6 +69,7 @@ const AddTestForm = () => {
               name="subCategoryId"
               label="Sub Category"
               placeholder="Select a sub category"
+              className="w-full"
               options={subCategories?.map((subCategory: { name: string, _id: string }) => ({
                 label: subCategory.name,
                 value: subCategory._id,
@@ -93,7 +93,7 @@ const AddTestForm = () => {
               />
               <NumberInputElement
                 name="totalQuestions"
-                label="Total Questions"
+                label="Total Questions (optional)"
                 placeholder="Enter total questions"
               />
             </div>

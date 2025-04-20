@@ -119,6 +119,7 @@ export const create = mutation({
     name: v.string(),
     description: v.optional(v.string()),
     categoryId: v.id("categories"),
+    imageStorageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
     const timestamp = Date.now();
@@ -126,6 +127,7 @@ export const create = mutation({
       name: args.name,
       description: args.description,
       categoryId: args.categoryId,
+      imageStorageId: args.imageStorageId,
       createdAt: timestamp,
       updatedAt: timestamp,
     });
@@ -138,6 +140,7 @@ export const update = mutation({
     name: v.string(),
     description: v.optional(v.string()),
     categoryId: v.id("categories"),
+    imageStorageId: v.optional(v.id("_storage")),
   },
   handler: async (ctx, args) => {
     const { id, ...data } = args;
