@@ -17,6 +17,29 @@ export type TestWithDetails = {
     _id: Id<"subCategories">;
     name: string;
   };
+  sections: {
+    _id: Id<"sections">;
+    name: string;
+    description?: string;
+    duration?: number;
+    totalQuestions?: number;
+    testId: Id<"tests">;
+    createdAt: number;
+    updatedAt: number;
+  }[];
+  questions: {
+    _id: Id<"questions">;
+    question: string;
+    options: string[];
+    correctAnswer: number;
+    sectionId: Id<"sections">;
+    explanation?: string;
+    marks?: number;
+    sectionKey: string;
+    negativeMarks?: number;
+    createdAt: number;
+    updatedAt: number;
+  }[];
 };
 
 // Queries
@@ -95,7 +118,6 @@ export const getById = query({
   },
 });
 
-// Get test with all details for editing
 export const getTestWithDetails = query({
   args: { testId: v.id("tests") },
   handler: async (ctx, args) => {
@@ -119,10 +141,19 @@ export const getTestWithDetails = query({
 
     return {
       ...test,
-      sections: sections.map(section => ({
+      questions: questions.map((question) => {
+        const section = sections.find(
+          (s) => s._id.toString() === question.sectionId.toString()
+        );
+        return {
+          ...question,
+          sectionKey: section?.name.toLowerCase().replace(" ", "_"),
+        };
+      }),
+      sections: sections.map((section) => ({
         ...section,
-        questions: questions.filter(q => q.sectionId === section._id)
-      }))
+        questions: questions.filter((q) => q.sectionId === section._id),
+      })),
     };
   },
 });
@@ -234,15 +265,107 @@ export const update = mutation({
     name: v.string(),
     description: v.optional(v.string()),
     subCategoryId: v.id("subCategories"),
-    totalQuestions: v.number(),
-    duration: v.optional(v.number()),
+    totalQuestions: v.optional(v.number()),
+    duration: v.number(),
+    questions: v.array(
+      v.object({
+        question: v.string(),
+        options: v.array(v.string()),
+        correctAnswer: v.number(),
+        sectionKey: v.string(),
+        explanation: v.optional(v.string()),
+        marks: v.optional(v.string()),
+        negativeMarks: v.optional(v.string()),
+      })
+    ),
+    sections: v.array(
+      v.object({
+        name: v.string(),
+        description: v.optional(v.string()),
+        duration: v.optional(v.number()),
+        totalQuestions: v.optional(v.number()),
+      })
+    ),
   },
   handler: async (ctx, args) => {
-    const { id, ...data } = args;
-    return await ctx.db.patch(id, {
-      ...data,
+    const {
+      id,
+      name,
+      questions,
+      sections,
+      subCategoryId,
+      description,
+      duration,
+      totalQuestions,
+    } = args;
+
+    await ctx.db.patch(id, {
+      name,
+      description: description || undefined,
+      subCategoryId,
+      totalQuestions,
+      duration: duration || undefined,
       updatedAt: Date.now(),
     });
+
+    // Delete all sections and questions related to this test
+    const sectionsToDelete = await ctx.db
+      .query("sections")
+      .filter((q) => q.eq(q.field("testId"), id))
+      .collect();
+
+    await Promise.all(
+      sectionsToDelete.map(async (section) => {
+        const questionsToDelete = await ctx.db
+          .query("questions")
+          .filter((q) => q.eq(q.field("sectionId"), section._id))
+          .collect();
+        await Promise.all(
+          questionsToDelete.map(async (question) => {
+            await ctx.db.delete(question._id);
+          })
+        );
+
+        await ctx.db.delete(section._id);
+      })
+    );
+
+    // Create new sections
+    await Promise.all(
+      sections.map(async (section) => {
+        const sectionQuestions = section.totalQuestions || 0;
+        const sectionId = await ctx.db.insert("sections", {
+          name: section.name,
+          description: section.description || undefined,
+          duration: section.duration,
+          totalQuestions: sectionQuestions,
+          testId: id,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        });
+
+        const questionsBySection = questions.filter(
+          (question) =>
+            question.sectionKey === section.name.toLowerCase().replace(" ", "_")
+        );
+
+        await Promise.all(
+          questionsBySection.map(async (question) => {
+            return await ctx.db.insert("questions", {
+              question: question.question,
+              options: question.options,
+              correctAnswer: question.correctAnswer,
+              sectionId,
+              explanation: question.explanation || undefined,
+              marks: Number(question.marks),
+              negativeMarks: Number(question.negativeMarks),
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            });
+          })
+        );
+      })
+    );
   },
 });
 

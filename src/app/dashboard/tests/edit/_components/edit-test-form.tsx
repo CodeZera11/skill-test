@@ -6,7 +6,7 @@ import { useQuery, useMutation } from "convex/react"
 import { api } from "../../../../../../convex/_generated/api"
 import { Id } from "../../../../../../convex/_generated/dataModel"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { AddTestRequest, AddTestSchema } from "./add-test.schema"
+import { AddTestRequest, AddTestSchema } from "../../add/_components/add-test.schema"
 import { Form } from "@/components/ui/form"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import InputElement from "@/components/form-elements/input-element"
@@ -24,6 +24,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Input } from "@/components/ui/input"
+import { TestWithDetails } from "../../../../../../convex/tests"
 
 interface FormStep {
   id: number
@@ -68,7 +69,7 @@ const steps: FormStep[] = [
   }
 ]
 
-const AddTestForm = () => {
+const EditTestForm = ({ test }: { test: TestWithDetails }) => {
   type FieldName = keyof AddTestRequest;
 
   const router = useRouter();
@@ -77,32 +78,30 @@ const AddTestForm = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [openSections, setOpenSections] = useState<number[]>([0])
 
-  const createTest = useMutation(api.tests.create)
+  const updateTest = useMutation(api.tests.update)
   const subCategories = useQuery(api.subCategories.list)
 
   const form = useForm<AddTestRequest>({
     resolver: zodResolver(AddTestSchema),
     defaultValues: {
-      name: "",
-      subCategoryId: JSON.parse(localStorage.getItem("basic-information") || "{}")?.subCategoryId,
-      description: "",
-      sections: [{
-        name: "",
-        description: "",
-        duration: undefined,
-        totalQuestions: undefined,
-      }],
-      questions: [
-        {
-          question: "",
-          options: ["", "", "", ""],
-          correctAnswer: 0,
-          explanation: "",
-          sectionKey: "",
-          marks: "1",
-          negativeMarks: "0"
-        }
-      ]
+      name: test?.name,
+      subCategoryId: test?.subCategoryId,
+      description: test?.description,
+      sections: test?.sections.map((section) => ({
+        description: section.description,
+        duration: section.duration,
+        name: section.name,
+        totalQuestions: section.totalQuestions,
+      })) || [],
+      questions: test?.questions.map((question) => ({
+        question: question.question,
+        options: question.options,
+        correctAnswer: question.correctAnswer,
+        sectionKey: question.sectionKey,
+        explanation: question.explanation,
+        marks: `${question.marks}`,
+        negativeMarks: `${question.negativeMarks}`,
+      })) || [],
     }
   })
 
@@ -132,7 +131,8 @@ const AddTestForm = () => {
     console.log({ values })
     try {
       toast.promise(
-        createTest({
+        updateTest({
+          id: test._id as Id<"tests">,
           name: values.name,
           description: values.description || undefined,
           subCategoryId: values.subCategoryId as Id<"subCategories">,
@@ -212,8 +212,10 @@ const AddTestForm = () => {
   return (
     <Card className="max-w-7xl mx-auto">
       <CardHeader>
-        <CardTitle>Add New Test</CardTitle>
-        <CardDescription>Create a new test under a sub category</CardDescription>
+        <CardTitle>Update Test</CardTitle>
+        <CardDescription>
+          Update the test details and configuration.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -351,6 +353,7 @@ const AddTestForm = () => {
                               placeholder="Select section"
                               className="w-[80px] md:w-[180px] h-9"
                               options={sectionOptions}
+                            // defaultValue={sectionOptions[0]?.value}
                             />
                             <SelectElement
                               name={`questions.${questionIndex}.marks`}
@@ -362,7 +365,7 @@ const AddTestForm = () => {
                                 { label: "2", value: `2` },
                                 { label: "3", value: `3` },
                               ]}
-                              defaultValue="1"
+                            // defaultValue="1"
                             />
 
                             <SelectElement
@@ -499,7 +502,7 @@ const AddTestForm = () => {
                   'w-full col-span-3',
                 )}
               >
-                {currentStep === steps.length - 1 ? 'Add Test' : 'Next Step'}
+                {currentStep === steps.length - 1 ? 'Update Test' : 'Next Step'}
               </Button>
             </div>
           </form>
@@ -552,4 +555,4 @@ const StepsHeader = ({ steps, currentStepId = 0 }: StepsHeaderProps) => {
   )
 }
 
-export default AddTestForm
+export default EditTestForm

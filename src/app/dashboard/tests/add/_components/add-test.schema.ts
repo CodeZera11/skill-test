@@ -11,11 +11,6 @@ export const AddTestSchema = z.object({
     .string()
     .max(500, { message: "Description must be less than 500 characters" })
     .optional(),
-  duration: z
-    .number()
-    .min(1, { message: "Duration must be at least 1 minute" })
-    .max(180, { message: "Duration must be less than 180 minutes" })
-    .optional(),
 
   // Step-2: Section Configuration
   sections: z.array(

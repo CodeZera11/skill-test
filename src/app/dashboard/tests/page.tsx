@@ -41,8 +41,6 @@ export default function TestsPage() {
   });
   const deleteTest = useMutation(api.tests.remove)
 
-  console.log("tests", tests)
-
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -184,7 +182,7 @@ export default function TestsPage() {
                 </div>
                 <div className="flex justify-between w-full mt-4">
                   <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/tests/${test._id}/edit`}>Edit</Link>
+                    <Link href={`/dashboard/tests/edit/${test._id}`}>Edit</Link>
                   </Button>
                   <Button size="sm" variant="destructive" onClick={() => deleteTest({ id: test._id })}>
                     Delete
