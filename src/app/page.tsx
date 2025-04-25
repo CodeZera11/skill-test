@@ -73,15 +73,27 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useCurrentUser } from "@/hooks/use-current-user"
 import { SignInButton, UserButton } from "@clerk/clerk-react"
 import { Authenticated, Unauthenticated } from "convex/react"
 import Link from "next/link"
 
 export default function Home() {
+
+  const { isLoading, isAuthenticated } = useCurrentUser();
+
+  // if (isLoading) {
+  //   return (
+  //     <div className="flex items-center justify-center h-screen">
+  //       <p>Loading...</p>
+  //     </div>
+  //   )
+  // }
+
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6">Test Platform</h1>
-
+      {isAuthenticated}
 
       <Unauthenticated>
         <SignInButton />

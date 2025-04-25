@@ -8,7 +8,6 @@ export default defineSchema({
     firstName: v.optional(v.string()),
     lastName: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
-    posts: v.optional(v.array(v.id("posts"))),
   }).index("byClerkUserId", ["clerkUserId"]),
   // Main categories (e.g., "Clerk Exam")
   categories: defineTable({
