@@ -82,13 +82,15 @@ export default function Home() {
 
   const { isLoading, isAuthenticated } = useCurrentUser();
 
-  // if (isLoading) {
-  //   return (
-  //     <div className="flex items-center justify-center h-screen">
-  //       <p>Loading...</p>
-  //     </div>
-  //   )
-  // }
+
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <p>Loading...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto py-10">

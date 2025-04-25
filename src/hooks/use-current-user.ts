@@ -8,5 +8,6 @@ export function useCurrentUser() {
   return {
     isLoading: isLoading || (isAuthenticated && user === null),
     isAuthenticated: isAuthenticated && user !== null,
+    user,
   };
 }

@@ -118,6 +118,28 @@ export const getById = query({
   },
 });
 
+export const getByIdWithSections = query({
+  args: { id: v.id("tests") },
+  handler: async (ctx, args) => {
+    const test = await ctx.db.get(args.id);
+    if (test === null) {
+      throw new Error("Test not found");
+    }
+
+    const sections = await ctx.db
+      .query("sections")
+      .filter((q) => q.eq(q.field("testId"), args.id))
+      .collect();
+
+    return {
+      ...test,
+      sections: sections.map((section) => ({
+        ...section,
+      })),
+    };
+  },
+});
+
 export const getTestWithDetails = query({
   args: { testId: v.id("tests") },
   handler: async (ctx, args) => {
