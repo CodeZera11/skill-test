@@ -1,0 +1,297 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
+import { useRouter } from "next/navigation"
+import { TestTimer } from "@/components/test-timer"
+import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Id } from "../../../../../../convex/_generated/dataModel"
+import { useQuery } from "convex/react"
+import { api } from "../../../../../../convex/_generated/api"
+
+const TestPageContainer = ({ testId, questionNumber }: { questionNumber: number, testId: Id<"tests"> }) => {
+  const router = useRouter()
+
+
+  const test = useQuery(api.tests.getById, { id: testId })
+  const questions = useQuery(api.questions.getQuestionsByTestId, { testId })
+
+  const [answers, setAnswers] = useState<Record<string, number | null>>({})
+  const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>({})
+
+  // Add this function after the useState declarations
+  const saveAnswerToLocalStorage = (questionId: string, answerIndex: number | null) => {
+    // Get existing answers from localStorage
+    const savedAnswers = localStorage.getItem(`test_${testId}_answers`)
+    const allAnswers = savedAnswers ? JSON.parse(savedAnswers) : {}
+
+    // Update just this answer
+    allAnswers[questionId] = answerIndex
+
+    // Save back to localStorage
+    localStorage.setItem(`test_${testId}_answers`, JSON.stringify(allAnswers))
+
+    // Update state
+    setAnswers(allAnswers)
+  }
+
+  const saveMarkedForReviewToLocalStorage = (questionId: string, isMarked: boolean) => {
+    // Get existing marked questions from localStorage
+    const savedMarked = localStorage.getItem(`test_${testId}_marked`)
+    const allMarked = savedMarked ? JSON.parse(savedMarked) : {}
+
+    // Update just this question
+    allMarked[questionId] = isMarked
+
+    // Save back to localStorage
+    localStorage.setItem(`test_${testId}_marked`, JSON.stringify(allMarked))
+
+    // Update state
+    setMarkedForReview(allMarked)
+  }
+
+  // Initialize from localStorage on component mount
+  useEffect(() => {
+    const savedAnswers = localStorage.getItem(`test_${testId}_answers`)
+    const savedMarkedForReview = localStorage.getItem(`test_${testId}_marked`)
+
+    if (savedAnswers) {
+      setAnswers(JSON.parse(savedAnswers))
+    }
+
+    if (savedMarkedForReview) {
+      setMarkedForReview(JSON.parse(savedMarkedForReview))
+    }
+  }, [testId])
+
+  const handleAnswerChange = (value: string) => {
+    saveAnswerToLocalStorage(currentQuestion._id, Number.parseInt(value))
+  }
+
+  const handleMarkForReview = (checked: boolean) => {
+    saveMarkedForReviewToLocalStorage(currentQuestion._id, checked)
+  }
+
+  const navigateToQuestion = (number: number) => {
+    router.push(`/tests/${testId}/attempt/${number}`)
+  }
+
+  const handleTimeUp = () => {
+    // Submit the test when time is up
+    router.push(`/tests/${testId}/result`)
+  }
+
+  const submitTest = () => {
+    // In a real app, you would save the answers to your database here
+    router.push(`/tests/${testId}/result`)
+  }
+
+  if (questions === undefined || test === undefined) {
+    return (
+      <div className="container mx-auto py-10">
+        <Card>
+          <CardHeader>
+            <CardTitle>Loading Test...</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>Please wait while we prepare your test.</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!test || !questions) {
+    return (
+      <div className="container mx-auto py-10">
+        <Card>
+          <CardHeader>
+            <CardTitle>Test not found</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>The test you are looking for does not exist.</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const currentQuestion = questions[questionNumber - 1]
+
+  return (
+    <div className="container mx-auto py-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
+          <Card className="mb-6">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle>
+                Question {questionNumber} of {questions.length}
+              </CardTitle>
+              <div className="flex items-center gap-2">
+                {markedForReview[currentQuestion._id] && (
+                  <Badge variant="outline" className="bg-yellow-100">
+                    Marked for Review
+                  </Badge>
+                )}
+                <TestTimer durationInMinutes={test.duration || 0} onTimeUp={handleTimeUp} />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-lg font-medium">{currentQuestion.question}</div>
+
+              <RadioGroup
+                value={answers[currentQuestion._id]?.toString() || ""}
+                onValueChange={handleAnswerChange}
+                className="space-y-3"
+              >
+                {currentQuestion.options.map((option, index) => (
+                  <div key={index} className="flex items-center space-x-2 border p-3 rounded-md hover:bg-muted">
+                    <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+                    <Label htmlFor={`option-${index}`} className="flex-grow cursor-pointer">
+                      {option}
+                    </Label>
+                  </div>
+                ))}
+              </RadioGroup>
+
+              <div className="flex items-center space-x-2 pt-4">
+                <Checkbox
+                  id="review"
+                  checked={markedForReview[currentQuestion._id] || false}
+                  onCheckedChange={(checked) => handleMarkForReview(!!checked)}
+                />
+                <label htmlFor="review" className="text-sm font-medium leading-none">
+                  Mark for review
+                </label>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-between">
+              <Button
+                variant="outline"
+                onClick={() => navigateToQuestion(questionNumber - 1)}
+                disabled={questionNumber === 1}
+              >
+                Previous
+              </Button>
+
+              {questionNumber < questions.length ? (
+                <Button onClick={() => navigateToQuestion(questionNumber + 1)}>Next</Button>
+              ) : (
+                <Button onClick={submitTest}>Submit Test</Button>
+              )}
+            </CardFooter>
+          </Card>
+        </div>
+
+        <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Question Navigator</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col space-y-4">
+                <div className="text-sm mb-2">
+                  <span className="font-medium">Question {questionNumber}</span> of {questions.length}
+                </div>
+
+                {/* Pagination for large question sets */}
+                <div className="flex flex-col space-y-4">
+                  <div className="grid grid-cols-10 gap-1 max-h-[300px] overflow-y-auto p-1">
+                    {questions.map((_, index) => {
+                      const qNum = index + 1
+                      const qId = questions[index]._id
+                      let bgColor = "bg-muted"
+
+                      if (answers[qId] !== undefined && answers[qId] !== null) {
+                        bgColor = "bg-green-100"
+                      }
+
+                      if (markedForReview[qId]) {
+                        bgColor = "bg-yellow-100"
+                      }
+
+                      if (qNum === questionNumber) {
+                        bgColor = "bg-primary text-primary-foreground"
+                      }
+
+                      return (
+                        <Button
+                          key={qNum}
+                          variant="outline"
+                          className={`h-8 w-8 p-0 text-xs font-medium ${bgColor}`}
+                          onClick={() => navigateToQuestion(qNum)}
+                        >
+                          {qNum}
+                        </Button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Jump to question input for very large question sets */}
+                  <div className="flex items-center space-x-2 mt-4">
+                    <div className="text-sm">Jump to:</div>
+                    <input
+                      type="number"
+                      min="1"
+                      max={questions.length}
+                      className="w-16 h-8 border rounded px-2 text-sm"
+                      onChange={(e) => {
+                        const num = Number.parseInt(e.target.value)
+                        if (num >= 1 && num <= questions.length) {
+                          navigateToQuestion(num)
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const input = document.querySelector('input[type="number"]') as HTMLInputElement
+                        const num = Number.parseInt(input.value)
+                        if (num >= 1 && num <= questions.length) {
+                          navigateToQuestion(num)
+                        }
+                      }}
+                    >
+                      Go
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="mt-6 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-muted rounded"></div>
+                    <span className="text-sm">Not Answered</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-green-100 rounded"></div>
+                    <span className="text-sm">Answered</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-yellow-100 rounded"></div>
+                    <span className="text-sm">Marked for Review</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-primary rounded"></div>
+                    <span className="text-sm">Current Question</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button onClick={submitTest} className="w-full">
+                Submit Test
+              </Button>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default TestPageContainer

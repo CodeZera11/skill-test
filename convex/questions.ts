@@ -91,7 +91,7 @@ export const bulkCreate = mutation({
   handler: async (ctx, args) => {
     const timestamp = Date.now();
     const questions = [];
-    
+
     for (const q of args.questions) {
       const questionId = await ctx.db.insert("questions", {
         ...q,
@@ -101,7 +101,41 @@ export const bulkCreate = mutation({
       });
       questions.push(questionId);
     }
-    
+
     return questions;
+  },
+});
+
+export const getQuestionsByTestId = query({
+  args: {
+    testId: v.id("tests"),
+  },
+  handler: async (ctx, args) => {
+    const test = await ctx.db.get(args.testId);
+    if (!test) {
+      throw new Error("Test not found");
+    }
+
+    const sections = await ctx.db
+      .query("sections")
+      .filter((s) => s.eq(s.field("testId"), args.testId))
+      .collect();
+
+    const data = await Promise.all(
+      sections.map(async (section) => {
+        return await ctx.db
+          .query("questions")
+          .filter((q) => q.eq(q.field("sectionId"), section._id))
+          .collect();
+      })
+    );
+
+    if (!data) {
+      throw new Error("No questions found for this test");
+    }
+
+    const result = data.flatMap((questions) => questions);
+
+    return result;
   },
 });
