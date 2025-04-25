@@ -47,9 +47,9 @@ export default defineSchema({
   }).searchIndex("search_name", {
     searchField: "name",
   }),
-
   // Sections within each test (e.g., "General Knowledge", "Mathematics")
   sections: defineTable({
+
     name: v.string(),
     description: v.optional(v.string()),
     testId: v.id("tests"),
