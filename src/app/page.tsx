@@ -1,18 +1,145 @@
+// "use client"
+
+// import { useAuthActions } from "@convex-dev/auth/react";
+// import { Button } from "@/components/ui/button";
+// import React, { useState, useEffect } from 'react';
+
+// export default function Home() {
+//   const { signIn } = useAuthActions();
+//   const [categories, setCategories] = useState<string[]>([]);
+//   const [subCategories, setSubCategories] = useState<string[]>([]);
+//   const [tests, setTests] = useState<string[]>([]);
+//   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+//   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
+
+//   useEffect(() => {
+//     // Fetch categories
+//     setCategories(["RBI Exam", "Bank PO Exam"]);
+//   }, []);
+
+//   const handleCategorySelect = (category: string) => {
+//     setSelectedCategory(category);
+//     // Fetch sub-categories based on selected category
+//     setSubCategories(["Memory Based Papers", "Practice Papers"]);
+//   };
+
+//   const handleSubCategorySelect = (subCategory: string) => {
+//     setSelectedSubCategory(subCategory);
+//     // Fetch tests based on selected sub-category
+//     setTests(["Test 1", "Test 2"]);
+//   };
+
+//   return (
+//     <div>
+//       <Button
+//         className="flex-1"
+//         variant="outline"
+//         type="button"
+//         onClick={() => void signIn("github")}
+//       >
+//         GitHub
+//       </Button>
+//       <h1>Categories</h1>
+//       {categories.map((category) => (
+//         <button key={category} onClick={() => handleCategorySelect(category)}>
+//           {category}
+//         </button>
+//       ))}
+
+//       {selectedCategory && (
+//         <div>
+//           <h2>Sub-Categories in {selectedCategory}</h2>
+//           {subCategories.map((subCategory) => (
+//             <button key={subCategory} onClick={() => handleSubCategorySelect(subCategory)}>
+//               {subCategory}
+//             </button>
+//           ))}
+//         </div>
+//       )}
+
+//       {selectedSubCategory && (
+//         <div>
+//           <h3>Tests in {selectedSubCategory}</h3>
+//           {tests.map((test) => (
+//             <button key={test}>{test}</button>
+//           ))}
+//         </div>
+//       )}
+//     </div>
+//   );
+// }
+
 "use client"
 
-import { useAuthActions } from "@convex-dev/auth/react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { SignInButton, UserButton } from "@clerk/clerk-react"
+import { Authenticated, Unauthenticated } from "convex/react"
+import Link from "next/link"
 
 export default function Home() {
-  const { signIn } = useAuthActions();
   return (
-    <Button
-      className="flex-1"
-      variant="outline"
-      type="button"
-      onClick={() => void signIn("github")}
-    >
-      GitHub
-    </Button>
-  );
+    <div className="container mx-auto py-10">
+      <h1 className="text-3xl font-bold mb-6">Test Platform</h1>
+
+
+      <Unauthenticated>
+        <SignInButton />
+      </Unauthenticated>
+      <Authenticated>
+        <UserButton />
+      </Authenticated>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Available Tests</CardTitle>
+            <CardDescription>Browse and take tests from various categories</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Select a test from our collection to begin your assessment.</p>
+          </CardContent>
+          <CardFooter>
+            <Link href="/tests" className="w-full">
+              <Button className="w-full">Browse Tests</Button>
+            </Link>
+          </CardFooter>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>My Attempts</CardTitle>
+            <CardDescription>View your previous test attempts</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Review your performance and track your progress over time.</p>
+          </CardContent>
+          <CardFooter>
+            <Link href="/my-attempts" className="w-full">
+              <Button className="w-full" variant="outline">
+                View Attempts
+              </Button>
+            </Link>
+          </CardFooter>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Categories</CardTitle>
+            <CardDescription>Browse tests by category</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Find tests organized by subject matter and difficulty level.</p>
+          </CardContent>
+          <CardFooter>
+            <Link href="/categories" className="w-full">
+              <Button className="w-full" variant="outline">
+                View Categories
+              </Button>
+            </Link>
+          </CardFooter>
+        </Card>
+      </div>
+    </div>
+  )
 }

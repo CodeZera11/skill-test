@@ -1,9 +1,15 @@
 import { v } from "convex/values";
-import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 
 export default defineSchema({
-  ...authTables,
+  users: defineTable({
+    email: v.string(),
+    clerkUserId: v.string(),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    posts: v.optional(v.array(v.id("posts"))),
+  }).index("byClerkUserId", ["clerkUserId"]),
   // Main categories (e.g., "Clerk Exam")
   categories: defineTable({
     name: v.string(),
@@ -67,4 +73,19 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_section", ["sectionId"]),
+
+  // Test attempts
+  testAttempts: defineTable({
+    userId: v.id("users"), // Placeholder for future auth
+    testId: v.id("tests"),
+    startTime: v.number(),
+    endTime: v.optional(v.number()),
+    score: v.optional(v.number()),
+    correctAnswers: v.optional(v.number()),
+    incorrectAnswers: v.optional(v.number()),
+    timeTaken: v.optional(v.number()), // in seconds
+    performancePercentile: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }),
 });
