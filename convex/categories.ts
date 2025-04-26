@@ -9,7 +9,9 @@ export const list = query({
   },
   handler: async (ctx, args) => {
     const { searchQuery, sortOrder } = args;
-    const query = ctx.db.query("categories").order(sortOrder ? sortOrder : "asc");
+    const query = ctx.db
+      .query("categories")
+      .order(sortOrder ? sortOrder : "asc");
 
     if (searchQuery) {
       const searchData = await ctx.db
@@ -35,7 +37,7 @@ export const list = query({
     }
 
     // if (sortOrder) {
-      
+
     // }
 
     const items = await query.collect();
@@ -101,6 +103,26 @@ export const remove = mutation({
   args: { id: v.id("categories") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
+  },
+});
+
+export const listWithSubCategories = query({
+  args: {},
+  handler: async (ctx) => {
+    const categories = await ctx.db.query("categories").take(3);
+
+    return await Promise.all(
+      categories.map(async (category) => {
+        const subcategories = await ctx.db
+          .query("subCategories")
+          .filter((q) => q.eq(q.field("categoryId"), category._id))
+          .collect();
+        return {
+          ...category,
+          subcategories,
+        };
+      })
+    );
   },
 });
 

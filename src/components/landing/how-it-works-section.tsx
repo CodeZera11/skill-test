@@ -1,0 +1,86 @@
+"use client"
+
+import { fadeIn } from "@/constants/animations"
+import { Folder } from "lucide-react"
+import { motion } from "motion/react"
+
+const HowItWorksSection = () => {
+  return (
+    <section id="how-it-works" className="py-20 bg-slate-50 dark:bg-slate-900/50">
+      <div className="container mx-auto px-4">
+        <motion.div
+          className="text-center mb-16"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={fadeIn}
+        >
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">How Skill Test Works</h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Our structured approach helps you master any competitive exam through practice and repetition
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {[
+            {
+              title: "Choose a Category",
+              description: "Select from various competitive exam categories",
+              icon: <Folder />,
+            },
+            {
+              title: "Select a Test",
+              description: "Pick from subcategory tests based on your needs",
+              icon: <Folder />
+            },
+            {
+              title: "Practice Questions",
+              description: "Answer MCQs and get instant feedback on your performance",
+              icon: <Folder />
+            },
+            {
+              title: "Track Progress",
+              description: "Monitor your improvement with detailed analytics",
+              icon: <Folder />
+            },
+          ].map((step, index) => (
+            <motion.div
+              key={index}
+              className="text-center"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              viewport={{ once: true }}
+            >
+              <div className="relative mb-6 mx-auto">
+                <div className="w-20 h-20 mx-auto relative">
+                  {step.icon}
+                  <motion.div
+                    className="absolute inset-0 rounded-full border-2 border-emerald-500"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    whileInView={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
+                    viewport={{ once: true }}
+                  />
+                </div>
+                {index < 3 && (
+                  <motion.div
+                    className="hidden lg:block absolute top-10 left-full w-full h-0.5 bg-emerald-200"
+                    initial={{ scaleX: 0, originX: 0 }}
+                    whileInView={{ scaleX: 0.8 }}
+                    transition={{ duration: 0.7, delay: index * 0.2 }}
+                    viewport={{ once: true }}
+                  />
+                )}
+              </div>
+              <h3 className="text-xl font-bold mb-2">{step.title}</h3>
+              <p className="text-muted-foreground">{step.description}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export default HowItWorksSection
