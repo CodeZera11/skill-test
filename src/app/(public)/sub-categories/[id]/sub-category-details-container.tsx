@@ -257,10 +257,10 @@ const SubCategoryDetailsContainer = ({ id }: { id: Id<"subCategories"> }) => {
                             <div className="bg-purple-100 dark:bg-purple-900/30 p-1.5 rounded-full">
                               <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                             </div>
-                            {/* <div>
+                            <div>
                               <p className="text-xs text-muted-foreground">Attempts</p>
-                              <p className="font-medium">{mockAttemptCounts[test._id]?.toLocaleString() || 0}</p>
-                            </div> */}
+                              <p className="font-medium">{test?.attempts || 0}</p>
+                            </div>
                           </div>
                         </div>
 
@@ -270,7 +270,7 @@ const SubCategoryDetailsContainer = ({ id }: { id: Id<"subCategories"> }) => {
                       </CardContent>
                       <CardFooter className="p-4 pt-0 flex gap-3">
                         <Button className="flex-1" asChild>
-                          <Link href={`/tests/${test._id}`}>Start Test</Link>
+                          <Link href={`/tests/${test._id}/instructions`}>Start Test</Link>
                         </Button>
                         <Button variant="outline" className="flex-1" asChild>
                           <Link href={`/tests/${test._id}`}>View Details</Link>

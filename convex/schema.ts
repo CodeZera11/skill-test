@@ -42,6 +42,7 @@ export default defineSchema({
     totalQuestions: v.optional(v.number()),
     totalMarks: v.optional(v.number()),
     duration: v.optional(v.number()), // in minutes
+    attempts: v.optional(v.number()), // total number of attempts of the test
     createdAt: v.number(),
     updatedAt: v.number(),
   }).searchIndex("search_name", {

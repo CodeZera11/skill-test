@@ -9,6 +9,16 @@ export const startTestAttempt = mutation({
   },
   handler: async ({ db }, { userId, testId }) => {
     const startTime = Date.now();
+
+    const test = await db
+      .query("tests")
+      .filter((q) => q.eq(q.field("_id"), testId))
+      .first();
+
+    await db.patch(testId, {
+      attempts: test?.attempts ? test.attempts + 1 : 1,
+    });
+
     const testAttemptId = await db.insert("testAttempts", {
       userId,
       testId,
