@@ -7,9 +7,12 @@ import { motion } from "framer-motion"
 import { Button } from '../ui/button'
 import { Authenticated, Unauthenticated } from 'convex/react'
 import { UserButton } from '@clerk/nextjs'
+import { useCurrentUser } from '@/hooks/use-current-user'
+import { Skeleton } from '../ui/skeleton'
 
 const LandingNav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { isLoading } = useCurrentUser()
 
   return (
     <header className="border-b sticky top-0 bg-background z-50">
@@ -47,6 +50,9 @@ const LandingNav = () => {
           <Authenticated>
             <UserButton />
           </Authenticated>
+          {isLoading && (
+            <Skeleton className='h-[28px] w-[28px] rounded-full' />
+          )}
         </nav>
       </div>
 

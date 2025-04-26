@@ -63,8 +63,6 @@ import {
   ChevronRight,
   ChevronLeft,
   CheckCircle,
-  Menu,
-  X,
   Search,
   Zap,
   Code,
@@ -77,10 +75,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { ModeToggle } from "@/components/theme-switcher"
 
 export default function CategoriesPage() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
 
   const fadeIn = {
@@ -353,74 +349,6 @@ export default function CategoriesPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="border-b sticky top-0 bg-background z-50">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center space-x-2">
-            <CheckCircle className="h-6 w-6 text-emerald-500" />
-            <span className="font-bold text-xl">Skill Test</span>
-          </Link>
-
-          {/* Mobile menu button */}
-          <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-
-          {/* Desktop navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="/" className="text-sm font-medium hover:text-emerald-500 transition-colors">
-              Home
-            </Link>
-            <Link href="/categories" className="text-sm font-medium text-emerald-500 transition-colors">
-              Categories
-            </Link>
-            <Link href="#" className="text-sm font-medium hover:text-emerald-500 transition-colors">
-              How It Works
-            </Link>
-            <ModeToggle />
-            <Button>Get Started</Button>
-          </nav>
-        </div>
-
-        {/* Mobile menu */}
-        {isMenuOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="md:hidden border-t"
-          >
-            <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
-              <Link
-                href="/"
-                className="text-sm font-medium hover:text-emerald-500 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link
-                href="/categories"
-                className="text-sm font-medium text-emerald-500 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Categories
-              </Link>
-              <Link
-                href="#"
-                className="text-sm font-medium hover:text-emerald-500 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                How It Works
-              </Link>
-              <div className="flex items-center">
-                <ModeToggle />
-              </div>
-              <Button>Get Started</Button>
-            </div>
-          </motion.div>
-        )}
-      </header>
-
       <main className="flex-1">
         {/* Page Header */}
         <section className="py-12 md:py-16 bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/30 dark:to-background">

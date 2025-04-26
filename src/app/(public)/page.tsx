@@ -1,4 +1,4 @@
-import LandingNav from "@/components/landing/landing-nav"
+
 import HeroSection from "@/components/landing/hero-section"
 import Footer from "@/components/landing/footer"
 import CtaSection from "@/components/landing/cta-section"
@@ -10,9 +10,6 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <LandingNav />
-
       <main>
         {/* Hero Section */}
         <HeroSection />
