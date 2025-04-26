@@ -1,5 +1,5 @@
 "use client"
-import { CheckCircle, Menu, X } from 'lucide-react'
+import { CheckCircle, Layout, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import React, { useState } from 'react'
 import { ModeToggle } from '../theme-switcher'
@@ -9,6 +9,7 @@ import { Authenticated, Unauthenticated } from 'convex/react'
 import { UserButton } from '@clerk/nextjs'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { Skeleton } from '../ui/skeleton'
+import { redirect } from 'next/navigation'
 
 const LandingNav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -48,7 +49,16 @@ const LandingNav = () => {
             </Button>
           </Unauthenticated>
           <Authenticated>
-            <UserButton />
+            {/* <UserButton /> */}
+            <UserButton>
+              <UserButton.MenuItems>
+                <UserButton.Action
+                  label="Dashboard"
+                  labelIcon={<Layout className='h-[16px] w-[16px]' />}
+                  onClick={() => redirect("/dashboard/categories")}
+                />
+              </UserButton.MenuItems>
+            </UserButton>
           </Authenticated>
           {isLoading && (
             <Skeleton className='h-[28px] w-[28px] rounded-full' />
