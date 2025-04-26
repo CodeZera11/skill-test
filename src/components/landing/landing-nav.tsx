@@ -5,6 +5,8 @@ import React, { useState } from 'react'
 import { ModeToggle } from '../theme-switcher'
 import { motion } from "framer-motion"
 import { Button } from '../ui/button'
+import { Authenticated, Unauthenticated } from 'convex/react'
+import { UserButton } from '@clerk/nextjs'
 
 const LandingNav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -35,7 +37,16 @@ const LandingNav = () => {
           </Link>
           <ModeToggle />
 
-          <Button>Get Started</Button>
+          <Unauthenticated>
+            <Button asChild>
+              <Link href="/sign-up">
+                Get Started
+              </Link>
+            </Button>
+          </Unauthenticated>
+          <Authenticated>
+            <UserButton />
+          </Authenticated>
         </nav>
       </div>
 

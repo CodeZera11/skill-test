@@ -1,8 +1,31 @@
 "use client"
 
 import { fadeIn } from "@/constants/animations"
-import { Folder } from "lucide-react"
+import { ChevronDown, ChevronRight, Folder } from "lucide-react"
 import { motion } from "motion/react"
+
+const StaticSteps = [
+  {
+    title: "Choose a Category",
+    description: "Select from various competitive exam categories",
+    icon: <Folder />,
+  },
+  {
+    title: "Select a Test",
+    description: "Pick from subcategory tests based on your needs",
+    icon: <Folder />
+  },
+  {
+    title: "Practice Questions",
+    description: "Answer MCQs and get instant feedback on your performance",
+    icon: <Folder />
+  },
+  {
+    title: "Track Progress",
+    description: "Monitor your improvement with detailed analytics",
+    icon: <Folder />
+  },
+]
 
 const HowItWorksSection = () => {
   return (
@@ -22,60 +45,45 @@ const HowItWorksSection = () => {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {[
-            {
-              title: "Choose a Category",
-              description: "Select from various competitive exam categories",
-              icon: <Folder />,
-            },
-            {
-              title: "Select a Test",
-              description: "Pick from subcategory tests based on your needs",
-              icon: <Folder />
-            },
-            {
-              title: "Practice Questions",
-              description: "Answer MCQs and get instant feedback on your performance",
-              icon: <Folder />
-            },
-            {
-              title: "Track Progress",
-              description: "Monitor your improvement with detailed analytics",
-              icon: <Folder />
-            },
-          ].map((step, index) => (
-            <motion.div
-              key={index}
-              className="text-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-            >
-              <div className="relative mb-6 mx-auto">
-                <div className="w-20 h-20 mx-auto relative">
-                  {step.icon}
-                  <motion.div
-                    className="absolute inset-0 rounded-full border-2 border-emerald-500"
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    whileInView={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
-                    viewport={{ once: true }}
-                  />
+          {StaticSteps.map((step, index) => (
+            <div key={index} className="flex flex-col md:flex-row items-center gap-5">
+              <motion.div
+                key={index}
+                className="text-center border p-4 rounded-md border-emerald-800/60"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+              >
+                <div className="relative mb-6 mx-auto">
+                  <div className="w-16 h-16 mx-auto relative flex items-center justify-center">
+                    {step.icon}
+                    <motion.div
+                      className="absolute inset-0 rounded-full border-2 border-emerald-500"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      whileInView={{ scale: 1, opacity: 1 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
+                      viewport={{ once: true }}
+                    />
+                  </div>
                 </div>
-                {index < 3 && (
-                  <motion.div
-                    className="hidden lg:block absolute top-10 left-full w-full h-0.5 bg-emerald-200"
-                    initial={{ scaleX: 0, originX: 0 }}
-                    whileInView={{ scaleX: 0.8 }}
-                    transition={{ duration: 0.7, delay: index * 0.2 }}
-                    viewport={{ once: true }}
-                  />
-                )}
-              </div>
-              <h3 className="text-xl font-bold mb-2">{step.title}</h3>
-              <p className="text-muted-foreground">{step.description}</p>
-            </motion.div>
+                <h3 className="text-xl font-bold mb-2">{step.title}</h3>
+                <p className="text-muted-foreground">{step.description}</p>
+              </motion.div>
+              {index < StaticSteps.length - 1 && (
+                <motion.div
+                  className="flex items-center justify-center"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                >
+                  <ChevronRight className="text-muted-foreground hidden md:block" />
+                  <ChevronDown className="text-muted-foreground md:hidden" />
+
+                </motion.div>
+              )}
+            </div>
           ))}
         </div>
       </div>

@@ -2,6 +2,9 @@
 
 import { motion } from "motion/react"
 import { Button } from "../ui/button"
+import Link from "next/link"
+import { Authenticated, Unauthenticated } from "convex/react"
+import { PageRoutes } from "@/constants/page-routes"
 
 const CtaSection = () => {
   return (
@@ -19,15 +22,31 @@ const CtaSection = () => {
             Join thousands of aspirants who are mastering competitive exams and improving their scores with Skill
             Test
           </p>
-          <Button
-            size="lg"
-            className="bg-white text-emerald-500 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800"
-          >
-            Get Started For Free
-          </Button>
+          <Unauthenticated>
+            <Button
+              size="lg"
+              className="bg-white text-emerald-500 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800"
+              asChild
+            >
+              <Link href={PageRoutes.SIGN_UP}>
+                Get Started For Free
+              </Link>
+            </Button>
+          </Unauthenticated>
+          <Authenticated>
+            <Button
+              size="lg"
+              className="bg-white text-emerald-500 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800"
+              asChild
+            >
+              <Link href={PageRoutes.CATEGORIES}>
+                Get Started For Free
+              </Link>
+            </Button>
+          </Authenticated>
         </motion.div>
       </div>
-    </section>
+    </section >
   )
 }
 

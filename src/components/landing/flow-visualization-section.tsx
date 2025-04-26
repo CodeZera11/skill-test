@@ -5,6 +5,33 @@ import { Button } from '../ui/button'
 import { motion } from 'motion/react'
 import { CheckCircle, FileText, HelpCircle, Layers, ListChecks } from 'lucide-react'
 
+const StaticSteps = [
+  {
+    level: "Categories",
+    description: "Main exam categories like Clerk Exam, SSC, Banking",
+    examples: ["Clerk Exam", "SSC Exams", "Banking Exams"],
+    icon: <FileText className="h-8 w-8" />,
+    color: "emerald",
+    count: "15+ Categories",
+  },
+  {
+    level: "Sub-Categories",
+    description: "Specific exam types within each category",
+    examples: ["Memory Based Papers", "Practice Papers", "Previous Year Papers"],
+    icon: <Layers className="h-8 w-8" />,
+    color: "teal",
+    count: "100+ Sub-Categories",
+  },
+  {
+    level: "Tests",
+    description: "Individual test papers for each sub-category",
+    examples: ["Test 1", "Test 2", "Mock Test 2023"],
+    icon: <CheckCircle className="h-8 w-8" />,
+    color: "cyan",
+    count: "500+ Tests",
+  },
+]
+
 const FlowVisualisationSection = () => {
   return (
     <section className="py-20 bg-gradient-to-b from-white to-emerald-50 dark:from-background dark:to-emerald-950/30">
@@ -32,32 +59,7 @@ const FlowVisualisationSection = () => {
           >
             {/* Interactive structure visualization */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-              {[
-                {
-                  level: "Categories",
-                  description: "Main exam categories like Clerk Exam, SSC, Banking",
-                  examples: ["Clerk Exam", "SSC Exams", "Banking Exams"],
-                  icon: <FileText className="h-8 w-8" />,
-                  color: "emerald",
-                  count: "15+ Categories",
-                },
-                {
-                  level: "Sub-Categories",
-                  description: "Specific exam types within each category",
-                  examples: ["Memory Based Papers", "Practice Papers", "Previous Year Papers"],
-                  icon: <Layers className="h-8 w-8" />,
-                  color: "teal",
-                  count: "100+ Sub-Categories",
-                },
-                {
-                  level: "Tests",
-                  description: "Individual test papers for each sub-category",
-                  examples: ["Test 1", "Test 2", "Mock Test 2023"],
-                  icon: <CheckCircle className="h-8 w-8" />,
-                  color: "cyan",
-                  count: "500+ Tests",
-                },
-              ].map((item, index) => (
+              {StaticSteps.map((item, index) => (
                 <motion.div
                   key={index}
                   className="bg-white dark:bg-slate-900 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow"
@@ -162,35 +164,6 @@ const FlowVisualisationSection = () => {
               ))}
             </div>
 
-            {/* Connecting lines */}
-            <div className="hidden md:block">
-              {/* Vertical line from first row to second row */}
-              <motion.div
-                className="absolute left-1/2 top-[calc(33%-30px)] h-[calc(67%+30px)] w-0.5 bg-emerald-200"
-                initial={{ height: 0 }}
-                whileInView={{ height: "calc(67% + 30px)" }}
-                transition={{ duration: 0.8, delay: 0.5 }}
-                viewport={{ once: true }}
-              />
-
-              {/* Horizontal lines in first row */}
-              <motion.div
-                className="absolute top-[33%] left-[calc(16.67%+20px)] h-0.5 w-[calc(66.67%-40px)] bg-emerald-200"
-                initial={{ width: 0 }}
-                whileInView={{ width: "calc(66.67% - 40px)" }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                viewport={{ once: true }}
-              />
-
-              {/* Horizontal line in second row */}
-              <motion.div
-                className="absolute top-[calc(100%-80px)] left-[calc(25%+20px)] h-0.5 w-[calc(50%-40px)] bg-emerald-200"
-                initial={{ width: 0 }}
-                whileInView={{ width: "calc(50% - 40px)" }}
-                transition={{ duration: 0.8, delay: 0.7 }}
-                viewport={{ once: true }}
-              />
-            </div>
           </motion.div>
 
           <motion.div
