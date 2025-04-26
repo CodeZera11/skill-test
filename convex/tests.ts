@@ -42,6 +42,17 @@ export type TestWithDetails = {
   }[];
 };
 
+export interface Test {
+  _id: Id<"tests">;
+  name: string;
+  description?: string;
+  subCategoryId: Id<"subCategories">;
+  totalQuestions: number | undefined;
+  duration?: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
 // Queries
 export const listWithDetails = query({
   args: {

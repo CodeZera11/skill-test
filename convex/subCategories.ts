@@ -17,6 +17,7 @@ export type SubCategoryWithTests = {
   tests: {
     _id: Id<"tests">;
     name: string;
+    totalQuestions: number;
   }[];
 };
 
@@ -36,7 +37,8 @@ export const listWithTests = query({
         .query("subCategories")
         .withSearchIndex("search_name", (q) => {
           return q.search("name", searchQuery);
-        }).collect();
+        })
+        .collect();
 
       const filteredSubCategoriesWithTests = await Promise.all(
         searchData.map(async (subCategory) => {
@@ -55,6 +57,7 @@ export const listWithTests = query({
             tests: tests.map((test) => ({
               _id: test._id,
               name: test.name,
+              totalQuestions: test.totalQuestions || 0,
             })),
           };
         })
@@ -81,6 +84,7 @@ export const listWithTests = query({
           tests: tests.map((test) => ({
             _id: test._id,
             name: test.name,
+            totalQuestions: test.totalQuestions || 0,
           })),
         };
       })
@@ -157,3 +161,31 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+// export const listWithTests = query({
+//   args: {},
+//   handler: async (ctx) => {
+//     const subCategories = await ctx.db.query("subCategories").collect();
+
+//     const data = await Promise.all(
+//       subCategories.map(async (subCategory) => {
+//         const category = await ctx.db.get(subCategory.categoryId);
+//         const tests = await ctx.db
+//           .query("tests")
+//           .filter((q) => q.eq(q.field("subCategoryId"), subCategory._id))
+//           .collect();
+
+//         return {
+//           ...subCategory,
+//           category,
+//           tests: tests.map((test) => ({
+//             _id: test._id,
+//             name: test.name,
+//           })),
+//         };
+//       })
+//     );
+
+//     return data;
+//   },
+// });

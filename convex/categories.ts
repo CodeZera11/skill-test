@@ -1,3 +1,4 @@
+import { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -161,7 +162,7 @@ export const listWithSubCategoriesAndTests = query({
 });
 
 export type Category = {
-  _id: string;
+  _id: Id<"categories">;
   name: string;
   description?: string;
   createdAt: number;
@@ -169,7 +170,7 @@ export type Category = {
 };
 
 export type SubCategory = {
-  _id: string;
+  _id: Id<"subCategories">;
   name: string;
   description?: string;
   categoryId: string;

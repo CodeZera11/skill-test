@@ -3,132 +3,26 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { ChevronRight, ChevronLeft, CheckCircle, Menu, X, Search, FileText, Clock } from "lucide-react"
+import { ChevronRight, ChevronLeft, CheckCircle, Search, FileText, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
-// Mock data based on the Convex schema
-const mockCategories = [
-  {
-    _id: "cat1",
-    name: "Clerk Exam",
-    description: "Preparation materials for clerk exams",
-    createdAt: Date.now() - 1000000,
-    updatedAt: Date.now() - 500000,
-  },
-  {
-    _id: "cat2",
-    name: "SSC Exams",
-    description: "Staff Selection Commission exam preparation",
-    createdAt: Date.now() - 2000000,
-    updatedAt: Date.now() - 300000,
-  },
-  {
-    _id: "cat3",
-    name: "Banking Exams",
-    description: "Preparation for various banking exams",
-    createdAt: Date.now() - 3000000,
-    updatedAt: Date.now() - 100000,
-  },
-]
-
-const mockSubCategories = [
-  {
-    _id: "sub1",
-    name: "Memory Based Papers",
-    description: "Papers based on candidates' memory after exams",
-    categoryId: "cat1",
-    imageStorageId: "img1",
-    createdAt: Date.now() - 900000,
-    updatedAt: Date.now() - 400000,
-  },
-  {
-    _id: "sub2",
-    name: "Practice Papers",
-    description: "Practice papers for clerk exams",
-    categoryId: "cat1",
-    imageStorageId: "img2",
-    createdAt: Date.now() - 800000,
-    updatedAt: Date.now() - 300000,
-  },
-  {
-    _id: "sub3",
-    name: "Previous Year Papers",
-    description: "Previous year papers for clerk exams",
-    categoryId: "cat1",
-    imageStorageId: "img3",
-    createdAt: Date.now() - 700000,
-    updatedAt: Date.now() - 200000,
-  },
-  {
-    _id: "sub4",
-    name: "CGL",
-    description: "Combined Graduate Level exam preparation",
-    categoryId: "cat2",
-    imageStorageId: "img4",
-    createdAt: Date.now() - 600000,
-    updatedAt: Date.now() - 100000,
-  },
-  {
-    _id: "sub5",
-    name: "CHSL",
-    description: "Combined Higher Secondary Level exam preparation",
-    categoryId: "cat2",
-    imageStorageId: "img5",
-    createdAt: Date.now() - 500000,
-    updatedAt: Date.now() - 50000,
-  },
-  {
-    _id: "sub6",
-    name: "IBPS PO",
-    description: "Institute of Banking Personnel Selection - Probationary Officer",
-    categoryId: "cat3",
-    imageStorageId: "img6",
-    createdAt: Date.now() - 400000,
-    updatedAt: Date.now() - 40000,
-  },
-  {
-    _id: "sub7",
-    name: "SBI PO",
-    description: "State Bank of India - Probationary Officer",
-    categoryId: "cat3",
-    imageStorageId: "img7",
-    createdAt: Date.now() - 300000,
-    updatedAt: Date.now() - 30000,
-  },
-]
-
-// Mock test counts for subcategories
-const mockTestCounts = {
-  sub1: 12,
-  sub2: 8,
-  sub3: 15,
-  sub4: 10,
-  sub5: 7,
-  sub6: 14,
-  sub7: 9,
-}
+import { useQuery } from "convex/react"
+import { api } from "../../../../convex/_generated/api"
+import { fadeIn, staggerContainer } from "@/constants/animations"
+import { format } from "date-fns"
 
 export default function SubCategoriesPage() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
-  const [isLoading, setIsLoading] = useState(true)
 
-  // Simulate loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false)
-    }, 1000)
-    return () => clearTimeout(timer)
-  }, [])
+  const subCategories = useQuery(api.subCategories.listWithTests, {})
+  const categories = useQuery(api.categories.list, {})
 
-  // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery)
@@ -137,8 +31,25 @@ export default function SubCategoriesPage() {
     return () => clearTimeout(timer)
   }, [searchQuery])
 
-  // Filter subcategories based on search and category filter
-  const filteredSubCategories = mockSubCategories.filter((subCategory) => {
+  const isLoading = subCategories === undefined || categories === undefined
+
+  if (subCategories === undefined || categories === undefined) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    )
+  }
+
+  if (subCategories === null || categories === null) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">No categories/sub-categories found</p>
+      </div>
+    )
+  }
+
+  const filteredSubCategories = subCategories?.filter((subCategory) => {
     const matchesSearch =
       subCategory.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
       (subCategory.description && subCategory.description.toLowerCase().includes(debouncedSearchQuery.toLowerCase()))
@@ -147,41 +58,6 @@ export default function SubCategoriesPage() {
 
     return matchesSearch && matchesCategory
   })
-
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6 },
-    },
-  }
-
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  }
-
-  // Function to format date
-  const formatDate = (timestamp) => {
-    return new Date(timestamp).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
-  }
-
-  // Function to get a random color for subcategories
-  const getSubCategoryColor = (subCategoryId) => {
-    const colors = ["emerald", "blue", "purple", "amber", "rose", "cyan", "indigo", "teal"]
-    const hash = subCategoryId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
-    return colors[hash % colors.length]
-  }
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -228,7 +104,7 @@ export default function SubCategoriesPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Categories</SelectItem>
-                      {mockCategories.map((category) => (
+                      {subCategories?.map((category) => (
                         <SelectItem key={category._id} value={category._id}>
                           {category.name}
                         </SelectItem>
@@ -259,8 +135,7 @@ export default function SubCategoriesPage() {
                 animate="visible"
               >
                 {filteredSubCategories.map((subCategory) => {
-                  const category = mockCategories.find((cat) => cat._id === subCategory.categoryId)
-                  const color = getSubCategoryColor(subCategory._id)
+                  const category = categories.find((cat) => cat._id === subCategory.categoryId)
 
                   return (
                     <motion.div
@@ -270,13 +145,10 @@ export default function SubCategoriesPage() {
                     >
                       <Card
                         className="h-full overflow-hidden dark:bg-slate-900 border-t-4"
-                        style={{
-                          borderTopColor: `var(--${color}-500)`,
-                        }}
                       >
                         <CardContent className="p-6">
                           <div className="flex items-center mb-4">
-                            <div className={`bg-${color}-100 dark:bg-${color}-900/30 p-3 rounded-full mr-4`}>
+                            <div className={`p-3 rounded-full mr-4`}>
                               <FileText className="h-5 w-5" />
                             </div>
                             <div>
@@ -294,11 +166,13 @@ export default function SubCategoriesPage() {
                           <div className="flex flex-wrap gap-2 mb-4">
                             <Badge variant="outline" className="flex items-center gap-1">
                               <FileText className="h-3 w-3" />
-                              <span>{mockTestCounts[subCategory._id] || 0} Tests</span>
+                              <span className="font-bold">
+                                {subCategory.tests.length} {subCategory.tests.length === 1 ? "Test" : "Tests"}
+                              </span>
                             </Badge>
                             <Badge variant="outline" className="flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              <span>Updated {formatDate(subCategory.updatedAt)}</span>
+                              <span className="font-bold">Updated {format(subCategory.updatedAt, "MMM dd, yyyy")}</span>
                             </Badge>
                           </div>
                         </CardContent>
@@ -322,7 +196,7 @@ export default function SubCategoriesPage() {
                 </div>
                 <h3 className="text-xl font-medium mb-2">No sub-categories found</h3>
                 <p className="text-muted-foreground mb-6">
-                  We couldn't find any sub-categories matching "{debouncedSearchQuery}"
+                  {`We couldn't find any sub-categories matching "${debouncedSearchQuery}"`}
                   {selectedCategory !== "all" && " in the selected category"}
                 </p>
                 <div className="flex flex-wrap justify-center gap-4">
