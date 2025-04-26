@@ -113,13 +113,47 @@ export const listWithSubCategories = query({
 
     return await Promise.all(
       categories.map(async (category) => {
-        const subcategories = await ctx.db
+        const subCategories = await ctx.db
           .query("subCategories")
           .filter((q) => q.eq(q.field("categoryId"), category._id))
           .collect();
         return {
           ...category,
-          subcategories,
+          subCategories,
+        };
+      })
+    );
+  },
+});
+
+export const listWithSubCategoriesAndTests = query({
+  args: {},
+  handler: async (ctx) => {
+    const categories = await ctx.db.query("categories").collect();
+
+    return await Promise.all(
+      categories.map(async (category) => {
+        const subCategories = await ctx.db
+          .query("subCategories")
+          .filter((q) => q.eq(q.field("categoryId"), category._id))
+          .collect();
+
+        const data = await Promise.all(
+          subCategories.map(async (subcategory) => {
+            const tests = await ctx.db
+              .query("tests")
+              .filter((q) => q.eq(q.field("subCategoryId"), subcategory._id))
+              .collect();
+            return {
+              ...subcategory,
+              tests,
+            };
+          })
+        );
+
+        return {
+          ...category,
+          subCategories: data,
         };
       })
     );

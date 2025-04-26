@@ -17,11 +17,11 @@ import { Badge } from "@/components/ui/badge"
 import { fadeIn, staggerContainer } from "@/constants/animations"
 import { useQuery } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
+import { PageRoutes } from "@/constants/page-routes"
 
 export default function CategoriesPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const categories = useQuery(api.categories.listWithSubCategories);
-
+  const categories = useQuery(api.categories.listWithSubCategoriesAndTests);
 
   if (categories === undefined) {
     return (
@@ -39,10 +39,12 @@ export default function CategoriesPage() {
     )
   }
 
+  console.log({ categories })
+
 
   const filteredCategories = categories
     .map((category) => {
-      const filteredSubcategories = category.subcategories.filter(
+      const filteredSubCategories = category.subCategories.filter(
         (subcategory) =>
           subcategory.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           subcategory?.description?.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -50,11 +52,11 @@ export default function CategoriesPage() {
 
       return {
         ...category,
-        subcategories: filteredSubcategories,
+        subCategories: filteredSubCategories,
         isVisible:
           category.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           category?.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          filteredSubcategories.length > 0,
+          filteredSubCategories.length > 0,
       }
     })
     .filter((category) => category.isVisible)
@@ -122,14 +124,14 @@ export default function CategoriesPage() {
                       </div>
                     </div>
 
-                    {category.subcategories.length > 0 ? (
+                    {category.subCategories.length > 0 ? (
                       <motion.div
                         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                         variants={staggerContainer}
                         initial="hidden"
                         animate="visible"
                       >
-                        {category.subcategories.map((subcategory) => (
+                        {category.subCategories.map((subcategory) => (
                           <motion.div
                             key={subcategory._id}
                             variants={fadeIn}
@@ -137,7 +139,6 @@ export default function CategoriesPage() {
                           >
                             <Card
                               className="h-full overflow-hidden dark:bg-slate-900 border-t-4"
-
                             >
                               <CardContent className="p-6">
                                 <h3 className="text-xl font-bold mb-2">{subcategory.name}</h3>
@@ -146,18 +147,33 @@ export default function CategoriesPage() {
                                 <div className="flex flex-wrap gap-2 mb-4">
                                   <Badge variant="outline" className="flex items-center gap-1">
                                     <CheckCircle className="h-3 w-3" />
-                                    <span>10 Tests</span>
+                                    <span>
+                                      {subcategory?.tests?.length + " "}
+                                      Tests
+                                    </span>
                                   </Badge>
                                   <Badge variant="outline" className="flex items-center gap-1">
                                     <Zap className="h-3 w-3" />
-                                    <span>20 Questions</span>
+                                    <span>
+                                      {subcategory?.tests?.reduce((acc, test) => acc + (test.duration || 0), 0) + " "}
+                                      Minutes
+                                    </span>
+                                  </Badge>
+                                  <Badge variant="outline" className="flex items-center gap-1">
+                                    <Zap className="h-3 w-3" />
+                                    <span>
+                                      {subcategory?.tests?.reduce((acc, test) => acc + (test.totalQuestions || 0), 0) + " "}
+                                      Questions
+                                    </span>
                                   </Badge>
                                 </div>
                               </CardContent>
                               <CardFooter className="p-4 pt-0">
-                                <Button className="w-full" variant="outline">
-                                  Explore Tests
-                                  <ChevronRight className="h-4 w-4 ml-2" />
+                                <Button className="w-full" variant="outline" asChild>
+                                  <Link href={PageRoutes.SUB_CATEGORIES + "/" + subcategory._id}>
+                                    Explore Tests
+                                    <ChevronRight className="h-4 w-4 ml-2" />
+                                  </Link>
                                 </Button>
                               </CardFooter>
                             </Card>
