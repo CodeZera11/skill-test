@@ -61,7 +61,7 @@ const CategoriesSection = () => {
                   </div>
 
                   <ul className="space-y-2 mb-6">
-                    {category.subcategories.slice(0, 2).map((sub, idx) => (
+                    {category.subCategories.slice(0, 2).map((sub, idx) => (
                       <motion.li
                         key={idx}
                         className="flex items-center"

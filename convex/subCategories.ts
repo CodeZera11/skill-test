@@ -162,30 +162,30 @@ export const remove = mutation({
   },
 });
 
-// export const listWithTests = query({
-//   args: {},
-//   handler: async (ctx) => {
-//     const subCategories = await ctx.db.query("subCategories").collect();
+export const getByIdWithCategoryAndTests = query({
+  args: {
+    id: v.id("subCategories"),
+  },
+  handler: async (ctx, args) => {
+    const subCategory = await ctx.db.get(args.id);
+    if (!subCategory) {
+      throw new Error("Subcategory not found");
+    }
 
-//     const data = await Promise.all(
-//       subCategories.map(async (subCategory) => {
-//         const category = await ctx.db.get(subCategory.categoryId);
-//         const tests = await ctx.db
-//           .query("tests")
-//           .filter((q) => q.eq(q.field("subCategoryId"), subCategory._id))
-//           .collect();
+    const category = await ctx.db.get(subCategory.categoryId);
+    if (!category) {
+      throw new Error("Category not found");
+    }
 
-//         return {
-//           ...subCategory,
-//           category,
-//           tests: tests.map((test) => ({
-//             _id: test._id,
-//             name: test.name,
-//           })),
-//         };
-//       })
-//     );
+    const tests = await ctx.db
+      .query("tests")
+      .filter((q) => q.eq(q.field("subCategoryId"), subCategory._id))
+      .collect();
 
-//     return data;
-//   },
-// });
+    return {
+      ...subCategory,
+      category,
+      tests,
+    };
+  },
+});

@@ -112,7 +112,7 @@ export const listWithSubCategories = query({
   handler: async (ctx) => {
     const categories = await ctx.db.query("categories").take(3);
 
-    return await Promise.all(
+    const data = await Promise.all(
       categories.map(async (category) => {
         const subCategories = await ctx.db
           .query("subCategories")
@@ -124,6 +124,8 @@ export const listWithSubCategories = query({
         };
       })
     );
+
+    return data;
   },
 });
 
