@@ -11,7 +11,7 @@ import { useCurrentUser } from '@/hooks/use-current-user'
 import { Skeleton } from '../ui/skeleton'
 import { redirect } from 'next/navigation'
 
-const LandingNav = () => {
+const PublicNav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { isLoading } = useCurrentUser()
 
@@ -107,4 +107,4 @@ const LandingNav = () => {
   )
 }
 
-export default LandingNav
+export default PublicNav

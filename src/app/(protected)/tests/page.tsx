@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useQuery } from "convex/react"
-import { api } from "../../../convex/_generated/api"
+import { api } from "../../../../convex/_generated/api"
 
 // This would normally fetch from your Convex database
 // const mockTests = [
@@ -38,14 +38,14 @@ export default function TestsPage() {
 
   const tests = useQuery(api.tests.list);
 
-  if(tests === undefined) {
+  if (tests === undefined) {
     return (
       <div className="container mx-auto py-10">
         <h1 className="text-3xl font-bold">Loading...</h1>
       </div>
     )
   }
- 
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">

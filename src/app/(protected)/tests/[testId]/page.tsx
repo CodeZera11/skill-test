@@ -1,5 +1,6 @@
 import TestContainer from "./test-container"
-import { Id } from "../../../../convex/_generated/dataModel"
+import { Id } from "../../../../../convex/_generated/dataModel"
+
 
 // // This would normally fetch from your Convex database based on the testId
 // const getTestDetails = (testId: string) => {
@@ -46,7 +47,8 @@ import { Id } from "../../../../convex/_generated/dataModel"
 //   return mockTests[testId as keyof typeof mockTests]
 // }
 
-export default async function TestDetailsPage(props: Promise<{ params: { testId: string } }>) {
-  const testId = (await props).params.testId;
+export default async function TestDetailsPage({ params }: { params: Promise<{ testId: string }> }) {
+  const testId = (await params).testId;
+
   return <TestContainer testId={testId as Id<"tests">} />
 }

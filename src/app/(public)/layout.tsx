@@ -1,10 +1,9 @@
-import LandingNav from '@/components/landing/landing-nav'
-import React from 'react'
+import PublicNav from '@/components/landing/public-nav'
 
 const PublicLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div>
-      <LandingNav />
+      <PublicNav />
       {children}
     </div>
   )

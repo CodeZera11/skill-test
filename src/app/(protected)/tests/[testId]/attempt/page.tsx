@@ -39,7 +39,7 @@
 //     },
 //   }
 
-import { Id } from "../../../../../convex/_generated/dataModel";
+import { Id } from "../../../../../../convex/_generated/dataModel";
 import TestInstructionsContainer from "../instructions/test-instructions-container";
 
 //   return mockTests[testId as keyof typeof mockTests]
