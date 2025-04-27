@@ -24,27 +24,25 @@ export const list = query({
 
       const filteredCategoriesWithSubcategories = await Promise.all(
         searchData.map(async (category) => {
+          const topic = await ctx.db.get(category.topicId);
           const subcategories = await ctx.db
             .query("subCategories")
             .filter((q) => q.eq(q.field("categoryId"), category._id))
             .collect();
           return {
             ...category,
+            topic,
             _subcategoriesCount: subcategories.length,
           };
         })
       );
       return filteredCategoriesWithSubcategories;
     }
-
-    // if (sortOrder) {
-
-    // }
-
     const items = await query.collect();
 
     const categoriesWithCounts = await Promise.all(
       items.map(async (category) => {
+        const topic = await ctx.db.get(category.topicId);
         const subcategories = await ctx.db
           .query("subCategories")
           .filter((q) => q.eq(q.field("categoryId"), category._id))
@@ -52,6 +50,7 @@ export const list = query({
 
         return {
           ...category,
+          topic,
           _subcategoriesCount: subcategories.length,
         };
       })
@@ -73,12 +72,14 @@ export const create = mutation({
   args: {
     name: v.string(),
     description: v.optional(v.string()),
+    topicId: v.id("topics"),
   },
   handler: async (ctx, args) => {
     const timestamp = Date.now();
     return await ctx.db.insert("categories", {
       name: args.name,
       description: args.description,
+      topicId: args.topicId,
       createdAt: timestamp,
       updatedAt: timestamp,
     });

@@ -32,16 +32,15 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarMenu className={cn(state === "expanded" ? "px-2" : "w-full flex items-center justify-center")}>
-        {/* <SidebarMenuButton
+        <SidebarMenuButton
           asChild
-          isActive={pathname === "/dashboard"}
+          isActive={pathname.includes("/dashboard/topics")}
         >
-          <Link href="/dashboard" className="flex items-center gap-2 ">
-            <LayoutGrid className="size-4" />
-            <span>Dashboard</span>
+          <Link href="/dashboard/topics" className="flex items-center gap-2">
+            <BookOpen className="size-4" />
+            <span>Topics</span>
           </Link>
-        </SidebarMenuButton> */}
-
+        </SidebarMenuButton>
         <SidebarMenuButton
           asChild
           isActive={pathname.includes("/dashboard/categories")}

@@ -10,10 +10,23 @@ export default defineSchema({
     imageUrl: v.optional(v.string()),
     role: v.optional(v.string()), // e.g., "admin", "user", "moderator"
   }).index("byClerkUserId", ["clerkUserId"]),
+
+  // Top level topic eg: "Bank Exams", "Govt Exams"
+  topics: defineTable({
+    name: v.string(),
+    description: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).searchIndex("search_name", {
+    searchField: "name",
+    filterFields: ["createdAt", "updatedAt"],
+  }),
+
   // Main categories (e.g., "Clerk Exam")
   categories: defineTable({
     name: v.string(),
     description: v.optional(v.string()),
+    topicId: v.id("topics"),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).searchIndex("search_name", {
@@ -29,10 +42,12 @@ export default defineSchema({
     imageStorageId: v.id("_storage"),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).searchIndex("search_name", {
-    searchField: "name",
-    filterFields: ["createdAt", "updatedAt"],
-  }),
+  })
+    .searchIndex("search_name", {
+      searchField: "name",
+      filterFields: ["createdAt", "updatedAt"],
+    })
+    .index("by_categoryId", ["categoryId"]),
 
   // Tests (e.g., "Test 1", "Test 2" under Memory Based Papers)
   tests: defineTable({
@@ -45,12 +60,13 @@ export default defineSchema({
     attempts: v.optional(v.number()), // total number of attempts of the test
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).searchIndex("search_name", {
-    searchField: "name",
-  }),
+  })
+    .searchIndex("search_name", {
+      searchField: "name",
+    })
+    .index("by_subCategoryId", ["subCategoryId"]),
   // Sections within each test (e.g., "General Knowledge", "Mathematics")
   sections: defineTable({
-
     name: v.string(),
     description: v.optional(v.string()),
     testId: v.id("tests"),
@@ -58,9 +74,11 @@ export default defineSchema({
     totalQuestions: v.number(),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).searchIndex("search_name", {
-    searchField: "name",
-  }),
+  })
+    .searchIndex("search_name", {
+      searchField: "name",
+    })
+    .index("by_testId", ["testId"]),
 
   // Questions within each section
   questions: defineTable({

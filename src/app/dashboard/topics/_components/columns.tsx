@@ -3,12 +3,9 @@
 import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
-import { Doc } from "../../../../../convex/_generated/dataModel";
-import { Topic } from "../../../../../convex/topics";
+import { TopicWithCategory } from "../../../../../convex/topics";
 
-type CategoryWithCount = Doc<"categories"> & { _subcategoriesCount: number, topic: Topic | null };
-
-export const columns: ColumnDef<CategoryWithCount>[] = [
+export const columns: ColumnDef<TopicWithCategory>[] = [
   {
     accessorKey: "id",
     header: ({ column }) => (
@@ -34,30 +31,15 @@ export const columns: ColumnDef<CategoryWithCount>[] = [
     enableSorting: false,
   },
   {
-    accessorKey: "topic",
+    accessorKey: "categories",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Topic" />
+      <DataTableColumnHeader column={column} title="Categories" />
     ),
     cell: ({ row }) => {
-      const topic = row.original.topic;
+      const categories = row.original.categories;
 
       return (
-        <span className="">{topic?.name ?? "-"}</span>
-      )
-    },
-    enableSorting: false,
-  },
-  {
-
-    accessorKey: "subcategories",
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Sub Categories" />
-    ),
-    cell: ({ row }) => {
-      const category = row.original;
-
-      return (
-        <span className="">{category._subcategoriesCount}</span>
+        <span className="">{categories.length}</span>
       )
     },
     enableSorting: false,

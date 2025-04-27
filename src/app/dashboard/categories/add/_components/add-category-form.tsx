@@ -6,11 +6,13 @@ import { AddCategoryRequest, AddCategorySchema } from "./add-category.schema"
 import { Form } from "@/components/ui/form"
 import InputElement from "@/components/form-elements/input-element"
 import { Button } from "@/components/ui/button"
-import { useMutation } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { api } from "../../../../../../convex/_generated/api"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import TextAreaElement from "@/components/form-elements/textarea-element"
+import { Id } from "../../../../../../convex/_generated/dataModel"
+import SelectElement from "@/components/form-elements/select-element"
 
 interface AddCategoryFormProps {
   afterSubmit?: () => void
@@ -19,6 +21,7 @@ interface AddCategoryFormProps {
 const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ afterSubmit }) => {
   const router = useRouter()
   const createCategory = useMutation(api.categories.create)
+  const topics = useQuery(api.topics.list, {})
   const form = useForm<AddCategoryRequest>({
     resolver: zodResolver(AddCategorySchema),
     defaultValues: {
@@ -30,7 +33,7 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ afterSubmit }) => {
   const onSubmit = async (values: AddCategoryRequest) => {
     try {
       toast.promise(
-        createCategory(values),
+        createCategory({ ...values, topicId: values.topicId as Id<"topics"> }),
         {
           loading: "Creating category...",
           success: () => {
@@ -47,9 +50,26 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ afterSubmit }) => {
     }
   }
 
+  if (!topics) {
+    return <div>Loading...</div>
+  }
+
+  if (topics === null || topics.length === 0) {
+    return <div>No topics found</div>
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <SelectElement
+          name="topicId"
+          label="Topic"
+          placeholder="Select a topic"
+          options={topics.map((topic) => ({
+            label: topic.name,
+            value: topic._id,
+          }))}
+        />
         <InputElement
           name="name"
           label="Category Name"

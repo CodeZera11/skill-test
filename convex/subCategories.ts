@@ -162,6 +162,33 @@ export const remove = mutation({
   },
 });
 
+export const getByCategory = query({
+  args: {
+    categoryId: v.id("categories"),
+    populateTests: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const subCategories = await ctx.db
+      .query("subCategories")
+      .filter((q) => q.eq(q.field("categoryId"), args.categoryId))
+      .collect();
+
+    return await Promise.all(
+      subCategories.map(async (subCategory) => {
+        const tests = await ctx.db
+          .query("tests")
+          .filter((q) => q.eq(q.field("subCategoryId"), subCategory._id))
+          .collect();
+
+        return {
+          ...subCategory,
+          tests: tests,
+        };
+      })
+    );
+  },
+});
+
 export const getByIdWithCategoryAndTests = query({
   args: {
     id: v.id("subCategories"),

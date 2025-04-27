@@ -21,6 +21,7 @@ import type * as sections from "../sections.js";
 import type * as subCategories from "../subCategories.js";
 import type * as testAttempts from "../testAttempts.js";
 import type * as tests from "../tests.js";
+import type * as topics from "../topics.js";
 import type * as users from "../users.js";
 
 /**
@@ -40,6 +41,7 @@ declare const fullApi: ApiFromModules<{
   subCategories: typeof subCategories;
   testAttempts: typeof testAttempts;
   tests: typeof tests;
+  topics: typeof topics;
   users: typeof users;
 }>;
 export declare const api: FilterApi<
