@@ -5,6 +5,10 @@ import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { Doc } from "../../../../../convex/_generated/dataModel";
 import { Topic } from "../../../../../convex/topics";
+import { Button } from "@/components/ui/button";
+import { Trash } from "lucide-react";
+import { toast } from "sonner";
+import { deleteCategory } from "@/actions/categories";
 
 type CategoryWithCount = Doc<"categories"> & { _subcategoriesCount: number, topic: Topic | null };
 
@@ -80,6 +84,27 @@ export const columns: ColumnDef<CategoryWithCount>[] = [
       )
     },
     enableSorting: false,
+  },
+  {
+    id: "actions",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Actions" />
+    ),
+    cell: ({ row }) => {
+      const category = row.original;
+
+      return (
+        <div className="flex items-center gap-2">
+          <Button onClick={() => toast.promise(deleteCategory(category._id), {
+            loading: "Deleting category...",
+            success: "Category deleted successfully",
+            error: (err) => `Error deleting category: ${err}`,
+          })} variant="destructive" size="icon">
+            <Trash />
+          </Button>
+        </div>
+      )
+    }
   }
 ]
 

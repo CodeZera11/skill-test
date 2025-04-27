@@ -4,6 +4,10 @@ import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
 import { TopicWithCategory } from "../../../../../convex/topics";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { deleteTopic } from "@/actions/topics";
+import { Trash } from "lucide-react";
 
 export const columns: ColumnDef<TopicWithCategory>[] = [
   {
@@ -62,6 +66,26 @@ export const columns: ColumnDef<TopicWithCategory>[] = [
       )
     },
     enableSorting: false,
+  },
+  {
+    id: "actions",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Actions" />
+    ),
+    cell: ({ row }) => {
+      const topic = row.original;
+      return (
+        <div className="flex items-center gap-2">
+          <Button onClick={() => toast.promise(deleteTopic(topic._id), {
+            loading: "Deleting topic...",
+            success: "Topic deleted successfully",
+            error: (err) => `Error deleting Topic: ${err}`,
+          })} variant="destructive" size="icon">
+            <Trash />
+          </Button>
+        </div>
+      )
+    }
   }
 ]
 

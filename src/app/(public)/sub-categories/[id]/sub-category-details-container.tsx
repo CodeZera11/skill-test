@@ -25,8 +25,8 @@ import { Id } from "../../../../../convex/_generated/dataModel"
 import { useQuery } from "convex/react"
 import { api } from "../../../../../convex/_generated/api"
 import { fadeIn, staggerContainer } from "@/constants/animations"
-import { format } from "date-fns"
 
+import { format, intervalToDuration } from "date-fns"
 const SubCategoryDetailsContainer = ({ id }: { id: Id<"subCategories"> }) => {
 
   const [searchQuery, setSearchQuery] = useState("")
@@ -124,6 +124,7 @@ const SubCategoryDetailsContainer = ({ id }: { id: Id<"subCategories"> }) => {
     )
   }
 
+
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-1">
@@ -216,69 +217,76 @@ const SubCategoryDetailsContainer = ({ id }: { id: Id<"subCategories"> }) => {
                 initial="hidden"
                 animate="visible"
               >
-                {sortedTests.map((test) => (
-                  <motion.div key={test._id} variants={fadeIn} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
-                    <Card className="h-full overflow-hidden dark:bg-slate-900">
-                      <CardContent className="p-6">
-                        <h3 className="text-xl font-bold mb-2">{test.name}</h3>
-                        <p className="text-muted-foreground mb-4">
-                          {test.description || "Take this test to practice your skills"}
-                        </p>
+                {sortedTests.map((test) => {
 
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                          <div className="flex items-center gap-2">
-                            <div className="bg-emerald-100 dark:bg-emerald-900/30 p-1.5 rounded-full">
-                              <BookOpen className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Questions</p>
-                              <p className="font-medium">{test.totalQuestions}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="bg-blue-100 dark:bg-blue-900/30 p-1.5 rounded-full">
-                              <BarChart className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Marks</p>
-                              <p className="font-medium">{test.totalMarks}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-full">
-                              <Timer className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Duration</p>
-                              <p className="font-medium">{format(test.duration || 0, "MMM dd, yyyy")}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="bg-purple-100 dark:bg-purple-900/30 p-1.5 rounded-full">
-                              <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Attempts</p>
-                              <p className="font-medium">{test?.attempts || 0}</p>
-                            </div>
-                          </div>
-                        </div>
+                  const now = new Date();
+                  const later = new Date(now.getTime() + (test?.duration || 0) * 60 * 1000);
+                  const duration = intervalToDuration({ start: now, end: later });
+                  const formatted = `${duration.hours} hrs ${duration.minutes} mins`;
+                  return (
+                    <motion.div key={test._id} variants={fadeIn} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
+                      <Card className="h-full overflow-hidden dark:bg-slate-900">
+                        <CardContent className="p-6">
+                          <h3 className="text-xl font-bold mb-2">{test.name}</h3>
+                          <p className="text-muted-foreground mb-4">
+                            {test.description || "Take this test to practice your skills"}
+                          </p>
 
-                        <div className="text-xs text-muted-foreground mb-4">
-                          Last updated {format(test.updatedAt, "MMM dd, yyyy")}
-                        </div>
-                      </CardContent>
-                      <CardFooter className="p-4 pt-0 flex gap-3">
-                        <Button className="flex-1" asChild>
-                          <Link href={`/tests/${test._id}/instructions`}>Start Test</Link>
-                        </Button>
-                        <Button variant="outline" className="flex-1" asChild>
-                          <Link href={`/tests/${test._id}`}>View Details</Link>
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
-                ))}
+                          <div className="grid grid-cols-2 gap-3 mb-4">
+                            <div className="flex items-center gap-2">
+                              <div className="bg-emerald-100 dark:bg-emerald-900/30 p-1.5 rounded-full">
+                                <BookOpen className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Questions</p>
+                                <p className="font-medium">{test.totalQuestions}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="bg-blue-100 dark:bg-blue-900/30 p-1.5 rounded-full">
+                                <BarChart className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Marks</p>
+                                <p className="font-medium">{test.totalMarks}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="bg-amber-100 dark:bg-amber-900/30 p-1.5 rounded-full">
+                                <Timer className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Duration</p>
+                                <p className="font-medium">{formatted}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="bg-purple-100 dark:bg-purple-900/30 p-1.5 rounded-full">
+                                <Users className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Attempts</p>
+                                <p className="font-medium">{test?.attempts || 0}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="text-xs text-muted-foreground mb-4">
+                            Last updated {format(test.updatedAt, "MMM dd, yyyy")}
+                          </div>
+                        </CardContent>
+                        <CardFooter className="p-4 pt-0 flex gap-3">
+                          <Button className="flex-1" asChild>
+                            <Link href={`/tests/${test._id}/instructions`}>Start Test</Link>
+                          </Button>
+                          <Button variant="outline" className="flex-1" asChild>
+                            <Link href={`/tests/${test._id}`}>View Details</Link>
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    </motion.div>
+                  )
+                })}
               </motion.div>
             ) : (
               <motion.div className="text-center py-16" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>

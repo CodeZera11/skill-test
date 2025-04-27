@@ -24,6 +24,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Input } from "@/components/ui/input"
+import { PageRoutes } from "@/constants/page-routes"
 
 interface FormStep {
   id: number
@@ -149,13 +150,13 @@ const AddTestForm = () => {
               localStorage.removeItem(step.key)
             })
 
-            router.push("/dashboard/tests")
+            router.push(PageRoutes.DASHBOARD.TESTS)
             return "Test created successfully"
           },
           error: "Failed to create test"
         }
       )
-      router.push("/dashboard/tests")
+      router.push(PageRoutes.DASHBOARD.TESTS)
     } catch (error) {
       console.error("Failed to create test:", error)
     }
@@ -262,7 +263,7 @@ const AddTestForm = () => {
                           <CollapsibleTrigger className="w-full mb-4" asChild>
                             <Button variant="ghost" size="sm" className="w-full justify-between border-b rounded-none pb-4">
                               <CardTitle className="text-sm font-medium">
-                                {form.watch(`sections.${index}.name`) || `Section ${index + 1}`}
+                                {`Section ${index + 1} ->`} {form.watch(`sections.${index}.name`)}
                               </CardTitle>
                               {openSections.includes(index) ? (
                                 <ChevronUp className="h-4 w-4" />
