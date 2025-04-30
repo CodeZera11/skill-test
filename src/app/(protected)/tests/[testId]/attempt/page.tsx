@@ -45,9 +45,12 @@ import TestInstructionsContainer from "../instructions/test-instructions-contain
 //   return mockTests[testId as keyof typeof mockTests]
 // }
 
-export default async function TestAttemptPage(props: Promise<{ params: { testId: string } }>) {
-  const testId = (await props).params.testId;
+const InstructionsPage = async (props: { params: Promise<{ testId: string }> }) => {
+  const testId = (await props.params).testId;
 
   return <TestInstructionsContainer testId={testId as Id<"tests">} />
 
 }
+
+
+export default InstructionsPage;

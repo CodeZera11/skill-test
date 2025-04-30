@@ -174,6 +174,11 @@ export const getTestWithDetails = query({
 
     return {
       ...test,
+      totalQuestions: test.totalQuestions || 0,
+      subCategory: {
+        _id: test.subCategoryId,
+        name: (await ctx.db.get(test.subCategoryId))?.name || "",
+      },
       questions: questions.map((question) => {
         const section = sections.find(
           (s) => s._id.toString() === question.sectionId.toString()

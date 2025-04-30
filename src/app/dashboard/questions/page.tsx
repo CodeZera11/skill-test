@@ -5,11 +5,11 @@ import { useQuery } from "convex/react";
 
 export default function QuestionsPage() {
   const questions = useQuery(api.questions.list);
-  const tests = useQuery(api.tests.list);
+  // const tests = useQuery(api.tests.list);
 
-  const getTestName = (testId: string) => {
-    return tests?.find((t) => t._id === testId)?.name || 'Unknown Test';
-  };
+  // const getTestName = (testId: string) => {
+  //   return tests?.find((t) => t._id === testId)?.name || 'Unknown Test';
+  // };
 
   return (
     <div className="p-4">
@@ -18,7 +18,8 @@ export default function QuestionsPage() {
         {questions?.map((question) => (
           <div key={question._id} className="p-4 border rounded">
             <div className="text-sm text-gray-500 mb-2">
-              Test: {getTestName(question.testId)}
+              {/* Test: {getTestName(question.)} */}
+              Test
             </div>
             <div className="mb-3">
               <h2 className="font-semibold mb-2">{question.question}</h2>

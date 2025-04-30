@@ -177,6 +177,7 @@ const AddTestForm = () => {
       if (!currentStepKey) return;
       const currentStepFields = steps[currentStep]?.fields;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const currentStepData: Record<string, any> = {};
 
       currentStepFields?.forEach((field) => {

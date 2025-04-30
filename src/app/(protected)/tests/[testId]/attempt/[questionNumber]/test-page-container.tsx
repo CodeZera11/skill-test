@@ -9,9 +9,11 @@ import { useRouter } from "next/navigation"
 import { TestTimer } from "@/components/test-timer"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Id } from "../../../../../../convex/_generated/dataModel"
-import { useMutation, useQuery } from "convex/react"
-import { api } from "../../../../../../convex/_generated/api"
+
+import { useQuery } from "convex/react"
+import { api } from "../../../../../../../convex/_generated/api"
+import { Id } from "../../../../../../../convex/_generated/dataModel"
+
 
 const TestPageContainer = ({ testId, questionNumber }: { questionNumber: number, testId: Id<"tests"> }) => {
   const router = useRouter()
@@ -19,7 +21,6 @@ const TestPageContainer = ({ testId, questionNumber }: { questionNumber: number,
 
   const test = useQuery(api.tests.getById, { id: testId })
   const questions = useQuery(api.questions.getQuestionsByTestId, { testId })
-  const handleSubmit = useMutation(api.testAttempts.submitTestAttempt);
 
   const [answers, setAnswers] = useState<Record<string, number | null>>({})
   const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>({})
@@ -87,13 +88,7 @@ const TestPageContainer = ({ testId, questionNumber }: { questionNumber: number,
   }
 
   const submitTest = () => {
-
-    handleSubmit({
-      correctAnswers: Object.entries(answers).filter(([_, answer]) => answer !== null).length,
-      incorrectAnswers: Object.entries(answers).filter(([_, answer]) => answer === null).length,
-      score: Object.entries(answers).filter(([_, answer]) => answer !== null).length,
-      testAttemptId: testId,
-    })
+    console.log("Submitting test with answers:", answers)
 
     // In a real app, you would save the answers to your database here
     router.push(`/tests/${testId}/result`)
