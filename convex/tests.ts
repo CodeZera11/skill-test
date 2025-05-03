@@ -35,7 +35,7 @@ export type TestWithDetails = {
     sectionId: Id<"sections">;
     explanation?: string;
     marks?: number;
-    sectionKey: string;
+    sectionKey: string | undefined;
     negativeMarks?: number;
     createdAt: number;
     updatedAt: number;

@@ -2,8 +2,7 @@
 import { useQuery } from "convex/react";
 import { api } from "../../../../../../convex/_generated/api";
 import { Id } from "../../../../../../convex/_generated/dataModel";
-// import EditTestForm from "./edit-test-form";
-
+import EditTestForm from "./edit-test-form";
 
 const EditTestContainer = ({ id }: { id: string }) => {
 
@@ -13,7 +12,7 @@ const EditTestContainer = ({ id }: { id: string }) => {
 
   return (
     <div>
-      {/* <EditTestForm test={test} /> */}
+      <EditTestForm test={test} />
     </div>
   )
 }
