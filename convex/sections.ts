@@ -60,6 +60,17 @@ export const getById = query({
   },
 });
 
+// Get all sections for a test
+export const getSectionsByTestId = query({
+  args: { testId: v.id("tests") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("sections")
+      .filter((q) => q.eq(q.field("testId"), args.testId))
+      .collect();
+  },
+});
+
 // Update a section
 export const update = mutation({
   args: {

@@ -212,6 +212,49 @@ export const getTestWithQuestions = query({
   },
 });
 
+export const getAveragePerformance = query({
+  args: { id: v.id("tests") },
+  handler: async (ctx, args) => {
+    const testAttempts = await ctx.db
+      .query("testAttempts")
+      .filter((q) => q.eq(q.field("testId"), args.id))
+      .collect();
+
+    if (testAttempts.length === 0) {
+      return null;
+    }
+
+    const totalScores = testAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0);
+    const averageScore = totalScores / testAttempts.length;
+
+    const sectionPerformance = await Promise.all(
+      testAttempts.map(async (attempt) => {
+        const sections = await ctx.db
+          .query("sections")
+          .filter((q) => q.eq(q.field("testId"), args.id))
+          .collect();
+
+        return sections.map((section) => {
+          const correctAnswers = attempt.answers.filter(
+            (answer) => answer.sectionId === section._id && answer.isCorrect
+          ).length;
+          const totalQuestions = section.totalQuestions;
+          const score = (correctAnswers / totalQuestions) * 100;
+          return {
+            sectionId: section._id,
+            averageScore: score,
+          };
+        });
+      })
+    );
+
+    return {
+      averageScore,
+      sectionPerformance: sectionPerformance.flat(),
+    };
+  },
+});
+
 // Mutations
 export const create = mutation({
   args: {
