@@ -11,8 +11,8 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 
 import { useQuery } from "convex/react"
-import { api } from "../../../../../../../convex/_generated/api"
-import { Id } from "../../../../../../../convex/_generated/dataModel"
+import { api } from "../../../../../../../../../convex/_generated/api"
+import { Id } from "../../../../../../../../../convex/_generated/dataModel"
 
 
 const TestPageContainer = ({ testId, questionNumber }: { questionNumber: number, testId: Id<"tests"> }) => {

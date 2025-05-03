@@ -6,10 +6,11 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Id } from "../../../../../../convex/_generated/dataModel"
+import { Id } from "~/convex/_generated/dataModel"
 import { useMutation, useQuery } from "convex/react"
-import { api } from "../../../../../../convex/_generated/api"
+import { api } from "~/convex/_generated/api"
 import { useCurrentUser } from "@/hooks/use-current-user"
+import { toast } from "sonner"
 
 const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
   const router = useRouter()
@@ -24,8 +25,15 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
     if (isLoading || !isAuthenticated || !user) return;
 
     if (agreedToTerms) {
-      attemptTest({ testId, userId: user._id })
-      router.push(`/tests/${testId}/attempt/1`)
+      toast.promise(attemptTest({ testId, userId: user._id }), {
+        loading: "Starting test...",
+        success: (testAttemptId) => {
+          router.push(`/tests/${testId}/attempt/${testAttemptId}/q/1`)
+          return "Test started successfully"
+        },
+        error: (err) => `Error starting test: ${err}`,
+      })
+
     }
   }
 
