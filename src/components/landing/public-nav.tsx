@@ -39,7 +39,7 @@ const PublicNav = () => {
           <Link href="#testimonials" className="text-sm font-medium hover:text-emerald-500 transition-colors">
             Testimonials
           </Link>
-          <ModeToggle />
+          {/* <ModeToggle /> */}
 
           <Unauthenticated>
             <Button asChild>

@@ -11,16 +11,17 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 
 import { useQuery } from "convex/react"
-import { api } from "../../../../../../../../../convex/_generated/api"
-import { Id } from "../../../../../../../../../convex/_generated/dataModel"
+import { api } from "~/convex/_generated/api"
+import { Id } from "~/convex/_generated/dataModel"
 
 
-const TestPageContainer = ({ testId, questionNumber }: { questionNumber: number, testId: Id<"tests"> }) => {
+const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumber: number, testId: Id<"tests">, attemptId: Id<"testAttempts"> }) => {
   const router = useRouter()
 
+  const attempt = useQuery(api.testAttempts.getTestAttempt, { id: attemptId })
 
-  const test = useQuery(api.tests.getById, { id: testId })
-  const questions = useQuery(api.questions.getQuestionsByTestId, { testId })
+  // const test = useQuery(api.tests.getById, { id: testId })
+  // const questions = useQuery(api.questions.getQuestionsByTestId, { testId })
 
   const [answers, setAnswers] = useState<Record<string, number | null>>({})
   const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>({})
@@ -79,12 +80,13 @@ const TestPageContainer = ({ testId, questionNumber }: { questionNumber: number,
   }
 
   const navigateToQuestion = (number: number) => {
-    router.push(`/tests/${testId}/attempt/${number}`)
+    router.push(`/tests/${testId}/attempt/${attemptId}/q/${number}`)
   }
 
   const handleTimeUp = () => {
     // Submit the test when time is up
-    router.push(`/tests/${testId}/result`)
+    console.log({ submit: "Time is up, submitting test..." })
+    // router.push(`/tests/${testId}/result`)
   }
 
   const submitTest = () => {
@@ -94,35 +96,68 @@ const TestPageContainer = ({ testId, questionNumber }: { questionNumber: number,
     router.push(`/tests/${testId}/result`)
   }
 
-  if (questions === undefined || test === undefined) {
+  if (attempt === undefined) {
     return (
       <div className="container mx-auto py-10">
         <Card>
           <CardHeader>
-            <CardTitle>Loading Test...</CardTitle>
+            <CardTitle>Loading Attempt...</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Please wait while we prepare your test.</p>
+            <p>Please wait while we prepare your test attempt.</p>
           </CardContent>
         </Card>
       </div>
     )
   }
 
-  if (!test || !questions) {
+  if (attempt === null) {
     return (
       <div className="container mx-auto py-10">
         <Card>
           <CardHeader>
-            <CardTitle>Test not found</CardTitle>
+            <CardTitle>Attempt not found</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>The test you are looking for does not exist.</p>
+            <p>The test attempt you are looking for does not exist.</p>
           </CardContent>
         </Card>
       </div>
     )
   }
+
+  const questions = attempt?.questions;
+  const test = attempt?.test;
+
+  // if (questions === undefined || test === undefined) {
+  //   return (
+  //     <div className="container mx-auto py-10">
+  //       <Card>
+  //         <CardHeader>
+  //           <CardTitle>Loading Test...</CardTitle>
+  //         </CardHeader>
+  //         <CardContent>
+  //           <p>Please wait while we prepare your test.</p>
+  //         </CardContent>
+  //       </Card>
+  //     </div>
+  //   )
+  // }
+
+  // if (test === null || questions === null) {
+  //   return (
+  //     <div className="container mx-auto py-10">
+  //       <Card>
+  //         <CardHeader>
+  //           <CardTitle>Test not found</CardTitle>
+  //         </CardHeader>
+  //         <CardContent>
+  //           <p>The test you are looking for does not exist.</p>
+  //         </CardContent>
+  //       </Card>
+  //     </div>
+  //   )
+  // }
 
   const currentQuestion = questions[questionNumber - 1]
 

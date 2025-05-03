@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 
 // Function to start a test attempt
 export const startTestAttempt = mutation({
@@ -77,5 +77,60 @@ export const submitTestAttempt = mutation({
       timeTaken,
       performancePercentile,
     };
+  },
+});
+
+export const getTestAttempt = query({
+  args: {
+    id: v.id("testAttempts"),
+  },
+  handler: async (ctx, { id }) => {
+    try {
+      const testAttempt = await ctx.db
+        .query("testAttempts")
+        .filter((q) => q.eq(q.field("_id"), id))
+        .first();
+
+      if (!testAttempt) {
+        throw new Error("Test attempt not found");
+      }
+
+      // lets get everything in this query
+
+      const test = await ctx.db.get(testAttempt.testId);
+      if (!test) {
+        throw new Error("Test not found");
+      }
+
+      const sections = await ctx.db
+        .query("sections")
+        .filter((s) => s.eq(s.field("testId"), testAttempt.testId))
+        .collect();
+
+      const questionsData = await Promise.all(
+        sections.map(async (section) => {
+          return await ctx.db
+            .query("questions")
+            .filter((q) => q.eq(q.field("sectionId"), section._id))
+            .collect();
+        })
+      );
+
+      if (!questionsData) {
+        throw new Error("No questions found for this test");
+      }
+
+      const questions = questionsData.flatMap((questions) => questions);
+
+      return {
+        testAttempt,
+        test,
+        sections,
+        questions,
+      };
+    } catch (error) {
+      console.error("Error fetching test attempt:", error);
+      return null;
+    }
   },
 });
