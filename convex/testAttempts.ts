@@ -1,8 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
-import { Test } from "./tests";
-import { Question, Section } from "./sections";
+import { Question } from "./sections";
 
 // Function to start a test attempt
 export const startTestAttempt = mutation({
@@ -98,11 +97,28 @@ export type TestAttempt = {
   updatedAt: number;
 };
 
-export type TestAttemptWithDetails = TestAttempt & {
-  test: Test;
-  sections: Section[];
+export type TestAttemptWithDetails = {
+  testAttempt: TestAttempt;
+  test: {
+    _id: Id<"tests">;
+    name: string;
+    description?: string;
+    duration?: number;
+    attempts?: number;
+    createdAt: number;
+    updatedAt: number;
+  };
+  sections: {
+    _id: Id<"sections">;
+    name: string;
+    description?: string;
+    duration?: number;
+    testId: Id<"tests">;
+    createdAt: number;
+    updatedAt: number;
+  }[];
   questions: Question[];
-};  
+};
 
 export const getTestAttempt = query({
   args: {
@@ -113,13 +129,12 @@ export const getTestAttempt = query({
       const testAttempt = await ctx.db
         .query("testAttempts")
         .filter((q) => q.eq(q.field("_id"), id))
+        .order("desc")
         .first();
 
       if (!testAttempt) {
         throw new Error("Test attempt not found");
       }
-
-      // lets get everything in this query
 
       const test = await ctx.db.get(testAttempt.testId);
       if (!test) {
