@@ -14,6 +14,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { UserButton } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
 
 const getBreadcrumbTitle = (path: string) => {
@@ -60,6 +61,7 @@ export default function DashboardLayout({
             </div>
             <div className="hidden md:flex items-center gap-2 px-4">
               <ModeToggle />
+              <UserButton />
             </div>
           </header>
           <main className="flex-1 w-full px-4">

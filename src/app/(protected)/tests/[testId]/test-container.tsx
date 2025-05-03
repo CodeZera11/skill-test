@@ -1,8 +1,8 @@
 "use client"
 
 import { useQuery } from "convex/react"
-import { api } from "../../../../../convex/_generated/api"
-import { Id } from "../../../../../convex/_generated/dataModel"
+import { api } from "~/convex/_generated/api"
+import { Id } from "~/convex/_generated/dataModel"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -19,6 +19,8 @@ const TestContainer: React.FC<TestContainerProps> = ({ testId }) => {
       Loading...
     </div>
   }
+
+  console.log("test", test)
 
   if (test === null) {
     return (
