@@ -290,6 +290,7 @@ export const create = mutation({
               negativeMarks: Number(question.negativeMarks),
               createdAt: timestamp,
               updatedAt: timestamp,
+              testId: test,
             });
           })
         );
@@ -404,6 +405,7 @@ export const update = mutation({
               negativeMarks: Number(question.negativeMarks),
               createdAt: Date.now(),
               updatedAt: Date.now(),
+              testId: id,
             });
           })
         );

@@ -258,10 +258,10 @@
 
 import React from 'react'
 
-const Page = () => {
+const ResultPage = () => {
   return (
-    <div>Page</div>
+    <div>Result Page Here</div>
   )
 }
 
-export default Page
+export default ResultPage

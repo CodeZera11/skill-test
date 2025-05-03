@@ -10,9 +10,10 @@ import { TestTimer } from "@/components/test-timer"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 
-import { useQuery } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { api } from "~/convex/_generated/api"
 import { Id } from "~/convex/_generated/dataModel"
+import { toast } from "sonner"
 
 
 const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumber: number, testId: Id<"tests">, attemptId: Id<"testAttempts"> }) => {
@@ -20,13 +21,10 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
 
   const attempt = useQuery(api.testAttempts.getTestAttempt, { id: attemptId })
 
-  // const test = useQuery(api.tests.getById, { id: testId })
-  // const questions = useQuery(api.questions.getQuestionsByTestId, { testId })
-
   const [answers, setAnswers] = useState<Record<string, number | null>>({})
   const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>({})
+  const submitTestAttempt = useMutation(api.testAttempts.submitTestAttempt);
 
-  // Add this function after the useState declarations
   const saveAnswerToLocalStorage = (questionId: string, answerIndex: number | null) => {
     // Get existing answers from localStorage
     const savedAnswers = localStorage.getItem(`test_${testId}_answers`)
@@ -57,7 +55,6 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
     setMarkedForReview(allMarked)
   }
 
-  // Initialize from localStorage on component mount
   useEffect(() => {
     const savedAnswers = localStorage.getItem(`test_${testId}_answers`)
     const savedMarkedForReview = localStorage.getItem(`test_${testId}_marked`)
@@ -91,14 +88,25 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
 
   const submitTest = () => {
     console.log("Submitting test with answers:", answers)
-
+    toast.promise(() => submitTestAttempt({ answers, testAttemptId: attemptId }), {
+      loading: "Submitting test...",
+      success: () => {
+        // Clear local storage
+        localStorage.removeItem(`test_${testId}_answers`)
+        localStorage.removeItem(`test_${testId}_marked`)
+        // Redirect to results page
+        router.push(`/tests/${testId}/attempt/${attemptId}/result`)
+        return "Test submitted successfully!"
+      },
+      error: (error) => `Error: ${error.message}`,
+    })
     // In a real app, you would save the answers to your database here
-    router.push(`/tests/${testId}/result`)
+    // router.push(`/tests/${testId}/result`)
   }
 
   if (attempt === undefined) {
     return (
-      <div className="container mx-auto py-10">
+      <div className="container mx-auto py-10 px-2">
         <Card>
           <CardHeader>
             <CardTitle>Loading Attempt...</CardTitle>
@@ -113,7 +121,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
 
   if (attempt === null) {
     return (
-      <div className="container mx-auto py-10">
+      <div className="container mx-auto py-10 px-2">
         <Card>
           <CardHeader>
             <CardTitle>Attempt not found</CardTitle>
@@ -131,17 +139,17 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
   const currentQuestion = questions[questionNumber - 1]
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 px-2">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="md:col-span-2">
           <Card className="mb-6">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>
+            <CardHeader className="flex flex-col items-start gap-4 md:gap-0 md:flex-row md:items-center">
+              <CardTitle className="md:text-nowrap">
                 Question {questionNumber} of {questions.length}
               </CardTitle>
-              <div className="flex items-center gap-2">
-                {markedForReview[currentQuestion._id] && (
-                  <Badge variant="outline" className="bg-yellow-100">
+              <div className="flex items-center gap-2 flex-row-reverse md:flex-row justify-between w-full md:justify-end">
+                {markedForReview[currentQuestion?._id] && (
+                  <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
                     Marked for Review
                   </Badge>
                 )}
@@ -149,8 +157,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="text-lg font-medium">{currentQuestion.question}</div>
-
+              <div className="text-lg font-medium">{currentQuestion?.question}</div>
               <RadioGroup
                 value={answers[currentQuestion._id]?.toString() || ""}
                 onValueChange={handleAnswerChange}
@@ -206,24 +213,23 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                   <span className="font-medium">Question {questionNumber}</span> of {questions.length}
                 </div>
 
-                {/* Pagination for large question sets */}
                 <div className="flex flex-col space-y-4">
-                  <div className="grid grid-cols-10 gap-1 max-h-[300px] overflow-y-auto p-1">
+                  <div className="flex items-center flex-wrap gap-2 max-h-[300px] overflow-y-auto p-1">
                     {questions.map((_, index) => {
                       const qNum = index + 1
-                      const qId = questions[index]._id
+                      const qId = questions[index]?._id || `index + test`
                       let bgColor = "bg-muted"
 
                       if (answers[qId] !== undefined && answers[qId] !== null) {
-                        bgColor = "bg-green-100"
+                        bgColor = "bg-green-100 text-white dark:bg-green-200 dark:text-black dark:hover:bg-green-300"
                       }
 
                       if (markedForReview[qId]) {
-                        bgColor = "bg-yellow-100"
+                        bgColor = "bg-yellow-100 text-black dark:bg-yellow-200 dark:text-black dark:hover:bg-yellow-300"
                       }
 
                       if (qNum === questionNumber) {
-                        bgColor = "bg-primary text-primary-foreground"
+                        bgColor = "bg-primary text-white dark:bg-primary-200 dark:text-black dark:hover:bg-white  "
                       }
 
                       return (
@@ -240,7 +246,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                   </div>
 
                   {/* Jump to question input for very large question sets */}
-                  <div className="flex items-center space-x-2 mt-4">
+                  {/* <div className="flex items-center space-x-2 mt-4">
                     <div className="text-sm">Jump to:</div>
                     <input
                       type="number"
@@ -267,10 +273,10 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                     >
                       Go
                     </Button>
-                  </div>
+                  </div> */}
                 </div>
 
-                <div className="mt-6 space-y-2">
+                <div className="mt-2 space-y-2">
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-muted rounded"></div>
                     <span className="text-sm">Not Answered</span>

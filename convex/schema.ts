@@ -86,6 +86,7 @@ export default defineSchema({
     options: v.array(v.string()),
     correctAnswer: v.number(), // Index of the correct option
     sectionId: v.id("sections"),
+    testId: v.id("tests"),
     explanation: v.optional(v.string()),
     marks: v.optional(v.number()), // marks for this question
     negativeMarks: v.optional(v.number()), // negative marking if any

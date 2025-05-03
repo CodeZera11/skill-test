@@ -35,6 +35,7 @@ export const create = mutation({
     explanation: v.optional(v.string()),
     marks: v.optional(v.number()),
     negativeMarks: v.optional(v.number()),
+    testId: v.id("tests"),
   },
   handler: async (ctx, args) => {
     const timestamp = Date.now();
@@ -86,6 +87,7 @@ export const bulkCreate = mutation({
         negativeMarks: v.optional(v.number()),
       })
     ),
+    testId: v.id("tests"),
     sectionId: v.id("sections"),
   },
   handler: async (ctx, args) => {
@@ -95,6 +97,7 @@ export const bulkCreate = mutation({
     for (const q of args.questions) {
       const questionId = await ctx.db.insert("questions", {
         ...q,
+        testId: args.testId,
         sectionId: args.sectionId,
         createdAt: timestamp,
         updatedAt: timestamp,

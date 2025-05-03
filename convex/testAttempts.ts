@@ -36,49 +36,82 @@ export const startTestAttempt = mutation({
 export const submitTestAttempt = mutation({
   args: {
     testAttemptId: v.id("testAttempts"),
-    correctAnswers: v.number(),
-    incorrectAnswers: v.number(),
-    score: v.number(),
+    answers: v.record(v.string(), v.union(v.null(), v.number())),
   },
-  handler: async (
-    ctx,
-    { testAttemptId, correctAnswers, incorrectAnswers, score }
-  ) => {
-    const endTime = Date.now();
-    // .query("sections")
-    //   .filter((q) => q.eq(q.field("testId"), args.testId))
-    //   .collect();
-    const testAttempt = await ctx.db
-      .query("testAttempts")
-      .filter((q) => q.eq(q.field("_id"), testAttemptId))
-      .first();
+  handler: async (ctx, { testAttemptId, answers }) => {
+    try {
+      const endTime = Date.now();
 
-    if (!testAttempt) {
-      throw new Error("Test attempt not found");
+      const testAttempt = await ctx.db
+        .query("testAttempts")
+        .filter((q) => q.eq(q.field("_id"), testAttemptId))
+        .first();
+
+      if (!testAttempt) {
+        throw new Error("Test attempt not found");
+      }
+
+      const test = await ctx.db.get(testAttempt.testId);
+      if (!test) {
+        throw new Error("Test not found");
+      }
+
+      const duration = test.duration;
+
+      if (!duration || duration <= 0) {
+        throw new Error("Test duration is not set or invalid.");
+      }
+
+      const allowedEndTime =
+        testAttempt.startTime + duration * 60 * 1000 + 3600 * 1000; // 1 hour buffer
+
+      if (endTime > allowedEndTime) {
+        throw new Error("Test duration exceeded. Possible cheating detected.");
+      }
+
+      const questions = await ctx.db
+        .query("questions")
+        .filter((q) => q.eq(q.field("testId"), testAttempt.testId))
+        .collect();
+
+      let correctAnswers = 0;
+      let incorrectAnswers = 0;
+      let score = 0;
+
+      questions.forEach((question) => {
+        const userAnswer = answers[question._id];
+        if (userAnswer !== undefined) {
+          if (userAnswer === question.correctAnswer) {
+            correctAnswers++;
+            score += question.marks || 1;
+          } else {
+            incorrectAnswers++;
+            score -= question.negativeMarks || 0;
+          }
+        }
+      });
+
+      const timeTaken = (endTime - testAttempt.startTime) / 1000; // in seconds
+
+      await ctx.db.patch(testAttemptId, {
+        endTime,
+        correctAnswers,
+        incorrectAnswers,
+        score,
+        timeTaken,
+        updatedAt: endTime,
+      });
+
+      return {
+        score,
+        correctAnswers,
+        incorrectAnswers,
+        timeTaken,
+      };
+    } catch (error) {
+      console.error("Error submitting test attempt:", error);
+      return null;
     }
-
-    const timeTaken = (endTime - testAttempt.startTime) / 1000; // in seconds
-
-    // Calculate performance percentile (placeholder logic)
-    const performancePercentile = Math.random() * 100;
-
-    await ctx.db.patch(testAttemptId, {
-      endTime,
-      correctAnswers,
-      incorrectAnswers,
-      score,
-      timeTaken,
-      performancePercentile,
-      updatedAt: endTime,
-    });
-
-    return {
-      score,
-      correctAnswers,
-      incorrectAnswers,
-      timeTaken,
-      performancePercentile,
-    };
   },
 });
 
