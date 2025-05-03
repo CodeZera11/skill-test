@@ -1,5 +1,8 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
+import { Test } from "./tests";
+import { Question, Section } from "./sections";
 
 // Function to start a test attempt
 export const startTestAttempt = mutation({
@@ -79,6 +82,27 @@ export const submitTestAttempt = mutation({
     };
   },
 });
+
+export type TestAttempt = {
+  _id: Id<"testAttempts">;
+  userId: Id<"users">;
+  testId: Id<"tests">;
+  startTime: number;
+  endTime?: number;
+  correctAnswers?: number;
+  incorrectAnswers?: number;
+  score?: number;
+  timeTaken?: number;
+  performancePercentile?: number;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type TestAttemptWithDetails = TestAttempt & {
+  test: Test;
+  sections: Section[];
+  questions: Question[];
+};  
 
 export const getTestAttempt = query({
   args: {

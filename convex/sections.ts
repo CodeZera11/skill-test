@@ -1,5 +1,26 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
+
+export type Section = {
+  _id: Id<"sections">;
+  name: string;
+  description: string;
+  testId: Id<"tests">;
+  totalQuestions: number;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type Question = {
+  _id: Id<"questions">;
+  sectionId: Id<"sections">;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  createdAt: number;
+  updatedAt: number;
+}
 
 // Create a new section
 export const create = mutation({

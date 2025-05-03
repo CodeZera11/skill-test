@@ -128,37 +128,6 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
 
   const questions = attempt?.questions;
   const test = attempt?.test;
-
-  // if (questions === undefined || test === undefined) {
-  //   return (
-  //     <div className="container mx-auto py-10">
-  //       <Card>
-  //         <CardHeader>
-  //           <CardTitle>Loading Test...</CardTitle>
-  //         </CardHeader>
-  //         <CardContent>
-  //           <p>Please wait while we prepare your test.</p>
-  //         </CardContent>
-  //       </Card>
-  //     </div>
-  //   )
-  // }
-
-  // if (test === null || questions === null) {
-  //   return (
-  //     <div className="container mx-auto py-10">
-  //       <Card>
-  //         <CardHeader>
-  //           <CardTitle>Test not found</CardTitle>
-  //         </CardHeader>
-  //         <CardContent>
-  //           <p>The test you are looking for does not exist.</p>
-  //         </CardContent>
-  //       </Card>
-  //     </div>
-  //   )
-  // }
-
   const currentQuestion = questions[questionNumber - 1]
 
   return (
@@ -176,7 +145,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                     Marked for Review
                   </Badge>
                 )}
-                <TestTimer durationInMinutes={test.duration || 0} onTimeUp={handleTimeUp} />
+                <TestTimer durationInMinutes={test.duration || 0} onTimeUp={handleTimeUp} testAttempt={attempt} />
               </div>
             </CardHeader>
             <CardContent className="space-y-6">

@@ -4,64 +4,51 @@ import { useEffect, useState, useRef } from "react"
 import { Card } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Clock } from "lucide-react"
+import { TestAttemptWithDetails } from "~/convex/testAttempts"
 
 interface TestTimerProps {
   durationInMinutes: number
   onTimeUp: () => void
+  testAttempt: TestAttemptWithDetails
 }
 
-export function TestTimer({ durationInMinutes, onTimeUp }: TestTimerProps) {
+export function TestTimer({ durationInMinutes, onTimeUp, testAttempt }: TestTimerProps) {
   const [timeRemaining, setTimeRemaining] = useState(durationInMinutes * 60)
   const startTimeRef = useRef(Date.now())
   const timerRef = useRef<NodeJS.Timeout | null>(null)
-  const totalTime = durationInMinutes * 60
-
-  // Load saved time from localStorage if available
-  useEffect(() => {
-    const savedStartTime = localStorage.getItem("test_start_time")
-    if (savedStartTime) {
-      startTimeRef.current = Number.parseInt(savedStartTime)
-    } else {
-      // If no saved time, set current time as start time
-      startTimeRef.current = Date.now()
-      localStorage.setItem("test_start_time", startTimeRef.current.toString())
-    }
-
-    // Calculate initial time remaining
-    const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000)
-    const remaining = Math.max(0, totalTime - elapsed)
-    setTimeRemaining(remaining)
-  }, [totalTime])
+  const totalDurationInSeconds = durationInMinutes * 60
 
   useEffect(() => {
-    // Clear any existing timer
+    const remainingTimeInSeconds = totalDurationInSeconds
+    setTimeRemaining(remainingTimeInSeconds)
+  }, [totalDurationInSeconds])
+
+  useEffect(() => {
     if (timerRef.current) {
       clearInterval(timerRef.current)
     }
 
-    // Set up the timer
     timerRef.current = setInterval(() => {
       const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000)
-      const remaining = totalTime - elapsed
+      const remainingTimeInSeconds = totalDurationInSeconds - elapsed
 
-      if (remaining <= 0) {
+      if (remainingTimeInSeconds <= 0) {
         if (timerRef.current) {
           clearInterval(timerRef.current)
         }
         setTimeRemaining(0)
         onTimeUp()
       } else {
-        setTimeRemaining(remaining)
+        setTimeRemaining(remainingTimeInSeconds)
       }
     }, 1000)
 
-    // Clean up on unmount
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current)
       }
     }
-  }, [totalTime, onTimeUp])
+  }, [totalDurationInSeconds, onTimeUp])
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600)
@@ -71,7 +58,7 @@ export function TestTimer({ durationInMinutes, onTimeUp }: TestTimerProps) {
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
   }
 
-  const progressPercentage = (timeRemaining / totalTime) * 100
+  const progressPercentage = (timeRemaining / totalDurationInSeconds) * 100
 
   return (
     <Card className="p-4">
