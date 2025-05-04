@@ -13,3 +13,15 @@ export async function deleteTopic(id: Id<"topics">) {
 
   revalidatePath(PageRoutes.DASHBOARD.TOPICS);
 }
+
+export async function toggleTopicPublishStatus(
+  id: Id<"topics">,
+  publishStatus: boolean
+) {
+  await fetchMutation(api.topics.togglePublishStatus, {
+    id,
+    publishStatus,
+  });
+
+  revalidatePath(PageRoutes.DASHBOARD.TOPICS);
+}

@@ -8,7 +8,8 @@ import { Topic } from "../../../../../convex/topics";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
-import { deleteCategory } from "@/actions/categories";
+import { deleteCategory, toggleCategoryPublishStatus } from "@/actions/categories";
+import { Badge } from "@/components/ui/badge";
 
 type CategoryWithCount = Doc<"categories"> & { _subcategoriesCount: number, topic: Topic | null };
 
@@ -67,6 +68,18 @@ export const columns: ColumnDef<CategoryWithCount>[] = [
     enableSorting: false,
   },
   {
+    accessorKey: "isPublished",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Published" />
+    ),
+    cell: ({ row }) => {
+      const category = row.original;
+      return (
+        <Badge variant={category?.isPublished ? "success" : "danger"} className="">{category.isPublished ? "Yes" : "No"}</Badge>
+      )
+    }
+  },
+  {
     accessorKey: "createdAt",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created At" />
@@ -95,6 +108,19 @@ export const columns: ColumnDef<CategoryWithCount>[] = [
 
       return (
         <div className="flex items-center gap-2">
+          <Button variant="secondary" onClick={() => {
+            toast.promise(
+              toggleCategoryPublishStatus(category._id, !category.isPublished),
+              {
+                loading: "Updating category...",
+                success: "Category updated successfully",
+                error: (err) => `Error updating Category: ${err}`,
+              }
+            )
+          }}>
+            {category.isPublished ? "Unpublish" : "Publish"}
+          </Button>
+
           <Button onClick={() => toast.promise(deleteCategory(category._id), {
             loading: "Deleting category...",
             success: "Category deleted successfully",

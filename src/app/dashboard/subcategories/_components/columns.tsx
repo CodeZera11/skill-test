@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
-import { deleteSubCategory } from "@/actions/sub-categories";
+import { deleteSubCategory, toggleSubCategoryPublishStatus } from "@/actions/sub-categories";
 
 export const columns: ColumnDef<SubCategoryWithTests>[] = [
   {
@@ -62,6 +62,20 @@ export const columns: ColumnDef<SubCategoryWithTests>[] = [
     enableSorting: false,
   },
   {
+    accessorKey: "isPublished",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Published" />
+    ),
+    cell: ({ row }) => {
+      const subCategory = row.original;
+      return (
+        <Badge variant={subCategory.isPublished ? "success" : "danger"}>
+          {subCategory.isPublished ? "Yes" : "No"}
+        </Badge>
+      )
+    }
+  },
+  {
     accessorKey: "createdAt",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created At" />
@@ -89,6 +103,18 @@ export const columns: ColumnDef<SubCategoryWithTests>[] = [
       const subCategory = row.original;
       return (
         <div className="flex items-center gap-2">
+          <Button variant="secondary" onClick={() => {
+            toast.promise(
+              toggleSubCategoryPublishStatus(subCategory._id, !subCategory.isPublished),
+              {
+                loading: "Updating subcategory...",
+                success: "Subcategory updated successfully",
+                error: (err) => `Error updating subcategory: ${err}`,
+              }
+            )
+          }}>
+            {subCategory.isPublished ? "Unpublish" : "Publish"}
+          </Button>
           <Button onClick={() => toast.promise(deleteSubCategory(subCategory._id), {
             loading: "Deleting SubCategory...",
             success: "SubCategory deleted successfully",

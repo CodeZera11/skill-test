@@ -2,6 +2,27 @@ import { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
+export type Category = {
+  _id: Id<"categories">;
+  name: string;
+  description?: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type SubCategory = {
+  _id: Id<"subCategories">;
+  name: string;
+  description?: string;
+  categoryId: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type CategoryWithSubcategories = Category & {
+  subcategories: SubCategory[];
+};
+
 // Queries
 export const list = query({
   args: {
@@ -13,7 +34,11 @@ export const list = query({
     const { searchQuery, sortOrder } = args;
     const query = ctx.db
       .query("categories")
-      .filter((q) => q.eq(q.field("isPublished"), args?.onlyPublished))
+      .filter((q) =>
+        args.onlyPublished
+          ? q.eq(q.field("isPublished"), true)
+          : q.eq(q.field("isPublished"), q.field("isPublished"))
+      )
       .order(sortOrder ? sortOrder : "asc");
 
     if (searchQuery) {
@@ -30,10 +55,15 @@ export const list = query({
           const subcategories = await ctx.db
             .query("subCategories")
             .filter((q) =>
-              q.and(
-                q.eq(q.field("categoryId"), category._id),
-                q.eq(q.field("isPublished"), args?.onlyPublished)
-              )
+              args.onlyPublished
+                ? q.and(
+                    q.eq(q.field("categoryId"), category._id),
+                    q.eq(q.field("isPublished"), true)
+                  )
+                : q.and(
+                    q.eq(q.field("categoryId"), category._id),
+                    q.eq(q.field("isPublished"), q.field("isPublished"))
+                  )
             )
             .collect();
           return {
@@ -52,7 +82,17 @@ export const list = query({
         const topic = await ctx.db.get(category.topicId);
         const subcategories = await ctx.db
           .query("subCategories")
-          .filter((q) => q.eq(q.field("categoryId"), category._id))
+          .filter((q) =>
+            args.onlyPublished
+              ? q.and(
+                  q.eq(q.field("categoryId"), category._id),
+                  q.eq(q.field("isPublished"), true)
+                )
+              : q.and(
+                  q.eq(q.field("categoryId"), category._id),
+                  q.eq(q.field("isPublished"), q.field("isPublished"))
+                )
+          )
           .collect();
 
         return {
@@ -197,23 +237,16 @@ export const listWithSubCategoriesAndTests = query({
   },
 });
 
-export type Category = {
-  _id: Id<"categories">;
-  name: string;
-  description?: string;
-  createdAt: number;
-  updatedAt: number;
-};
-
-export type SubCategory = {
-  _id: Id<"subCategories">;
-  name: string;
-  description?: string;
-  categoryId: string;
-  createdAt: number;
-  updatedAt: number;
-};
-
-export type CategoryWithSubcategories = Category & {
-  subcategories: SubCategory[];
-};
+export const togglePublishStatus = mutation({
+  args: {
+    id: v.id("categories"),
+    publishStatus: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const { id, publishStatus } = args;
+    return await ctx.db.patch(id, {
+      isPublished: publishStatus,
+      updatedAt: Date.now(),
+    });
+  },
+});

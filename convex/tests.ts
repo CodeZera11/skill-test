@@ -66,7 +66,11 @@ export const listWithDetails = query({
     if (searchQuery) {
       const searchData = await ctx.db
         .query("tests")
-        .filter((q) => q.eq(q.field("isPublished"), args?.onlyPublished))
+        .filter((q) =>
+          args.onlyPublished
+            ? q.eq(q.field("isPublished"), true)
+            : q.eq(q.field("isPublished"), q.field("isPublished"))
+        )
         .withSearchIndex("search_name", (q) => {
           return q.search("name", searchQuery.toLowerCase());
         })
@@ -89,6 +93,11 @@ export const listWithDetails = query({
 
     const tests = await ctx.db
       .query("tests")
+      .filter((q) =>
+        args.onlyPublished
+          ? q.eq(q.field("isPublished"), true)
+          : q.eq(q.field("isPublished"), q.field("isPublished"))
+      )
       .order(sortOrder ?? "desc")
       .collect();
 
@@ -438,5 +447,19 @@ export const remove = mutation({
   args: { id: v.id("tests") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);
+  },
+});
+
+export const togglePublishStatus = mutation({
+  args: {
+    id: v.id("tests"),
+    publishStatus: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const { id, publishStatus } = args;
+    return await ctx.db.patch(id, {
+      isPublished: publishStatus,
+      updatedAt: Date.now(),
+    });
   },
 });

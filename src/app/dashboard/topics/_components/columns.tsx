@@ -3,11 +3,12 @@
 import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
-import { TopicWithCategory } from "../../../../../convex/topics";
+import { TopicWithCategory } from "~/convex/topics";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { deleteTopic } from "@/actions/topics";
+import { deleteTopic, toggleTopicPublishStatus } from "@/actions/topics";
 import { Trash } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export const columns: ColumnDef<TopicWithCategory>[] = [
   {
@@ -16,8 +17,8 @@ export const columns: ColumnDef<TopicWithCategory>[] = [
       <DataTableColumnHeader column={column} title="ID" />
     ),
     cell: ({ row }) => {
-      const category = row.original;
-      return <span>{category._id}</span>
+      const topic = row.original;
+      return <span>{topic._id}</span>
     },
     enableSorting: false,
   },
@@ -27,9 +28,9 @@ export const columns: ColumnDef<TopicWithCategory>[] = [
       <DataTableColumnHeader column={column} title="Name" />
     ),
     cell: ({ row }) => {
-      const category = row.original;
+      const topic = row.original;
       return (
-        <span>{category.name}</span>
+        <span>{topic.name}</span>
       )
     },
     enableSorting: false,
@@ -49,14 +50,26 @@ export const columns: ColumnDef<TopicWithCategory>[] = [
     enableSorting: false,
   },
   {
+    accessorKey: "isPublished",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Published" />
+    ),
+    cell: ({ row }) => {
+      const topic = row.original;
+      return (
+        <Badge variant={topic?.isPublished ? "success" : "danger"}>{topic.isPublished ? "Yes" : "No"}</Badge>
+      )
+    }
+  },
+  {
     accessorKey: "createdAt",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Created At" />
     ),
     cell: ({ row }) => {
-      const category = row.original;
+      const topic = row.original;
       const formatted = format(
-        new Date(category.createdAt),
+        new Date(topic.createdAt),
         "dd MMM yy, hh:mm a"
       );
       return (
@@ -76,6 +89,19 @@ export const columns: ColumnDef<TopicWithCategory>[] = [
       const topic = row.original;
       return (
         <div className="flex items-center gap-2">
+          <Button variant="secondary" onClick={() => {
+            toast.promise(
+              toggleTopicPublishStatus(topic._id, !topic.isPublished),
+              {
+                loading: "Updating topic...",
+                success: "Topic updated successfully",
+                error: (err) => `Error updating Topic: ${err}`,
+              }
+            )
+          }}>
+            {topic.isPublished ? "Unpublish" : "Publish"}
+          </Button>
+
           <Button onClick={() => toast.promise(deleteTopic(topic._id), {
             loading: "Deleting topic...",
             success: "Topic deleted successfully",

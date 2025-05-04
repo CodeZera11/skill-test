@@ -19,8 +19,7 @@ const TopicsTable = () => {
 
   const topics = useQuery(api.topics.list, {
     searchQuery,
-    sortOrder,
-    onlyPublished: false,
+    sortOrder
   })
 
   useEffect(() => {

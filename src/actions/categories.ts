@@ -13,3 +13,15 @@ export async function deleteCategory(id: Id<"categories">) {
 
   revalidatePath(PageRoutes.DASHBOARD.CATEGORIES);
 }
+
+export async function toggleCategoryPublishStatus(
+  id: Id<"categories">,
+  publishStatus: boolean
+) {
+  await fetchMutation(api.categories.togglePublishStatus, {
+    id,
+    publishStatus,
+  });
+
+  revalidatePath(PageRoutes.DASHBOARD.CATEGORIES);
+}

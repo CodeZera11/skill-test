@@ -41,6 +41,7 @@ export default function TestsPage() {
     onlyPublished: false,
   });
   const deleteTest = useMutation(api.tests.remove)
+  const toggleTestPublishStatus = useMutation(api.tests.togglePublishStatus)
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -143,6 +144,13 @@ export default function TestsPage() {
                       {test.description || "No description provided"}
                     </CardDescription>
                   </div>
+                  <Button
+                    variant={test.isPublished ? "outline" : "default"}
+                    size="sm"
+                    onClick={() => toggleTestPublishStatus({ id: test._id, publishStatus: !test.isPublished })}
+                  >
+                    {test.isPublished ? "Unpublish" : "Publish"}
+                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="flex-1">
