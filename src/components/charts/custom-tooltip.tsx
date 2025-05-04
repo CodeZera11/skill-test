@@ -4,7 +4,12 @@ import { format } from "date-fns";
 import currency from "@/lib/currency";
 
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: {
+  active?: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  payload?: any[];
+  label?: string | number | Date;
+}) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-[#101928] text-[#FDFDFD] p-2 rounded-md text-sm flex items-center gap-2">

@@ -1,9 +1,8 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { CartesianGrid, Legend, ResponsiveContainer, XAxis, YAxis, Tooltip as ChartToolTip, BarChart, Bar } from 'recharts'
+import { CartesianGrid, Legend, ResponsiveContainer, XAxis, YAxis, BarChart, Bar } from 'recharts'
 import { chartCurrencyFormatter, chartDateFormatter, ChartProps } from './chart-utils'
-import CustomTooltip from './custom-tooltip'
 
 const BarChartComp = ({ chartData, className, xAxisDataKey, yAxisDataKey }: ChartProps) => {
   return (
@@ -20,7 +19,7 @@ const BarChartComp = ({ chartData, className, xAxisDataKey, yAxisDataKey }: Char
 
         </YAxis>
         <Legend />
-        <ChartToolTip content={<CustomTooltip />} />
+        {/* <ChartToolTip content={<CustomTooltip />} /> */}
         <Bar dataKey={yAxisDataKey} fill="#8884d8" />
       </BarChart>
     </ResponsiveContainer>
