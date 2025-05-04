@@ -14,6 +14,7 @@ import { format } from "date-fns";
 import { TSortOrder } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { formatSeconds } from "@/lib/utils";
 
 export default function TestsPage() {
   const [inputValue, setInputValue] = useState("")
@@ -147,7 +148,7 @@ export default function TestsPage() {
                 <div className="flex items-center justify-between gap-2 text-sm">
                   <div className="flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5 text-emerald-500" />
-                    <p>{test.duration ? `${test.duration} min` : "No time limit"}</p>
+                    <p>{test.durationInSeconds ? `${formatSeconds(test?.durationInSeconds)} min` : "No time limit"}</p>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <CircleCheck className="h-3.5 w-3.5 text-orange-500" />
@@ -159,7 +160,7 @@ export default function TestsPage() {
                     <span className="font-medium">{test.totalQuestions}</span>
                     <span className="text-muted-foreground">questions</span>
                   </div>
-                  
+
                 </div>
                 <div className="mt-4 flex items-center gap-1.5">
                   {/* <span className="text-sm text-muted-foreground">Sub-Category:</span> */}

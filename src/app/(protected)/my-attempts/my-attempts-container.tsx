@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CalendarIcon, ClockIcon, BarChart3Icon } from "lucide-react"
@@ -9,54 +9,6 @@ import { useQuery } from "convex/react"
 import { api } from "~/convex/_generated/api"
 import { formatSeconds } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
-
-// Mock data for test attempts
-// const testAttempts = [
-//   {
-//     id: "attempt-1",
-//     testId: "test-1",
-//     testName: "Basic Mathematics",
-//     category: "Mathematics",
-//     date: "2023-05-10T14:30:00",
-//     score: 85,
-//     totalQuestions: 30,
-//     correctAnswers: 26,
-//     timeTaken: "45 minutes",
-//   },
-//   {
-//     id: "attempt-2",
-//     testId: "test-2",
-//     testName: "English Grammar",
-//     category: "English",
-//     date: "2023-05-15T10:15:00",
-//     score: 92,
-//     totalQuestions: 40,
-//     correctAnswers: 37,
-//     timeTaken: "55 minutes",
-//   },
-//   {
-//     id: "attempt-3",
-//     testId: "test-3",
-//     testName: "Science Fundamentals",
-//     category: "Science",
-//     date: "2023-05-20T16:45:00",
-//     score: 78,
-//     totalQuestions: 35,
-//     correctAnswers: 27,
-//     timeTaken: "50 minutes",
-//   },
-//   {
-//     id: "attempt-4",
-//     testId: "test-4",
-//     testName: "History Concepts",
-//     category: "History",
-//     date: "2023-05-25T09:30:00",
-//     score: 88,
-//     totalQuestions: 25,
-//     correctAnswers: 22,
-//     timeTaken: "40 minutes",
-//   },
-// ]
 
 const MyAttemptsContainer = ({ clerkUserId }: { clerkUserId: string }) => {
 

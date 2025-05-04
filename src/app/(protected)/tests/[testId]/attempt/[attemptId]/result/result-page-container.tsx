@@ -247,7 +247,7 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
             </CardHeader>
             <CardContent className="flex items-center justify-center py-4">
               <ProgressRing
-                value={timeTakenInSeconds}
+                value={timeTakenInSeconds > durationInSeconds ? durationInSeconds : timeTakenInSeconds}
                 max={durationInSeconds}
                 label="Time Taken"
                 color="#f59e0b"
