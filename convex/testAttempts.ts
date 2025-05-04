@@ -210,6 +210,51 @@ export const getTestAttempt = query({
   },
 });
 
+export const getTestAttemptsByUser = query({
+  args: {
+    clerkUserId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const user = await ctx.db
+        .query("users")
+        .filter((q) => q.eq(q.field("clerkUserId"), args.clerkUserId))
+        .first();
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const testAttempts = await ctx.db
+        .query("testAttempts")
+        .filter((q) => q.eq(q.field("userId"), user._id))
+        .order("desc")
+        .collect();
+      if (!testAttempts) {
+        throw new Error("No test attempts found for this user");
+      }
+
+      const testWithDetails = await Promise.all(
+        testAttempts.map(async (testAttempt) => {
+          const test = await ctx.db.get(testAttempt.testId);
+          if (!test) {
+            throw new Error("Test not found");
+          }
+
+          return {
+            ...testAttempt,
+            test,
+          };
+        })
+      );
+
+      return testWithDetails;
+    } catch (error) {
+      console.log("Error fetching test attempts:", error);
+      return null;
+    }
+  },
+});
+
 // export const getTimeDistribution = query({
 //   args: { id: v.id("testAttempts") },
 //   handler: async (ctx, args) => {
