@@ -4,7 +4,6 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
-  BarChart3,
   BookOpen,
   FolderTree,
   GraduationCap,
@@ -12,6 +11,7 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Sidebar, SidebarHeader, SidebarMenu, SidebarMenuButton, useSidebar } from "@/components/ui/sidebar"
+import { PageRoutes } from "@/constants/page-routes"
 
 export function AppSidebar() {
   const pathname = usePathname()
@@ -20,14 +20,16 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className={cn(state === "expanded" ? "p-4" : "p-2")}>
-        <div className={cn(
-          "flex items-center justify-center w-full",
-          state === "expanded"
-            ? "size-10 rounded-lg bg-primary text-primary-foreground"
-            : "size-6 text-foreground p-0 mx-auto"
-        )}>
+        <Link
+          href={PageRoutes.HOME}
+          className={cn(
+            "flex items-center justify-center w-full",
+            state === "expanded"
+              ? "size-10 rounded-lg bg-primary text-primary-foreground"
+              : "size-6 text-foreground p-0 mx-auto"
+          )}>
           <GraduationCap className={state === "expanded" ? "size-5" : "size-4"} />
-        </div>
+        </Link>
         {state === "expanded" && <span className="font-semibold">Quiz Admin</span>}
       </SidebarHeader>
 
@@ -68,16 +70,6 @@ export function AppSidebar() {
           <Link href="/dashboard/tests" className="flex items-center gap-2">
             <GraduationCap className="size-4" />
             <span>Tests</span>
-          </Link>
-        </SidebarMenuButton>
-
-        <SidebarMenuButton
-          asChild
-          isActive={pathname.includes("/dashboard/questions")}
-        >
-          <Link href="/dashboard/questions" className="flex items-center gap-2">
-            <BarChart3 className="size-4" />
-            <span>Questions</span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenu>

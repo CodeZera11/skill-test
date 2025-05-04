@@ -1,15 +1,14 @@
 "use client"
-import { CheckCircle, Layout, Menu, X } from 'lucide-react'
+import { CheckCircle, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import React, { useState } from 'react'
 import { ModeToggle } from '../theme-switcher'
 import { motion } from "framer-motion"
 import { Button } from '../ui/button'
 import { Authenticated, Unauthenticated } from 'convex/react'
-import { UserButton } from '@clerk/nextjs'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { Skeleton } from '../ui/skeleton'
-import { redirect } from 'next/navigation'
+import ClerkUserButton from '../auth/user-button'
 
 const PublicNav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -39,7 +38,7 @@ const PublicNav = () => {
           <Link href="#testimonials" className="text-sm font-medium hover:text-emerald-500 transition-colors">
             Testimonials
           </Link>
-          {/* <ModeToggle /> */}
+          <ModeToggle />
 
           <Unauthenticated>
             <Button asChild>
@@ -49,16 +48,7 @@ const PublicNav = () => {
             </Button>
           </Unauthenticated>
           <Authenticated>
-            {/* <UserButton /> */}
-            <UserButton>
-              <UserButton.MenuItems>
-                <UserButton.Action
-                  label="Dashboard"
-                  labelIcon={<Layout className='h-[16px] w-[16px]' />}
-                  onClick={() => redirect("/dashboard/categories")}
-                />
-              </UserButton.MenuItems>
-            </UserButton>
+            <ClerkUserButton />
           </Authenticated>
           {isLoading && (
             <Skeleton className='h-[28px] w-[28px] rounded-full' />

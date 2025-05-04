@@ -6,8 +6,7 @@ import TestimonialsSection from "@/components/landing/testimonials"
 import HowItWorksSection from "@/components/landing/how-it-works-section"
 import CategoriesSection from "@/components/landing/categories-section"
 
-const LandingPage = () => {
-
+const LandingPage = async () => {
   return (
     <div className="min-h-screen flex flex-col">
       <main>

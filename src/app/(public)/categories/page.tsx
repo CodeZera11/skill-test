@@ -155,13 +155,6 @@ export default function CategoriesPage() {
                                   <Badge variant="outline" className="flex items-center gap-1">
                                     <Zap className="h-3 w-3" />
                                     <span>
-                                      {subcategory?.tests?.reduce((acc, test) => acc + (test.duration || 0), 0) + " "}
-                                      Minutes
-                                    </span>
-                                  </Badge>
-                                  <Badge variant="outline" className="flex items-center gap-1">
-                                    <Zap className="h-3 w-3" />
-                                    <span>
                                       {subcategory?.tests?.reduce((acc, test) => acc + (test.totalQuestions || 0), 0) + " "}
                                       Questions
                                     </span>

@@ -1,6 +1,7 @@
 "use client"
 
 import { AppSidebar } from "@/components/app-sidebar"
+import ClerkUserButton from "@/components/auth/user-button"
 import { ModeToggle } from "@/components/theme-switcher"
 import {
   Breadcrumb,
@@ -14,7 +15,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { UserButton } from "@clerk/nextjs"
 import { usePathname } from "next/navigation"
 
 const getBreadcrumbTitle = (path: string) => {
@@ -61,7 +61,7 @@ export default function DashboardLayout({
             </div>
             <div className="hidden md:flex items-center gap-2 px-4">
               <ModeToggle />
-              <UserButton />
+              <ClerkUserButton />
             </div>
           </header>
           <main className="flex-1 w-full px-4">
