@@ -1,4 +1,4 @@
-import { Id } from "../../../../../convex/_generated/dataModel"
+import { Id } from "~/convex/_generated/dataModel"
 import SubCategoryDetailsContainer from "./sub-category-details-container"
 
 async function SubCategoryDetailPage(props: { params: Promise<{ id: string }> }) {

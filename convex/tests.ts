@@ -212,49 +212,6 @@ export const getTestWithQuestions = query({
   },
 });
 
-export const getAveragePerformance = query({
-  args: { id: v.id("tests") },
-  handler: async (ctx, args) => {
-    const testAttempts = await ctx.db
-      .query("testAttempts")
-      .filter((q) => q.eq(q.field("testId"), args.id))
-      .collect();
-
-    if (testAttempts.length === 0) {
-      return null;
-    }
-
-    const totalScores = testAttempts.reduce((sum, attempt) => sum + (attempt.score || 0), 0);
-    const averageScore = totalScores / testAttempts.length;
-
-    const sectionPerformance = await Promise.all(
-      testAttempts.map(async (attempt) => {
-        const sections = await ctx.db
-          .query("sections")
-          .filter((q) => q.eq(q.field("testId"), args.id))
-          .collect();
-
-        return sections.map((section) => {
-          const correctAnswers = attempt.answers.filter(
-            (answer) => answer.sectionId === section._id && answer.isCorrect
-          ).length;
-          const totalQuestions = section.totalQuestions;
-          const score = (correctAnswers / totalQuestions) * 100;
-          return {
-            sectionId: section._id,
-            averageScore: score,
-          };
-        });
-      })
-    );
-
-    return {
-      averageScore,
-      sectionPerformance: sectionPerformance.flat(),
-    };
-  },
-});
-
 // Mutations
 export const create = mutation({
   args: {
@@ -262,7 +219,6 @@ export const create = mutation({
     description: v.optional(v.string()),
     subCategoryId: v.id("subCategories"),
     totalQuestions: v.optional(v.number()),
-    duration: v.optional(v.number()),
     questions: v.array(
       v.object({
         question: v.string(),
@@ -291,8 +247,8 @@ export const create = mutation({
       description: args.description || undefined,
       subCategoryId: args.subCategoryId,
       totalQuestions: args.questions.length,
-      duration: args.sections.reduce(
-        (acc, section) => acc + (section.duration || 0),
+      durationInSeconds: args.sections.reduce(
+        (acc, section) => acc + (section.duration || 0) * 60,
         0
       ),
       totalMarks: args.questions.reduce(
@@ -309,7 +265,7 @@ export const create = mutation({
         const sectionId = await ctx.db.insert("sections", {
           name: section.name,
           description: section.description || undefined,
-          duration: section.duration,
+          durationInSeconds: (section?.duration || 0) * 60,
           totalQuestions: sectionQuestions,
           testId: test,
           createdAt: timestamp,
@@ -349,7 +305,7 @@ export const update = mutation({
     description: v.optional(v.string()),
     subCategoryId: v.id("subCategories"),
     totalQuestions: v.optional(v.number()),
-    duration: v.number(),
+
     questions: v.array(
       v.object({
         question: v.string(),
@@ -378,7 +334,6 @@ export const update = mutation({
       sections,
       subCategoryId,
       description,
-      duration,
       totalQuestions,
     } = args;
 
@@ -391,7 +346,10 @@ export const update = mutation({
         (acc, question) => acc + Number(question.marks || 0),
         0
       ),
-      duration: duration || undefined,
+      durationInSeconds: sections.reduce(
+        (acc, section) => acc + (section.duration || 0) * 60,
+        0
+      ),
       updatedAt: Date.now(),
     });
 
@@ -424,7 +382,7 @@ export const update = mutation({
         const sectionId = await ctx.db.insert("sections", {
           name: section.name,
           description: section.description || undefined,
-          duration: section.duration,
+          durationInSeconds: section.duration ? section.duration * 60 : undefined,
           totalQuestions: sectionQuestions,
           testId: id,
           createdAt: Date.now(),

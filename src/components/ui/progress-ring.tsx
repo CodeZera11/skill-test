@@ -18,7 +18,7 @@ interface ProgressRingProps {
 export function ProgressRing({
   value,
   max = 100,
-  size = 120,
+  size = 140,
   strokeWidth = 8,
   className,
   valueClassName,

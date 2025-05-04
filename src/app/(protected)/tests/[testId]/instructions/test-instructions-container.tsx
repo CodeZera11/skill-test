@@ -11,6 +11,7 @@ import { useMutation, useQuery } from "convex/react"
 import { api } from "~/convex/_generated/api"
 import { useCurrentUser } from "@/hooks/use-current-user"
 import { toast } from "sonner"
+import { formatSeconds } from "@/lib/utils"
 
 const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
   const router = useRouter()
@@ -64,7 +65,7 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
             <h3 className="text-lg font-medium mb-2">Test Overview</h3>
             <ul className="list-disc pl-5 space-y-1">
               <li>Total Questions: {test.totalQuestions}</li>
-              <li>Duration: {test.duration} minutes</li>
+              <li>Duration: {formatSeconds(test.durationInSeconds)} minutes</li>
               <li>Total Marks: {test.totalMarks}</li>
             </ul>
           </div>

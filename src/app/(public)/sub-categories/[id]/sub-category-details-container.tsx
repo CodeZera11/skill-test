@@ -21,9 +21,9 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Id } from "../../../../../convex/_generated/dataModel"
+import { Id } from "~/convex/_generated/dataModel"
 import { useQuery } from "convex/react"
-import { api } from "../../../../../convex/_generated/api"
+import { api } from "~/convex/_generated/api"
 import { fadeIn, staggerContainer } from "@/constants/animations"
 
 import { format, intervalToDuration } from "date-fns"
@@ -219,10 +219,12 @@ const SubCategoryDetailsContainer = ({ id }: { id: Id<"subCategories"> }) => {
               >
                 {sortedTests.map((test) => {
 
-                  const now = new Date();
-                  const later = new Date(now.getTime() + (test?.duration || 0) * 60 * 1000);
-                  const duration = intervalToDuration({ start: now, end: later });
-                  const formatted = `${duration.hours} hrs ${duration.minutes} mins`;
+                  const duration = test.durationInSeconds || 0;
+                  const durationInMs = duration * 1000;
+                  const durationObj = intervalToDuration({ start: 0, end: durationInMs });
+                  const formatted = `${durationObj.hours ? `${durationObj.hours}h ` : ""}${durationObj.minutes ? `${durationObj.minutes}m ` : ""
+                    }${durationObj.seconds ? `${durationObj.seconds}s` : ""}`.trim();
+
                   return (
                     <motion.div key={test._id} variants={fadeIn} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
                       <Card className="h-full overflow-hidden dark:bg-slate-900">

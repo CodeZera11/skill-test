@@ -8,117 +8,52 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  BarChartIcon,
-  PieChartIcon,
-  Share2,
-  Download,
-  ArrowRight,
-  BookOpen,
-  Brain,
-  Target,
-  TrendingUp,
-  ChevronRight,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { PieChart } from "@/components/charts/pie-chart"
-import { BarChart } from "@/components/charts/bar-chart"
-import { RadarChart } from "@/components/charts/radar-chart"
 import { ProgressRing } from "@/components/ui/progress-ring"
 import { useQuery } from "convex/react";
 import { api } from "~/convex/_generated/api";
 import { Id } from "~/convex/_generated/dataModel"
+import { fadeIn, staggerContainer } from "@/constants/animations"
+import { format } from "date-fns"
+import { formatSeconds } from "@/lib/utils"
 
-const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempts"> }) => {
+
+const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempts">, testId: Id<"tests"> }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
 
   // Fetch test attempt details from Convex
-  const testAttempt = useQuery(api.testAttempts.getTestAttempt, { id: testAttemptId });
+  const data = useQuery(api.testAttempts.getTestAttempt, { id: testAttemptId });
 
-  // Ensure testAttempt is defined before fetching related data
-  const testId = testAttempt?.testId;
-  const test = useQuery(api.tests.getById, { id: testId || "" });
-  const sections = useQuery(api.sections.getSectionsByTestId, { testId: testId || "" });
-  const averagePerformance = useQuery(api.tests.getAveragePerformance, { id: testId || "" });
-  const timeDistribution = useQuery(api.testAttempts.getTimeDistribution, { id: testAttemptId });
-  const strengthsWeaknesses = useQuery(api.testAttempts.getStrengthsWeaknesses, { id: testAttemptId });
+  // const testId = data?.test?._id;
+  const test = data?.test;
+  const sections = data?.sections;
+  const testAttempt = data?.testAttempt;
 
-  // Calculate performance metrics
-  const sectionPerformance = (sections || []).map((section) => {
-    const correctAnswers = (testAttempt?.answers || []).filter(
-      (answer) => answer.sectionId === section._id && answer.isCorrect
-    ).length;
-    const totalQuestions = section.totalQuestions || 1; // Ensure no division by zero
-    const score = (correctAnswers / totalQuestions) * 100;
-    return {
-      sectionName: section.name,
-      score,
-      average: averagePerformance?.sectionPerformance.find((s) => s.sectionId === section._id)?.averageScore || 0,
-    };
-  });
+  // const averagePerformance = useQuery(api.tests.getAveragePerformance, { id: testId });
+  // const timeDistribution = useQuery(api.testAttempts.getTimeDistribution, { id: testAttemptId });
+  // const strengthsWeaknesses = useQuery(api.testAttempts.getStrengthsWeaknesses, { id: testAttemptId });
+
+
+  // const sectionPerformance = (sections || []).map((section) => {
+  //   const correctAnswers = testAttempt?.correctAnswers || 0;
+  //   const totalQuestions = section.totalQuestions || 1;
+  //   const score = (correctAnswers / totalQuestions) * 100;
+  //   return {
+  //     sectionName: section.name,
+  //     score,
+  //     // average: averagePerformance?.sectionPerformance.find((s) => s.sectionId === section._id)?.averageScore || 0,
+  //   };
+  // });
 
   useEffect(() => {
     if (testAttempt && test && sections) {
       setIsLoading(false);
     }
   }, [testAttempt, test, sections]);
-
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6 },
-    },
-  }
-
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  }
-
-  // Function to format date
-  const formatDate = (timestamp) => {
-    return new Date(timestamp).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
-  }
-
-  // Function to format time
-  const formatTime = (timestamp) => {
-    return new Date(timestamp).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
-
-  // Function to format duration in seconds to minutes and seconds
-  const formatDuration = (seconds) => {
-    const minutes = Math.floor(seconds / 60)
-    const remainingSeconds = seconds % 60
-    return `${minutes}m ${remainingSeconds}s`
-  }
-
-  // Function to format duration in minutes
-  const formatMinutes = (minutes) => {
-    if (minutes < 60) {
-      return `${minutes} min`
-    }
-    const hours = Math.floor(minutes / 60)
-    const remainingMinutes = minutes % 60
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`
-  }
 
   if (isLoading) {
     return (
@@ -143,7 +78,7 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
             <XCircle className="h-8 w-8 text-red-500" />
           </div>
           <h3 className="text-xl font-medium mb-2">Test result not found</h3>
-          <p className="text-muted-foreground mb-6">We couldn't find the test result you're looking for.</p>
+          <p className="text-muted-foreground mb-6">{`We couldn't find the test result you're looking for.`}</p>
           <Button asChild>
             <Link href="/tests">View All Tests</Link>
           </Button>
@@ -153,43 +88,51 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
   }
 
   // Prepare chart data
-  const answersData = [
-    {
-      name: "Correct",
-      value: testAttempt.correctAnswers,
-      color: "#10b981", // emerald-500
-    },
-    {
-      name: "Incorrect",
-      value: testAttempt.incorrectAnswers,
-      color: "#ef4444", // red-500
-    },
-  ]
+  // const answersData: ChartData[] = [
+  //   {
+  //     name: "Correct Answers",
+  //     value: testAttempt.correctAnswers || 0,
+  //   },
+  //   {
+  //     name: "Incorrect Answers",
+  //     value: testAttempt.incorrectAnswers || 0,
+  //   },
+  // ]
 
-  const sectionScoreData = sectionPerformance.map((section) => {
-    return {
-      name: section.sectionName,
-      score: section.score,
-      average: section.average,
-    }
-  })
+  // const sectionScoreData = sectionPerformance.map((section) => {
+  //   return {
+  //     name: section.sectionName,
+  //     score: section.score,
+  //     average: section.average,
+  //   }
+  // })
 
-  const timeDistributionData = timeDistribution.map((item) => {
-    const sectionInfo = sections.find((s) => s._id === item.sectionId)
-    return {
-      name: sectionInfo?.name || "Unknown",
-      actual: Math.round(item.timeSpent / 60), // Convert to minutes
-      expected: Math.round(item.expectedTime / 60), // Convert to minutes
-    }
-  })
+  // const timeDistributionData = timeDistribution.map((item) => {
+  //   const sectionInfo = sections.find((s) => s._id === item.sectionId)
+  //   return {
+  //     name: sectionInfo?.name || "Unknown",
+  //     actual: Math.round(item.timeSpent / 60), // Convert to minutes
+  //     expected: Math.round(item.expectedTime / 60), // Convert to minutes
+  //   }
+  // })
 
-  const radarData = sectionPerformance.map((section) => {
-    return {
-      subject: section.sectionName,
-      score: section.score,
-      average: section.average,
-    }
-  })
+  // const radarData = sectionPerformance.map((section) => {
+  //   return {
+  //     subject: section.sectionName,
+  //     score: section.score,
+  //     average: section.average,
+  //   }
+  // })
+
+  const score = testAttempt?.score || 0
+  const totalMarks = test?.totalMarks || 0
+  const isDistinction = score >= totalMarks * 0.7
+  const isAverage = score >= totalMarks * 0.5
+  const correctAnswers = testAttempt?.correctAnswers || 0
+  const totalQuestions = test?.totalQuestions || 1
+  const timeTakenInSeconds = testAttempt?.timeTakenInSeconds || 0
+  const durationInSeconds = test?.durationInSeconds || 0
+
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -204,36 +147,36 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
           <div className="flex items-center gap-2 mb-2">
             <h1 className="text-3xl font-bold">Test Result</h1>
             <Badge
-              variant={testAttempt.score >= 70 ? "default" : testAttempt.score >= 50 ? "outline" : "destructive"}
+              variant={isDistinction ? "success" : isAverage ? "warning" : "danger"}
               className="text-sm"
             >
-              {testAttempt.score >= 70 ? "Excellent" : testAttempt.score >= 50 ? "Good" : "Needs Improvement"}
+              {isDistinction ? "Distinction" : isAverage ? "Average" : "Below Average"}
             </Badge>
           </div>
           <p className="text-muted-foreground">
-            {test.name} • Completed on {formatDate(testAttempt.endTime)} at {formatTime(testAttempt.endTime)}
+            {test.name} • Completed on {format(new Date(testAttempt?.endTime || ""), "dd MMMM yy")} at {format(new Date(testAttempt?.endTime || ""), "hh:mm a")}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" className="gap-2">
+          {/* <Button variant="outline" size="sm" className="gap-2">
             <Share2 className="h-4 w-4" />
             Share
-          </Button>
-          <Button variant="outline" size="sm" className="gap-2">
+          </Button> */}
+          {/* <Button variant="outline" size="sm" className="gap-2">
             <Download className="h-4 w-4" />
             Download PDF
-          </Button>
+          </Button> */}
         </div>
-      </motion.div>
+      </motion.div >
 
       {/* Score Summary */}
       <motion.div
-        className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+        className="flex flex-col lg:flex-row w-full items-stretch gap-6 mb-8"
         variants={staggerContainer}
         initial="hidden"
         animate="visible"
       >
-        <motion.div variants={fadeIn}>
+        <motion.div variants={fadeIn} className="w-full h-full">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -243,14 +186,15 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
             </CardHeader>
             <CardContent className="flex items-center justify-center py-4">
               <ProgressRing
-                value={testAttempt.score}
+                value={score}
                 label="Your Score"
+                max={totalMarks}
                 color={
-                  testAttempt.score >= 80
+                  isDistinction
                     ? "#10b981" // emerald-500
-                    : testAttempt.score >= 60
+                    : score >= totalMarks * 0.5
                       ? "#3b82f6" // blue-500
-                      : testAttempt.score >= 40
+                      : score >= totalMarks * 0.3
                         ? "#f59e0b" // amber-500
                         : "#ef4444" // red-500
                 }
@@ -258,14 +202,18 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
             </CardContent>
             <CardFooter className="pt-0 text-sm text-muted-foreground">
               <div className="w-full flex justify-between">
-                <span>Average: {averagePerformance?.averageScore || 0}%</span>
-                <span>Top: {averagePerformance?.topScore || 0}%</span>
+                <span>
+                  Score: {score}
+                </span>
+                <span>
+                  Percentage: {((score / totalMarks) * 100).toFixed(2)}%
+                </span>
               </div>
             </CardFooter>
           </Card>
         </motion.div>
 
-        <motion.div variants={fadeIn}>
+        <motion.div variants={fadeIn} className="w-full h-full">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -275,7 +223,7 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
             </CardHeader>
             <CardContent className="flex items-center justify-center py-4">
               <ProgressRing
-                value={(testAttempt.correctAnswers / test.totalQuestions) * 100}
+                value={(correctAnswers / totalQuestions) * 100}
                 label="Correct Answers"
                 color="#3b82f6" // blue-500
               />
@@ -289,7 +237,7 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
           </Card>
         </motion.div>
 
-        <motion.div variants={fadeIn}>
+        <motion.div variants={fadeIn} className="w-full h-full">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -299,23 +247,59 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
             </CardHeader>
             <CardContent className="flex items-center justify-center py-4">
               <ProgressRing
-                value={(testAttempt.timeTaken / (test.duration * 60)) * 100}
-                label={formatDuration(testAttempt.timeTaken)}
-                color="#f59e0b" // amber-500
+                value={timeTakenInSeconds}
+                max={durationInSeconds}
+                label="Time Taken"
+                color="#f59e0b"
               />
             </CardContent>
             <CardFooter className="pt-0 text-sm text-muted-foreground">
               <div className="w-full flex justify-between">
-                <span>Your Time: {formatMinutes(Math.floor(testAttempt.timeTaken / 60))}</span>
-                <span>Allowed: {formatMinutes(test.duration)}</span>
+                <span>Your Time:{` `}
+                  {formatSeconds(timeTakenInSeconds)}
+                </span>
+                <span>
+                  Allowed:{` `}
+                  {formatSeconds(durationInSeconds)}
+                </span>
               </div>
             </CardFooter>
           </Card>
         </motion.div>
       </motion.div>
 
-      {/* Detailed Analysis Tabs */}
-      <Tabs defaultValue="overview" className="w-full" onValueChange={setActiveTab}>
+      {/* <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 gap-8"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Performance Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PieChart data={answersData} innerRadius={60} outerRadius={80} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">
+              Time Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BarChartComp
+              chartData={answersData}
+              xAxisDataKey="name"
+              yAxisDataKey="value"
+            // className="h-80"
+            />
+          </CardContent>
+        </Card>
+      </motion.div> */}
+
+      {/* < Tabs defaultValue="overview" className="w-full" onValueChange={setActiveTab} >
         <TabsList className="grid w-full md:w-auto grid-cols-4 md:inline-flex mb-8">
           <TabsTrigger value="overview" className="gap-2">
             <BarChartIcon className="h-4 w-4 hidden md:inline" />
@@ -335,7 +319,6 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
           </TabsTrigger>
         </TabsList>
 
-        {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-8">
           <motion.div
             className="grid grid-cols-1 md:grid-cols-2 gap-8"
@@ -358,7 +341,7 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
               </CardHeader>
               <CardContent className="flex flex-col items-center justify-center">
                 <ProgressRing
-                  value={testAttempt.performancePercentile}
+                  value={performancePercentile}
                   size={150}
                   strokeWidth={10}
                   label="Percentile Rank"
@@ -483,7 +466,6 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
           </motion.div>
         </TabsContent>
 
-        {/* Sections Tab */}
         <TabsContent value="sections" className="space-y-8">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <Card>
@@ -565,7 +547,6 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
           </motion.div>
         </TabsContent>
 
-        {/* Time Analysis Tab */}
         <TabsContent value="time" className="space-y-8">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <Card>
@@ -679,7 +660,6 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
           </motion.div>
         </TabsContent>
 
-        {/* Improvement Tab */}
         <TabsContent value="improvement" className="space-y-8">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <Card>
@@ -794,10 +774,9 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
             </Card>
           </motion.div>
         </TabsContent>
-      </Tabs>
+      </Tabs > */}
 
-      {/* Action Buttons */}
-      <motion.div
+      {/* <motion.div
         className="flex flex-wrap gap-4 justify-center mt-12"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -809,8 +788,8 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
         <Button size="lg" variant="outline" asChild>
           <Link href="/tests">Browse More Tests</Link>
         </Button>
-      </motion.div>
-    </div>
+      </motion.div> */}
+    </div >
   )
 }
 

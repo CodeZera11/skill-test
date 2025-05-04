@@ -56,14 +56,16 @@ export const submitTestAttempt = mutation({
         throw new Error("Test not found");
       }
 
-      const duration = test.duration;
+      const duration = test.durationInSeconds;
 
       if (!duration || duration <= 0) {
         throw new Error("Test duration is not set or invalid.");
       }
 
+      // allowedEndTime is startTime + duration in minutes + 1 hour buffer
+      const durationInMinutes = duration / 60;
       const allowedEndTime =
-        testAttempt.startTime + duration * 60 * 1000 + 3600 * 1000; // 1 hour buffer
+        testAttempt.startTime + durationInMinutes + 3600000;
 
       if (endTime > allowedEndTime) {
         throw new Error("Test duration exceeded. Possible cheating detected.");
@@ -91,14 +93,15 @@ export const submitTestAttempt = mutation({
         }
       });
 
-      const timeTaken = (endTime - testAttempt.startTime) / 1000; // in seconds
+      const startTime = testAttempt.startTime;
+      const timeTaken = (endTime - startTime) / 1000; // in seconds
 
       await ctx.db.patch(testAttemptId, {
         endTime,
         correctAnswers,
         incorrectAnswers,
         score,
-        timeTaken,
+        timeTakenInSeconds: timeTaken,
         updatedAt: endTime,
       });
 
@@ -207,62 +210,66 @@ export const getTestAttempt = query({
   },
 });
 
-export const getTimeDistribution = query({
-  args: { id: v.id("testAttempts") },
-  handler: async (ctx, args) => {
-    const testAttempt = await ctx.db.get(args.id);
-    if (!testAttempt) {
-      throw new Error("Test attempt not found");
-    }
+// export const getTimeDistribution = query({
+//   args: { id: v.id("testAttempts") },
+//   handler: async (ctx, args) => {
+//     const testAttempt = await ctx.db.get(args.id);
+//     if (!testAttempt) {
+//       throw new Error("Test attempt not found");
+//     }
 
-    const sections = await ctx.db
-      .query("sections")
-      .filter((q) => q.eq(q.field("testId"), testAttempt.testId))
-      .collect();
+//     const sections = await ctx.db
+//       .query("sections")
+//       .filter((q) => q.eq(q.field("testId"), testAttempt.testId))
+//       .collect();
 
-    const timeDistribution = sections.map((section) => {
-      const timeSpent = Math.random() * 1000; // Placeholder for actual time spent calculation
-      const expectedTime = (section.duration || 0) * 60; // Convert to seconds
-      return {
-        sectionId: section._id,
-        timeSpent,
-        expectedTime,
-      };
-    });
+//     const timeDistribution = sections.map((section) => {
+//       const timeSpent = Math.random() * 1000; // Placeholder for actual time spent calculation
+//       const expectedTime = section.durationInSeconds || 0;
+//       return {
+//         sectionId: section._id,
+//         timeSpent,
+//         expectedTime,
+//       };
+//     });
 
-    return timeDistribution;
-  },
-});
+//     return timeDistribution;
+//   },
+// });
 
-export const getStrengthsWeaknesses = query({
-  args: { id: v.id("testAttempts") },
-  handler: async (ctx, args) => {
-    const testAttempt = await ctx.db.get(args.id);
-    if (!testAttempt) {
-      throw new Error("Test attempt not found");
-    }
+// export const getStrengthsWeaknesses = query({
+//   args: { id: v.id("testAttempts") },
+//   handler: async (ctx, args) => {
+//     const testAttempt = await ctx.db.get(args.id);
+//     if (!testAttempt) {
+//       throw new Error("Test attempt not found");
+//     }
 
-    const questions = await ctx.db
-      .query("questions")
-      .filter((q) => q.eq(q.field("testId"), testAttempt.testId))
-      .collect();
+//     const questions = await ctx.db
+//       .query("questions")
+//       .filter((q) => q.eq(q.field("testId"), testAttempt.testId))
+//       .collect();
 
-    const correctAnswers = testAttempt.correctAnswers || [];
-    const incorrectAnswers = testAttempt.incorrectAnswers || [];
+//     const correctAnswers = testAttempt.correctAnswers || [];
+//     const incorrectAnswers = testAttempt.incorrectAnswers || [];
 
-    const strengths = correctAnswers.map((answerId) => {
-      const question = questions.find((q) => q._id === answerId);
-      return question ? question.topic : null;
-    }).filter(Boolean);
+//     const strengths = correctAnswers
+//       .map((answerId) => {
+//         const question = questions.find((q) => q._id === answerId);
+//         return question ? question.topic : null;
+//       })
+//       .filter(Boolean);
 
-    const weaknesses = incorrectAnswers.map((answerId) => {
-      const question = questions.find((q) => q._id === answerId);
-      return question ? question.topic : null;
-    }).filter(Boolean);
+//     const weaknesses = incorrectAnswers
+//       .map((answerId) => {
+//         const question = questions.find((q) => q._id === answerId);
+//         return question ? question.topic : null;
+//       })
+//       .filter(Boolean);
 
-    return {
-      strengths,
-      weaknesses,
-    };
-  },
-});
+//     return {
+//       strengths,
+//       weaknesses,
+//     };
+//   },
+// });

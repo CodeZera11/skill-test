@@ -84,6 +84,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
     // Submit the test when time is up
     console.log({ submit: "Time is up, submitting test..." })
     // router.push(`/tests/${testId}/result`)
+    submitTest()
   }
 
   const submitTest = () => {
@@ -91,17 +92,13 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
     toast.promise(() => submitTestAttempt({ answers, testAttemptId: attemptId }), {
       loading: "Submitting test...",
       success: () => {
-        // Clear local storage
         localStorage.removeItem(`test_${testId}_answers`)
         localStorage.removeItem(`test_${testId}_marked`)
-        // Redirect to results page
         router.push(`/tests/${testId}/attempt/${attemptId}/result`)
         return "Test submitted successfully!"
       },
       error: (error) => `Error: ${error.message}`,
     })
-    // In a real app, you would save the answers to your database here
-    // router.push(`/tests/${testId}/result`)
   }
 
   if (attempt === undefined) {
@@ -153,7 +150,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                     Marked for Review
                   </Badge>
                 )}
-                <TestTimer durationInMinutes={test.duration || 0} onTimeUp={handleTimeUp} testAttempt={attempt} />
+                <TestTimer durationInMinutes={(test.durationInSeconds || 0) / 60} onTimeUp={handleTimeUp} testAttempt={attempt} />
               </div>
             </CardHeader>
             <CardContent className="space-y-6">

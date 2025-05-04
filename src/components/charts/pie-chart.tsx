@@ -45,11 +45,7 @@ export function PieChart({ data, title, innerRadius = 60, outerRadius = 80, anim
           </Pie>
           <Tooltip
             formatter={(value, name) => [value, name]}
-            contentStyle={{
-              backgroundColor: "var(--background)",
-              borderColor: "var(--border)",
-              borderRadius: "0.5rem",
-            }}
+
           />
           <Legend />
         </RechartsPieChart>

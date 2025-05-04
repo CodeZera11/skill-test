@@ -137,7 +137,6 @@ const AddTestForm = () => {
           name: values.name,
           description: values.description || undefined,
           subCategoryId: values.subCategoryId as Id<"subCategories">,
-          duration: values.sections.reduce((acc, section) => acc + (section.duration || 0), 0),
           totalQuestions: values.questions.length,
           sections: values.sections,
           questions: values.questions

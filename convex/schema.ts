@@ -56,7 +56,7 @@ export default defineSchema({
     subCategoryId: v.id("subCategories"),
     totalQuestions: v.optional(v.number()),
     totalMarks: v.optional(v.number()),
-    duration: v.optional(v.number()), // in minutes
+    durationInSeconds: v.optional(v.number()),
     attempts: v.optional(v.number()), // total number of attempts of the test
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -70,7 +70,7 @@ export default defineSchema({
     name: v.string(),
     description: v.optional(v.string()),
     testId: v.id("tests"),
-    duration: v.optional(v.number()),
+    durationInSeconds: v.optional(v.number()),
     totalQuestions: v.number(),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -103,7 +103,7 @@ export default defineSchema({
     score: v.optional(v.number()),
     correctAnswers: v.optional(v.number()),
     incorrectAnswers: v.optional(v.number()),
-    timeTaken: v.optional(v.number()), // in seconds
+    timeTakenInSeconds: v.optional(v.number()), // in seconds
     performancePercentile: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),

@@ -4,7 +4,7 @@ import ResultPageContainer from "./result-page-container";
 const TestResultPage = async ({ params }: { params: Promise<{ testId: string, attemptId: string }> }) => {
   const parsed = await params;
 
-  return <ResultPageContainer testAttemptId={parsed.attemptId as Id<"testAttempts">} />
+  return <ResultPageContainer testAttemptId={parsed.attemptId as Id<"testAttempts">} testId={parsed.testId as Id<"tests">} />
 }
 
 export default TestResultPage;
