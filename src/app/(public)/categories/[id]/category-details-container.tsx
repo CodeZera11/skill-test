@@ -33,7 +33,7 @@ const CategoryDetailsContainer = ({ id }: { id: Id<"categories"> }) => {
   const [sortOption, setSortOption] = useState("newest")
 
   const category = useQuery(api.categories.getById, { id });
-  const categorySubCategories = useQuery(api.subCategories.getByCategory, { categoryId: id, populateTests: true });
+  const categorySubCategories = useQuery(api.subCategories.getByCategory, { categoryId: id, populateTests: true, onlyPublished: true });
 
   useEffect(() => {
     const timer = setTimeout(() => {

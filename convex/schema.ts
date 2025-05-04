@@ -15,6 +15,7 @@ export default defineSchema({
   topics: defineTable({
     name: v.string(),
     description: v.optional(v.string()),
+    isPublished: v.boolean(),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).searchIndex("search_name", {
@@ -26,6 +27,7 @@ export default defineSchema({
   categories: defineTable({
     name: v.string(),
     description: v.optional(v.string()),
+    isPublished: v.boolean(),
     topicId: v.id("topics"),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -38,6 +40,7 @@ export default defineSchema({
   subCategories: defineTable({
     name: v.string(),
     description: v.optional(v.string()),
+    isPublished: v.boolean(),
     categoryId: v.id("categories"),
     imageStorageId: v.id("_storage"),
     createdAt: v.number(),
@@ -55,6 +58,7 @@ export default defineSchema({
     description: v.optional(v.string()),
     subCategoryId: v.id("subCategories"),
     totalQuestions: v.optional(v.number()),
+    isPublished: v.boolean(),
     totalMarks: v.optional(v.number()),
     durationInSeconds: v.optional(v.number()),
     attempts: v.optional(v.number()), // total number of attempts of the test

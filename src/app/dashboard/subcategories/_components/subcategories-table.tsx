@@ -20,7 +20,8 @@ const SubCategoriesTable = () => {
 
   const subCategories = useQuery(api.subCategories.listWithTests, {
     searchQuery,
-    sortOrder
+    sortOrder,
+    onlyPublished: false
   });
 
   useEffect(() => {

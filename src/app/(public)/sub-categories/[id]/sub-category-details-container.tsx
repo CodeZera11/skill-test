@@ -32,7 +32,7 @@ const SubCategoryDetailsContainer = ({ id }: { id: Id<"subCategories"> }) => {
   const [searchQuery, setSearchQuery] = useState("")
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
   const [sortOption, setSortOption] = useState("newest")
-  const subCategory = useQuery(api.subCategories.getByIdWithCategoryAndTests, { id })
+  const subCategory = useQuery(api.subCategories.getByIdWithCategoryAndTests, { id, onlyPublished: true })
 
 
   // Debounce search query

@@ -20,8 +20,8 @@ export default function SubCategoriesPage() {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
 
-  const subCategories = useQuery(api.subCategories.listWithTests, {})
-  const categories = useQuery(api.categories.list, {})
+  const subCategories = useQuery(api.subCategories.listWithTests, { onlyPublished: true })
+  const categories = useQuery(api.categories.list, { onlyPublished: true })
 
   useEffect(() => {
     const timer = setTimeout(() => {

@@ -20,6 +20,7 @@ const CategoriesTable = () => {
   const categories = useQuery(api.categories.list, {
     searchQuery,
     sortOrder,
+    onlyPublished: false,
   })
 
   useEffect(() => {

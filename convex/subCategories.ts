@@ -25,16 +25,19 @@ export const listWithTests = query({
   args: {
     searchQuery: v.optional(v.string()),
     sortOrder: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+    onlyPublished: v.boolean(),
   },
   handler: async (ctx, args) => {
     const { searchQuery, sortOrder } = args;
     const subCategories = await ctx.db
       .query("subCategories")
+      .filter((q) => q.eq(q.field("isPublished"), args?.onlyPublished))
       .order(sortOrder ? sortOrder : "asc");
 
     if (searchQuery) {
       const searchData = await ctx.db
         .query("subCategories")
+        .filter((q) => q.eq(q.field("isPublished"), args?.onlyPublished))
         .withSearchIndex("search_name", (q) => {
           return q.search("name", searchQuery);
         })
@@ -45,7 +48,12 @@ export const listWithTests = query({
           const category = await ctx.db.get(subCategory.categoryId);
           const tests = await ctx.db
             .query("tests")
-            .filter((q) => q.eq(q.field("subCategoryId"), subCategory._id))
+            .filter((q) =>
+              q.and(
+                q.eq(q.field("subCategoryId"), subCategory._id),
+                q.eq(q.field("isPublished"), args?.onlyPublished)
+              )
+            )
             .collect();
 
           return {
@@ -72,7 +80,12 @@ export const listWithTests = query({
         const category = await ctx.db.get(subCategory.categoryId);
         const tests = await ctx.db
           .query("tests")
-          .filter((q) => q.eq(q.field("subCategoryId"), subCategory._id))
+          .filter((q) =>
+            q.and(
+              q.eq(q.field("subCategoryId"), subCategory._id),
+              q.eq(q.field("isPublished"), args?.onlyPublished)
+            )
+          )
           .collect();
 
         return {
@@ -134,6 +147,7 @@ export const create = mutation({
       imageStorageId: args.imageStorageId,
       createdAt: timestamp,
       updatedAt: timestamp,
+      isPublished: false,
     });
   },
 });
@@ -166,18 +180,29 @@ export const getByCategory = query({
   args: {
     categoryId: v.id("categories"),
     populateTests: v.optional(v.boolean()),
+    onlyPublished: v.boolean(),
   },
   handler: async (ctx, args) => {
     const subCategories = await ctx.db
       .query("subCategories")
-      .filter((q) => q.eq(q.field("categoryId"), args.categoryId))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("categoryId"), args.categoryId),
+          q.eq(q.field("isPublished"), args?.onlyPublished)
+        )
+      )
       .collect();
 
     return await Promise.all(
       subCategories.map(async (subCategory) => {
         const tests = await ctx.db
           .query("tests")
-          .filter((q) => q.eq(q.field("subCategoryId"), subCategory._id))
+          .filter((q) =>
+            q.and(
+              q.eq(q.field("subCategoryId"), subCategory._id),
+              q.eq(q.field("isPublished"), args?.onlyPublished)
+            )
+          )
           .collect();
 
         return {
@@ -192,6 +217,7 @@ export const getByCategory = query({
 export const getByIdWithCategoryAndTests = query({
   args: {
     id: v.id("subCategories"),
+    onlyPublished: v.boolean(),
   },
   handler: async (ctx, args) => {
     const subCategory = await ctx.db.get(args.id);
@@ -200,13 +226,18 @@ export const getByIdWithCategoryAndTests = query({
     }
 
     const category = await ctx.db.get(subCategory.categoryId);
-    if (!category) {
+    if (!category || category.isPublished !== args.onlyPublished) {
       throw new Error("Category not found");
     }
 
     const tests = await ctx.db
       .query("tests")
-      .filter((q) => q.eq(q.field("subCategoryId"), subCategory._id))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("subCategoryId"), subCategory._id),
+          q.eq(q.field("isPublished"), args.onlyPublished)
+        )
+      )
       .collect();
 
     return {

@@ -12,7 +12,9 @@ import { PageRoutes } from "@/constants/page-routes"
 
 const CategoriesSection = () => {
 
-  const categories = useQuery(api.categories.listWithSubCategories, {})
+  const categories = useQuery(api.categories.listWithSubCategories, {
+    onlyPublished: true,
+  })
 
   if (categories === undefined) {
     return (

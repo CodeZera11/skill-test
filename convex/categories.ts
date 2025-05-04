@@ -7,11 +7,13 @@ export const list = query({
   args: {
     searchQuery: v.optional(v.string()),
     sortOrder: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+    onlyPublished: v.boolean(),
   },
   handler: async (ctx, args) => {
     const { searchQuery, sortOrder } = args;
     const query = ctx.db
       .query("categories")
+      .filter((q) => q.eq(q.field("isPublished"), args?.onlyPublished))
       .order(sortOrder ? sortOrder : "asc");
 
     if (searchQuery) {
@@ -27,7 +29,12 @@ export const list = query({
           const topic = await ctx.db.get(category.topicId);
           const subcategories = await ctx.db
             .query("subCategories")
-            .filter((q) => q.eq(q.field("categoryId"), category._id))
+            .filter((q) =>
+              q.and(
+                q.eq(q.field("categoryId"), category._id),
+                q.eq(q.field("isPublished"), args?.onlyPublished)
+              )
+            )
             .collect();
           return {
             ...category,
@@ -82,6 +89,7 @@ export const create = mutation({
       topicId: args.topicId,
       createdAt: timestamp,
       updatedAt: timestamp,
+      isPublished: false,
     });
   },
 });
@@ -109,15 +117,25 @@ export const remove = mutation({
 });
 
 export const listWithSubCategories = query({
-  args: {},
-  handler: async (ctx) => {
-    const categories = await ctx.db.query("categories").take(3);
+  args: {
+    onlyPublished: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const categories = await ctx.db
+      .query("categories")
+      .filter((q) => q.eq(q.field("isPublished"), args?.onlyPublished))
+      .take(3);
 
     const data = await Promise.all(
       categories.map(async (category) => {
         const subCategories = await ctx.db
           .query("subCategories")
-          .filter((q) => q.eq(q.field("categoryId"), category._id))
+          .filter((q) =>
+            q.and(
+              q.eq(q.field("categoryId"), category._id),
+              q.eq(q.field("isPublished"), args?.onlyPublished)
+            )
+          )
           .collect();
         return {
           ...category,
@@ -131,22 +149,37 @@ export const listWithSubCategories = query({
 });
 
 export const listWithSubCategoriesAndTests = query({
-  args: {},
-  handler: async (ctx) => {
-    const categories = await ctx.db.query("categories").collect();
+  args: {
+    onlyPublished: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const categories = await ctx.db
+      .query("categories")
+      .filter((q) => q.eq(q.field("isPublished"), args.onlyPublished))
+      .collect();
 
     return await Promise.all(
       categories.map(async (category) => {
         const subCategories = await ctx.db
           .query("subCategories")
-          .filter((q) => q.eq(q.field("categoryId"), category._id))
+          .filter((q) =>
+            q.and(
+              q.eq(q.field("categoryId"), category._id),
+              q.eq(q.field("isPublished"), true)
+            )
+          )
           .collect();
 
         const data = await Promise.all(
           subCategories.map(async (subcategory) => {
             const tests = await ctx.db
               .query("tests")
-              .filter((q) => q.eq(q.field("subCategoryId"), subcategory._id))
+              .filter((q) =>
+                q.and(
+                  q.eq(q.field("subCategoryId"), subcategory._id),
+                  q.eq(q.field("isPublished"), true)
+                )
+              )
               .collect();
             return {
               ...subcategory,

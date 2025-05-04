@@ -21,7 +21,7 @@ import { PageRoutes } from "@/constants/page-routes"
 
 export default function CategoriesPage() {
   const [searchQuery, setSearchQuery] = useState("")
-  const categories = useQuery(api.categories.listWithSubCategoriesAndTests);
+  const categories = useQuery(api.categories.listWithSubCategoriesAndTests, { onlyPublished: true });
 
   if (categories === undefined) {
     return (

@@ -26,6 +26,7 @@ const AddSubCategoryForm: React.FC<AddSubCategoryFormProps> = ({ afterSubmit }) 
   const categories = useQuery(api.categories.list, {
     searchQuery: "",
     sortOrder: "desc",
+    onlyPublished: false,
   })
   const createSubCategory = useMutation(api.subCategories.create)
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)

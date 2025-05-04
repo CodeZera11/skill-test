@@ -6,6 +6,7 @@ import { Id } from "~/convex/_generated/dataModel"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { formatSeconds } from "@/lib/utils"
 
 interface TestContainerProps {
   testId: Id<"tests">
@@ -51,7 +52,7 @@ const TestContainer: React.FC<TestContainerProps> = ({ testId }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-muted p-4 rounded-lg">
               <h3 className="font-medium text-lg mb-2">Duration</h3>
-              <p className="text-2xl font-bold">{test.duration} minutes</p>
+              <p className="text-2xl font-bold">{formatSeconds(test.durationInSeconds)}</p>
             </div>
             <div className="bg-muted p-4 rounded-lg">
               <h3 className="font-medium text-lg mb-2">Questions</h3>

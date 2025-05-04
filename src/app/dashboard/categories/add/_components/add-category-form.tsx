@@ -21,7 +21,7 @@ interface AddCategoryFormProps {
 const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ afterSubmit }) => {
   const router = useRouter()
   const createCategory = useMutation(api.categories.create)
-  const topics = useQuery(api.topics.list, {})
+  const topics = useQuery(api.topics.list, { onlyPublished: false })
   const form = useForm<AddCategoryRequest>({
     resolver: zodResolver(AddCategorySchema),
     defaultValues: {

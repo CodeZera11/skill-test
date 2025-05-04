@@ -7,14 +7,19 @@ export const list = query({
   args: {
     searchQuery: v.optional(v.string()),
     sortOrder: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+    onlyPublished: v.boolean(),
   },
   handler: async (ctx, args) => {
     const { searchQuery, sortOrder } = args;
-    const query = ctx.db.query("topics").order(sortOrder ? sortOrder : "asc");
+    const query = ctx.db
+      .query("topics")
+      .filter((q) => q.eq(q.field("isPublished"), args?.onlyPublished))
+      .order(sortOrder ? sortOrder : "asc");
 
     if (searchQuery) {
       const searchData = await ctx.db
         .query("topics")
+        .filter((q) => q.eq(q.field("isPublished"), args?.onlyPublished))
         .withSearchIndex("search_name", (q) => {
           return q.search("name", searchQuery);
         })
@@ -24,7 +29,12 @@ export const list = query({
         searchData.map(async (topic) => {
           const categories = await ctx.db
             .query("categories")
-            .filter((q) => q.eq(q.field("topicId"), topic._id))
+            .filter((q) =>
+              q.and(
+                q.eq(q.field("topicId"), topic._id),
+                q.eq(q.field("isPublished"), args?.onlyPublished)
+              )
+            )
             .collect();
           return {
             ...topic,
@@ -40,7 +50,12 @@ export const list = query({
       items.map(async (topic) => {
         const categories = await ctx.db
           .query("categories")
-          .filter((q) => q.eq(q.field("topicId"), topic._id))
+          .filter((q) =>
+            q.and(
+              q.eq(q.field("topicId"), topic._id),
+              q.eq(q.field("isPublished"), args?.onlyPublished)
+            )
+          )
           .collect();
 
         return {
@@ -74,6 +89,7 @@ export const create = mutation({
       description: args.description,
       createdAt: timestamp,
       updatedAt: timestamp,
+      isPublished: false,
     });
   },
 });

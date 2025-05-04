@@ -58,6 +58,7 @@ export const listWithDetails = query({
   args: {
     searchQuery: v.optional(v.string()),
     sortOrder: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
+    onlyPublished: v.boolean(),
   },
   handler: async (ctx, args) => {
     const { searchQuery, sortOrder } = args;
@@ -65,6 +66,7 @@ export const listWithDetails = query({
     if (searchQuery) {
       const searchData = await ctx.db
         .query("tests")
+        .filter((q) => q.eq(q.field("isPublished"), args?.onlyPublished))
         .withSearchIndex("search_name", (q) => {
           return q.search("name", searchQuery.toLowerCase());
         })
@@ -107,17 +109,31 @@ export const listWithDetails = query({
 });
 
 export const list = query({
-  handler: async (ctx) => {
-    return await ctx.db.query("tests").collect();
+  args: {
+    onlyPublished: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("tests")
+      .filter((q) => q.eq(q.field("isPublished"), args.onlyPublished))
+      .collect();
   },
 });
 
 export const getBySubCategoryId = query({
-  args: { subCategoryId: v.id("subCategories") },
+  args: {
+    subCategoryId: v.id("subCategories"),
+    onlyPublished: v.boolean(),
+  },
   handler: async (ctx, args) => {
     return await ctx.db
       .query("tests")
-      .filter((q) => q.eq(q.field("subCategoryId"), args.subCategoryId))
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("subCategoryId"), args.subCategoryId),
+          q.eq(q.field("isPublished"), args.onlyPublished)
+        )
+      )
       .collect();
   },
 });
@@ -257,6 +273,7 @@ export const create = mutation({
       ),
       createdAt: timestamp,
       updatedAt: timestamp,
+      isPublished: false,
     });
 
     await Promise.all(
@@ -382,7 +399,9 @@ export const update = mutation({
         const sectionId = await ctx.db.insert("sections", {
           name: section.name,
           description: section.description || undefined,
-          durationInSeconds: section.duration ? section.duration * 60 : undefined,
+          durationInSeconds: section.duration
+            ? section.duration * 60
+            : undefined,
           totalQuestions: sectionQuestions,
           testId: id,
           createdAt: Date.now(),

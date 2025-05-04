@@ -38,8 +38,8 @@ const TestsPageContainer = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>([])
   const [questionsRange, setQuestionsRange] = useState([0, 200])
-  const tests = useQuery(api.tests.list);
-  const categories = useQuery(api.categories.list, {});
+  const tests = useQuery(api.tests.list, { onlyPublished: true });
+  const categories = useQuery(api.categories.list, { onlyPublished: true });
   const subCategories = useQuery(api.subCategories.list, {});
 
   // Debounce search query

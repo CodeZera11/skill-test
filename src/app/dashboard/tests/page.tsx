@@ -37,7 +37,8 @@ export default function TestsPage() {
 
   const tests = useQuery(api.tests.listWithDetails, {
     searchQuery,
-    sortOrder
+    sortOrder,
+    onlyPublished: false,
   });
   const deleteTest = useMutation(api.tests.remove)
 
