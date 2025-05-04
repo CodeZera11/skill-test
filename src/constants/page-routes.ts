@@ -1,5 +1,6 @@
 export const PageRoutes = {
   HOME: "/",
+  MY_ATTEMPTS: "/my-attempts",
   SIGN_IN: "/sign-in",
   SIGN_UP: "/sign-up",
   CATEGORIES: "/categories",

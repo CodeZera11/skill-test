@@ -16,7 +16,6 @@ const MyAttemptsContainer = ({ clerkUserId }: { clerkUserId: string }) => {
 
   if (testAttempts === undefined) {
     return (
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {Array.from({ length: 4 }).map((_, i) => (
           <Card key={i} className="transition-all hover:shadow-md">
@@ -53,7 +52,7 @@ const MyAttemptsContainer = ({ clerkUserId }: { clerkUserId: string }) => {
 
   if (testAttempts === null || testAttempts?.length === 0) {
     return (
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto p-10 w-full flex items-center justify-center border rounded-md h-40 ">
         <p className="text-muted-foreground">No test attempts found.</p>
       </div>
     )
