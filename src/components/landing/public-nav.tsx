@@ -89,7 +89,19 @@ const PublicNav = () => {
             <div className="flex items-center">
               <ModeToggle />
             </div>
-            <Button>Get Started</Button>
+            <Unauthenticated>
+              <Button onClick={() => setIsMenuOpen(false)} asChild>
+                <Link href="/sign-up">
+                  Get Started
+                </Link>
+              </Button>
+            </Unauthenticated>
+            <Authenticated>
+              <ClerkUserButton />
+            </Authenticated>
+            {isLoading && (
+              <Skeleton className='h-[28px] w-[28px] rounded-full' />
+            )}
           </div>
         </motion.div>
       )}
