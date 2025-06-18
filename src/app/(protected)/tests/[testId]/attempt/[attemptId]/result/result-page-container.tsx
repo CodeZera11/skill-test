@@ -33,22 +33,6 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
   const sections = data?.sections;
   const testAttempt = data?.testAttempt;
 
-  // const averagePerformance = useQuery(api.tests.getAveragePerformance, { id: testId });
-  // const timeDistribution = useQuery(api.testAttempts.getTimeDistribution, { id: testAttemptId });
-  // const strengthsWeaknesses = useQuery(api.testAttempts.getStrengthsWeaknesses, { id: testAttemptId });
-
-
-  // const sectionPerformance = (sections || []).map((section) => {
-  //   const correctAnswers = testAttempt?.correctAnswers || 0;
-  //   const totalQuestions = section.totalQuestions || 1;
-  //   const score = (correctAnswers / totalQuestions) * 100;
-  //   return {
-  //     sectionName: section.name,
-  //     score,
-  //     // average: averagePerformance?.sectionPerformance.find((s) => s.sectionId === section._id)?.averageScore || 0,
-  //   };
-  // });
-
   useEffect(() => {
     if (testAttempt && test && sections) {
       setIsLoading(false);
@@ -87,43 +71,6 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
     )
   }
 
-  // Prepare chart data
-  // const answersData: ChartData[] = [
-  //   {
-  //     name: "Correct Answers",
-  //     value: testAttempt.correctAnswers || 0,
-  //   },
-  //   {
-  //     name: "Incorrect Answers",
-  //     value: testAttempt.incorrectAnswers || 0,
-  //   },
-  // ]
-
-  // const sectionScoreData = sectionPerformance.map((section) => {
-  //   return {
-  //     name: section.sectionName,
-  //     score: section.score,
-  //     average: section.average,
-  //   }
-  // })
-
-  // const timeDistributionData = timeDistribution.map((item) => {
-  //   const sectionInfo = sections.find((s) => s._id === item.sectionId)
-  //   return {
-  //     name: sectionInfo?.name || "Unknown",
-  //     actual: Math.round(item.timeSpent / 60), // Convert to minutes
-  //     expected: Math.round(item.expectedTime / 60), // Convert to minutes
-  //   }
-  // })
-
-  // const radarData = sectionPerformance.map((section) => {
-  //   return {
-  //     subject: section.sectionName,
-  //     score: section.score,
-  //     average: section.average,
-  //   }
-  // })
-
   const score = testAttempt?.score || 0
   const totalMarks = test?.totalMarks || 0
   const isDistinction = score >= totalMarks * 0.7
@@ -132,6 +79,9 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
   const totalQuestions = test?.totalQuestions || 1
   const timeTakenInSeconds = testAttempt?.timeTakenInSeconds || 0
   const durationInSeconds = test?.durationInSeconds || 0
+  const detailedAnswers = testAttempt.answers;
+
+  console.log("Detailed Answers:", detailedAnswers);
 
 
   return (

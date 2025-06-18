@@ -8,7 +8,7 @@ const EditTestContainer = ({ id }: { id: string }) => {
 
   const test = useQuery(api.tests.getTestWithDetails, { testId: id as Id<"tests"> })
 
-  if (test === undefined) return <div>Loading...</div>
+  if (test === undefined) return <div className="h-[calc(100vh-120px)] flex items-center justify-center">Loading...</div>
 
   return (
     <div>

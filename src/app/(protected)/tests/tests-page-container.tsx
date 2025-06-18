@@ -54,8 +54,8 @@ const TestsPageContainer = () => {
 
   if (tests === undefined || categories === undefined || subCategories === undefined) {
     return (
-      <div className="container mx-auto py-10">
-        <h1 className="text-3xl font-bold">Loading...</h1>
+      <div className="flex items-center justify-center h-[calc(100vh-72px)]">
+        Loading...
       </div>
     )
   }

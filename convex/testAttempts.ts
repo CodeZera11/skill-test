@@ -61,8 +61,6 @@ export const submitTestAttempt = mutation({
       if (!duration || duration <= 0) {
         throw new Error("Test duration is not set or invalid.");
       }
-
-      // allowedEndTime is startTime + duration in minutes + 1 hour buffer
       const durationInMinutes = duration / 60;
       const allowedEndTime =
         testAttempt.startTime + durationInMinutes + 3600000;
@@ -80,10 +78,12 @@ export const submitTestAttempt = mutation({
       let incorrectAnswers = 0;
       let score = 0;
 
-      questions.forEach((question) => {
+      const detailedAnswers = questions.map((question) => {
         const userAnswer = answers[question._id];
+        const isCorrect = userAnswer === question.correctAnswer;
+
         if (userAnswer !== undefined) {
-          if (userAnswer === question.correctAnswer) {
+          if (isCorrect) {
             correctAnswers++;
             score += question.marks || 1;
           } else {
@@ -91,6 +91,12 @@ export const submitTestAttempt = mutation({
             score -= question.negativeMarks || 0;
           }
         }
+
+        return {
+          questionId: question._id,
+          selectedOption: userAnswer ?? undefined,
+          isCorrect,
+        };
       });
 
       const startTime = testAttempt.startTime;
@@ -102,6 +108,7 @@ export const submitTestAttempt = mutation({
         incorrectAnswers,
         score,
         timeTakenInSeconds: timeTaken,
+        answers: detailedAnswers, // Store detailed answers
         updatedAt: endTime,
       });
 
@@ -110,6 +117,7 @@ export const submitTestAttempt = mutation({
         correctAnswers,
         incorrectAnswers,
         timeTaken,
+        detailedAnswers,
       };
     } catch (error) {
       console.error("Error submitting test attempt:", error);
@@ -118,44 +126,7 @@ export const submitTestAttempt = mutation({
   },
 });
 
-export type TestAttempt = {
-  _id: Id<"testAttempts">;
-  userId: Id<"users">;
-  testId: Id<"tests">;
-  startTime: number;
-  endTime?: number;
-  correctAnswers?: number;
-  incorrectAnswers?: number;
-  score?: number;
-  timeTaken?: number;
-  performancePercentile?: number;
-  createdAt: number;
-  updatedAt: number;
-};
-
-export type TestAttemptWithDetails = {
-  testAttempt: TestAttempt;
-  test: {
-    _id: Id<"tests">;
-    name: string;
-    description?: string;
-    duration?: number;
-    attempts?: number;
-    createdAt: number;
-    updatedAt: number;
-  };
-  sections: {
-    _id: Id<"sections">;
-    name: string;
-    description?: string;
-    duration?: number;
-    testId: Id<"tests">;
-    createdAt: number;
-    updatedAt: number;
-  }[];
-  questions: Question[];
-};
-
+// Function to get a test attempt with detailed answers
 export const getTestAttempt = query({
   args: {
     id: v.id("testAttempts"),
@@ -197,11 +168,33 @@ export const getTestAttempt = query({
 
       const questions = questionsData.flatMap((questions) => questions);
 
+      // Populate detailed answers with full question data
+      const populatedAnswers = testAttempt.answers?.map((answer) => {
+        const question = questions.find((q) => q._id === answer.questionId);
+        return {
+          ...answer,
+          question: question
+            ? {
+                question: question.question,
+                options: question.options,
+                correctAnswer: question.correctAnswer,
+                explanation: question.explanation,
+                marks: question.marks,
+                negativeMarks: question.negativeMarks,
+              }
+            : null,
+        };
+      });
+
       return {
-        testAttempt,
+        testAttempt: {
+          ...testAttempt,
+          answers: populatedAnswers, // Include detailed answers with question data
+        },
         test,
         sections,
         questions,
+        // answers: testAttempt.answers, // Include detailed answers
       };
     } catch (error) {
       console.error("Error fetching test attempt:", error);
@@ -209,6 +202,50 @@ export const getTestAttempt = query({
     }
   },
 });
+
+// Updated types for TestAttempt and TestAttemptWithDetails
+export type TestAttempt = {
+  _id: Id<"testAttempts">;
+  userId: Id<"users">;
+  testId: Id<"tests">;
+  startTime: number;
+  endTime?: number;
+  correctAnswers?: number;
+  incorrectAnswers?: number;
+  score?: number;
+  timeTakenInSeconds?: number;
+  performancePercentile?: number;
+  answers?: {
+    questionId: Id<"questions">;
+    selectedOption?: number;
+    isCorrect: boolean;
+  }[];
+  createdAt: number;
+  updatedAt: number;
+};
+
+export type TestAttemptWithDetails = {
+  testAttempt: TestAttempt;
+  test: {
+    _id: Id<"tests">;
+    name: string;
+    description?: string;
+    durationInSeconds?: number;
+    attempts?: number;
+    createdAt: number;
+    updatedAt: number;
+  };
+  sections: {
+    _id: Id<"sections">;
+    name: string;
+    description?: string;
+    durationInSeconds?: number;
+    testId: Id<"tests">;
+    createdAt: number;
+    updatedAt: number;
+  }[];
+  questions: Question[];
+};
 
 export const getTestAttemptsByUser = query({
   args: {
@@ -254,67 +291,3 @@ export const getTestAttemptsByUser = query({
     }
   },
 });
-
-// export const getTimeDistribution = query({
-//   args: { id: v.id("testAttempts") },
-//   handler: async (ctx, args) => {
-//     const testAttempt = await ctx.db.get(args.id);
-//     if (!testAttempt) {
-//       throw new Error("Test attempt not found");
-//     }
-
-//     const sections = await ctx.db
-//       .query("sections")
-//       .filter((q) => q.eq(q.field("testId"), testAttempt.testId))
-//       .collect();
-
-//     const timeDistribution = sections.map((section) => {
-//       const timeSpent = Math.random() * 1000; // Placeholder for actual time spent calculation
-//       const expectedTime = section.durationInSeconds || 0;
-//       return {
-//         sectionId: section._id,
-//         timeSpent,
-//         expectedTime,
-//       };
-//     });
-
-//     return timeDistribution;
-//   },
-// });
-
-// export const getStrengthsWeaknesses = query({
-//   args: { id: v.id("testAttempts") },
-//   handler: async (ctx, args) => {
-//     const testAttempt = await ctx.db.get(args.id);
-//     if (!testAttempt) {
-//       throw new Error("Test attempt not found");
-//     }
-
-//     const questions = await ctx.db
-//       .query("questions")
-//       .filter((q) => q.eq(q.field("testId"), testAttempt.testId))
-//       .collect();
-
-//     const correctAnswers = testAttempt.correctAnswers || [];
-//     const incorrectAnswers = testAttempt.incorrectAnswers || [];
-
-//     const strengths = correctAnswers
-//       .map((answerId) => {
-//         const question = questions.find((q) => q._id === answerId);
-//         return question ? question.topic : null;
-//       })
-//       .filter(Boolean);
-
-//     const weaknesses = incorrectAnswers
-//       .map((answerId) => {
-//         const question = questions.find((q) => q._id === answerId);
-//         return question ? question.topic : null;
-//       })
-//       .filter(Boolean);
-
-//     return {
-//       strengths,
-//       weaknesses,
-//     };
-//   },
-// });

@@ -109,6 +109,15 @@ export default defineSchema({
     incorrectAnswers: v.optional(v.number()),
     timeTakenInSeconds: v.optional(v.number()), // in seconds
     performancePercentile: v.optional(v.number()),
+    answers: v.optional(
+      v.array(
+        v.object({
+          questionId: v.id("questions"),
+          selectedOption: v.optional(v.number()), // Index of the selected option, null if not answered
+          isCorrect: v.boolean(), // Whether the selected option is correct
+        })
+      )
+    ),
     createdAt: v.number(),
     updatedAt: v.number(),
   }),
