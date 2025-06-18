@@ -195,9 +195,6 @@ const Footer = () => {
               <Link href="#" className="text-sm text-slate-600 dark:text-slate-400 hover:text-emerald-500 transition-colors">
                 Terms of Service
               </Link>
-              <Link href="#" className="text-sm text-slate-600 dark:text-slate-400 hover:text-emerald-500 transition-colors">
-                Cookie Policy
-              </Link>
             </div>
           </div>
         </div>

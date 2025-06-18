@@ -40,7 +40,9 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
 
 
   if (test === undefined) {
-    return <div>Loading...</div>
+    return <div className="h-[calc(100vh-75px)] flex items-center justify-center ">
+      Loading...
+    </div>
   }
 
   if (!test) {

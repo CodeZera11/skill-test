@@ -16,12 +16,13 @@ const TestContainer: React.FC<TestContainerProps> = ({ testId }) => {
   const test = useQuery(api.tests.getByIdWithSections, { id: testId })
 
   if (test === undefined) {
-    return <div>
-      Loading...
-    </div>
+    return (
+      <div className="h-[calc(100vh-75px)] flex items-center justify-center ">
+        Loading...
+      </div>
+    )
   }
 
-  console.log("test", test)
 
   if (test === null) {
     return (
@@ -35,7 +36,7 @@ const TestContainer: React.FC<TestContainerProps> = ({ testId }) => {
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-10 px-2">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">{test.name}</h1>
         <Link href="/tests">
