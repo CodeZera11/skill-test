@@ -6,6 +6,7 @@ export const PageRoutes = {
   CATEGORIES: "/categories",
   SUB_CATEGORIES: "/sub-categories",
   TESTS: "/tests",
+  TOPICS: "/topics",
   DASHBOARD: {
     TOPICS: "/dashboard/topics",
     CATEGORIES: "/dashboard/categories",

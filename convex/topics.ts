@@ -154,3 +154,33 @@ export const togglePublishStatus = mutation({
     });
   },
 });
+
+export const getTopicByIdWithCategories = query({
+  args: { topicId: v.id("topics") },
+  handler: async (ctx, args) => {
+    const topic = await ctx.db.get(args.topicId);
+    if (!topic) return null;
+
+    // lets get the categoies and subCategoryCount for each category
+    const categories = await ctx.db
+      .query("categories")
+      .filter((q) => q.eq(q.field("topicId"), args.topicId))
+      .collect();
+    const categoriesWithSubCategories = await Promise.all(
+      categories.map(async (category) => {
+        const subCategories = await ctx.db
+          .query("subCategories")
+          .filter((q) => q.eq(q.field("categoryId"), category._id))
+          .collect();
+        return {
+          ...category,
+          subCategories,
+        };
+      })
+    );
+    return {
+      ...topic,
+      categories: categoriesWithSubCategories,
+    };
+  },
+});

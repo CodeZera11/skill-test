@@ -5,6 +5,7 @@ import CtaSection from "@/components/landing/cta-section"
 import TestimonialsSection from "@/components/landing/testimonials"
 import HowItWorksSection from "@/components/landing/how-it-works-section"
 import CategoriesSection from "@/components/landing/categories-section"
+import TopicsSection from "@/components/landing/topics-section"
 
 const LandingPage = async () => {
   return (
@@ -12,6 +13,9 @@ const LandingPage = async () => {
       <main>
         {/* Hero Section */}
         <HeroSection />
+
+        {/* Topics Section */}
+        <TopicsSection />
 
         {/* Categories Section */}
         <CategoriesSection />

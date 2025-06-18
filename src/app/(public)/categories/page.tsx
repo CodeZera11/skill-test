@@ -39,8 +39,6 @@ export default function CategoriesPage() {
     )
   }
 
-  console.log({ categories })
-
 
   const filteredCategories = categories
     .map((category) => {
