@@ -218,7 +218,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                       let bgColor = "bg-muted"
 
                       if (answers[qId] !== undefined && answers[qId] !== null) {
-                        bgColor = "bg-green-100 text-white dark:bg-green-200 dark:text-black dark:hover:bg-green-300"
+                        bgColor = "bg-green-100 text-black dark:bg-green-200 dark:text-black dark:hover:bg-green-300"
                       }
 
                       if (markedForReview[qId]) {
