@@ -21,6 +21,7 @@ export const list = query({
     searchQuery: v.optional(v.string()),
     sortOrder: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
     onlyPublished: v.optional(v.boolean()),
+    take: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const { searchQuery, sortOrder } = args;
@@ -58,7 +59,7 @@ export const list = query({
                   : q.eq(q.field("isPublished"), q.field("isPublished"))
               )
             )
-            .collect();
+            .take(args.take ?? 1000);
           return {
             ...topic,
             categories,
@@ -81,7 +82,7 @@ export const list = query({
                 : q.eq(q.field("isPublished"), q.field("isPublished"))
             )
           )
-          .collect();
+          .take(args.take ?? 1000);
 
         return {
           ...topic,

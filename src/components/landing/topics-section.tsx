@@ -35,7 +35,9 @@ const TopicsSection = () => {
           viewport={{ once: true }}
           variants={fadeIn}
         >
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">Explore Our Exam Topics</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Explore Our Topics
+          </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Browse through our extensive collection of topics, each containing categories to guide you through comprehensive tests.
           </p>

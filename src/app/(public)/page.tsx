@@ -6,6 +6,7 @@ import TestimonialsSection from "@/components/landing/testimonials"
 import HowItWorksSection from "@/components/landing/how-it-works-section"
 import CategoriesSection from "@/components/landing/categories-section"
 import TopicsSection from "@/components/landing/topics-section"
+import { Separator } from "@/components/ui/separator"
 
 const LandingPage = async () => {
   return (
@@ -17,14 +18,19 @@ const LandingPage = async () => {
         {/* Topics Section */}
         <TopicsSection />
 
-        {/* Categories Section */}
-        <CategoriesSection />
+        <Separator />
+
+
 
         {/* How It Works Section */}
         <HowItWorksSection />
 
-        {/* Structure Visualization - Updated for Convex Schema */}
-        {/* <FlowVisualisationSection /> */}
+
+        {/* Categories Section */}
+        <CategoriesSection />
+
+        <Separator />
+
 
         {/* Testimonials */}
         <TestimonialsSection />

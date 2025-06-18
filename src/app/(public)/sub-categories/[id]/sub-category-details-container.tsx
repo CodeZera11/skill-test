@@ -16,7 +16,7 @@ import {
   BarChart,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -228,7 +228,7 @@ const SubCategoryDetailsContainer = ({ id }: { id: Id<"subCategories"> }) => {
                   return (
                     <motion.div key={test._id} variants={fadeIn} whileHover={{ y: -5, transition: { duration: 0.2 } }}>
                       <Card className="h-full overflow-hidden dark:bg-slate-900">
-                        <CardContent className="p-6">
+                        <CardContent className="px-6 py-0">
                           <h3 className="text-xl font-bold mb-2">{test.name}</h3>
                           <p className="text-muted-foreground mb-4">
                             {test.description || "Take this test to practice your skills"}
@@ -276,15 +276,18 @@ const SubCategoryDetailsContainer = ({ id }: { id: Id<"subCategories"> }) => {
                           <div className="text-xs text-muted-foreground mb-4">
                             Last updated {format(test.updatedAt, "MMM dd, yyyy")}
                           </div>
+                          <div className="flex items-center gap-2 justify-between w-full">
+                            <Button className="flex-1" asChild>
+                              <Link href={`/tests/${test._id}/instructions`}>Start Test</Link>
+                            </Button>
+                            <Button variant="outline" className="flex-1" asChild>
+                              <Link href={`/tests/${test._id}`}>View Details</Link>
+                            </Button>
+                          </div>
                         </CardContent>
-                        <CardFooter className="p-4 pt-0 flex gap-3">
-                          <Button className="flex-1" asChild>
-                            <Link href={`/tests/${test._id}/instructions`}>Start Test</Link>
-                          </Button>
-                          <Button variant="outline" className="flex-1" asChild>
-                            <Link href={`/tests/${test._id}`}>View Details</Link>
-                          </Button>
-                        </CardFooter>
+                        {/* <CardFooter className="p-4 pt-0 flex gap-3">
+                         
+                        </CardFooter> */}
                       </Card>
                     </motion.div>
                   )

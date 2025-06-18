@@ -86,7 +86,7 @@ export default function TopicDetailsPageContainer({ id }: TopicDetailsPageContai
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl md:text-3xl font-semibold mb-8">Categories in {name}</h2>
-              
+
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {categories.map((category) => (
@@ -103,7 +103,7 @@ export default function TopicDetailsPageContainer({ id }: TopicDetailsPageContai
                       {category.description || `Explore sub-categories and tests within ${category.name}.`}
                     </CardDescription>
                     <div className="flex flex-col mb-4">
-                      {category.subCategories.map((sub) => (
+                      {category?.subCategories?.length > 0 && category.subCategories.slice(0, 3).map((sub) => (
                         <div key={sub._id} className="flex items-center">
                           <ChevronRight className="h-4 w-4 text-muted-foreground mr-2" />
                           <Link

@@ -10,7 +10,6 @@ import { useState, useMemo } from "react"
 import TopicsPageLoading from "./loading"
 import { api } from "~/convex/_generated/api"
 
-// Helper to get an icon for a topic (can be expanded)
 const getTopicIcon = (topicName: string) => {
   const name = topicName.toLowerCase()
   if (name.includes("bank")) return <BookOpenCheck className="h-8 w-8 text-emerald-500" />

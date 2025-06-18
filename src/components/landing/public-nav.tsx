@@ -15,7 +15,7 @@ const PublicNav = () => {
   const { isLoading } = useCurrentUser()
 
   return (
-    <header className="border-b sticky top-0 bg-background z-50">
+    <header className="border-b sticky top-0 bg-white/40 dark:bg-background/40 backdrop-blur-lg z-50">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center space-x-2">
           <CheckCircle className="h-6 w-6 text-emerald-500" />

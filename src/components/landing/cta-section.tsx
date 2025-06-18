@@ -39,7 +39,7 @@ const CtaSection = () => {
               className="bg-white text-emerald-500 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800"
               asChild
             >
-              <Link href={PageRoutes.CATEGORIES}>
+              <Link href={PageRoutes.TOPICS}>
                 Get Started For Free
               </Link>
             </Button>
