@@ -81,6 +81,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
   const updateTest = useMutation(api.tests.update)
   const subCategories = useQuery(api.subCategories.list)
 
+
   const form = useForm<AddTestRequest>({
     resolver: zodResolver(AddTestSchema),
     defaultValues: {
@@ -89,7 +90,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
       description: test?.description,
       sections: test?.sections.map((section) => ({
         description: section.description,
-        duration: section.duration,
+        duration: section.durationInSeconds ? section.durationInSeconds / 60 : undefined,
         name: section.name,
         totalQuestions: section.totalQuestions,
       })) || [],

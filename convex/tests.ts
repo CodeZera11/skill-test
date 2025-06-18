@@ -21,7 +21,7 @@ export type TestWithDetails = {
     _id: Id<"sections">;
     name: string;
     description?: string;
-    duration?: number;
+    durationInSeconds?: number;
     totalQuestions?: number;
     testId: Id<"tests">;
     createdAt: number;
