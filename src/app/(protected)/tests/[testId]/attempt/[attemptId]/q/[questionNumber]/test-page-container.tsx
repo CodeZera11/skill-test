@@ -88,7 +88,6 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
   }
 
   const submitTest = () => {
-    console.log("Submitting test with answers:", answers)
     toast.promise(() => submitTestAttempt({ answers, testAttemptId: attemptId }), {
       loading: "Submitting test...",
       success: () => {

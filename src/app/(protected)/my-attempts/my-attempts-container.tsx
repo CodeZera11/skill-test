@@ -11,7 +11,6 @@ import { formatSeconds } from "@/lib/utils"
 import { Skeleton } from "@/components/ui/skeleton"
 
 const MyAttemptsContainer = ({ clerkUserId }: { clerkUserId: string }) => {
-
   const testAttempts = useQuery(api.testAttempts.getTestAttemptsByUser, { clerkUserId })
 
   if (testAttempts === undefined) {
@@ -83,7 +82,8 @@ const MyAttemptsContainer = ({ clerkUserId }: { clerkUserId: string }) => {
                           : "bg-red-500"
                   }
                 >
-                  {score / totalMarks * 100}%
+                  {/* let just show till 2 decimal places */}
+                  {((score / totalMarks) * 100).toFixed(2)}%
                 </Badge>
               </div>
               {/* <CardDescription>{attempt.category}</CardDescription> */}
