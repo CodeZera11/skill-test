@@ -11,6 +11,20 @@ export default defineSchema({
     role: v.optional(v.string()), // e.g., "admin", "user", "moderator"
   }).index("byClerkUserId", ["clerkUserId"]),
 
+  // News articles
+  news: defineTable({
+    title: v.string(),
+    description: v.string(), // less than 200 words
+    externalLink: v.string(),
+    isPublished: v.boolean(),
+    publishedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).searchIndex("search_title", {
+    searchField: "title",
+    filterFields: ["isPublished", "publishedAt", "createdAt"],
+  }),
+
   // Top level topic eg: "Bank Exams", "Govt Exams"
   topics: defineTable({
     name: v.string(),

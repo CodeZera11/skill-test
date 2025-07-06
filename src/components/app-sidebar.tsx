@@ -7,6 +7,7 @@ import {
   BookOpen,
   FolderTree,
   GraduationCap,
+  Newspaper,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -70,6 +71,17 @@ export function AppSidebar() {
           <Link href="/dashboard/tests" className="flex items-center gap-2">
             <GraduationCap className="size-4" />
             <span>Tests</span>
+          </Link>
+        </SidebarMenuButton>
+        <SidebarMenuButton
+          asChild
+          isActive={pathname.includes("/dashboard/news")}
+        >
+          <Link href="/dashboard/news" className="flex items-center gap-2">
+            <Newspaper className="size-4" />
+            <span>
+              News
+            </span>
           </Link>
         </SidebarMenuButton>
       </SidebarMenu>

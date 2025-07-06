@@ -37,14 +37,14 @@ export const list = query({
     if (searchQuery) {
       const searchData = await ctx.db
         .query("topics")
+        .withSearchIndex("search_name", (q) => {
+          return q.search("name", searchQuery);
+        })
         .filter((q) =>
           args.onlyPublished
             ? q.eq(q.field("isPublished"), true)
             : q.eq(q.field("isPublished"), q.field("isPublished"))
         )
-        .withSearchIndex("search_name", (q) => {
-          return q.search("name", searchQuery);
-        })
         .collect();
 
       return await Promise.all(
