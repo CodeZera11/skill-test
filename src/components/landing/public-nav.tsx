@@ -41,11 +41,19 @@ const PublicNav = () => {
           <ModeToggle />
 
           <Unauthenticated>
-            <Button asChild>
-              <Link href="/sign-up">
-                Get Started
-              </Link>
-            </Button>
+            <div className='flex items-center gap-2'
+            >
+              <Button asChild>
+                <Link href="/sign-in">
+                  Login
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link href="/sign-up">
+                  Signup
+                </Link>
+              </Button>
+            </div>
           </Unauthenticated>
           <Authenticated>
             <ClerkUserButton />
