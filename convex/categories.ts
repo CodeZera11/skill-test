@@ -153,7 +153,27 @@ export const update = mutation({
 export const remove = mutation({
   args: { id: v.id("categories") },
   handler: async (ctx, args) => {
-    await ctx.db.delete(args.id);
+    const { id } = args;
+    const subCategories = await ctx.db
+      .query("subCategories")
+      .filter((q) => q.eq(q.field("categoryId"), id))
+      .collect();
+
+    for (const subCategory of subCategories) {
+      // first delete all tests under this subcategory
+      const tests = await ctx.db
+        .query("tests")
+        .filter((q) => q.eq(q.field("subCategoryId"), subCategory._id))
+        .collect();
+      for (const test of tests) {
+        // delete the test
+        await ctx.db.delete(test._id);
+      }
+      // delete the subCategory
+      await ctx.db.delete(subCategory._id);
+    }
+    // finally delete the category
+    return await ctx.db.delete(id);
   },
 });
 
