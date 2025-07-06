@@ -1,12 +1,12 @@
 "use client"
 
 import Link from 'next/link'
-import { useQuery } from 'convex/react'
-import { api } from '~/convex/_generated/api'
+// import { useQuery } from 'convex/react'
+// import { api } from '~/convex/_generated/api'
 
 const Footer = () => {
-  const topics = useQuery(api.topics.list, { onlyPublished: true, take: 5 })
-  const categories = useQuery(api.categories.list, { onlyPublished: true, take: 5 })
+  // const topics = useQuery(api.topics.list, { onlyPublished: true, take: 5 })
+  // const categories = useQuery(api.categories.list, { onlyPublished: true, take: 5 })
 
   return (
     <footer className="border-t mt-auto">
