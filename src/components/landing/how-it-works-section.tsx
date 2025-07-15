@@ -29,7 +29,7 @@ const StaticSteps = [
 
 const HowItWorksSection = () => {
   return (
-    <section id="how-it-works" className="py-20 bg-slate-50 dark:bg-slate-900/50">
+    <section id="how-it-works" className="py-20 border-b">
       <div className="container mx-auto px-4">
         <motion.div
           className="text-center mb-16"
@@ -49,7 +49,7 @@ const HowItWorksSection = () => {
             <div key={index} className="flex flex-col md:flex-row items-center gap-5">
               <motion.div
                 key={index}
-                className="text-center border p-4 rounded-md border-emerald-800/60"
+                className="text-center border p-4 rounded-md border-theme/60"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -59,7 +59,7 @@ const HowItWorksSection = () => {
                   <div className="w-16 h-16 mx-auto relative flex items-center justify-center">
                     {step.icon}
                     <motion.div
-                      className="absolute inset-0 rounded-full border-2 border-emerald-500"
+                      className="absolute inset-0 rounded-full border-2 border-theme"
                       initial={{ scale: 0.8, opacity: 0 }}
                       whileInView={{ scale: 1, opacity: 1 }}
                       transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}

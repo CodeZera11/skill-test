@@ -52,17 +52,17 @@ export default function TopicDetailsPageContainer({ id }: TopicDetailsPageContai
   const { name, description, categories } = topicWithCategories
 
   return (
-    <div className="bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/30 dark:to-background">
+    <div className="bg-gradient-to-b from-theme/15 to-white dark:from-theme/30 dark:to-background">
       <div className="container mx-auto px-4 py-12">
         <section className=" mb-7">
           <div className="container mx-auto">
             <motion.div initial="hidden" animate="visible" variants={fadeIn}>
               <div className="flex flex-wrap items-center text-sm text-muted-foreground mb-4 gap-2">
-                <Link href="/" className="hover:text-emerald-500 transition-colors">
+                <Link href="/" className="hover:text-theme transition-colors">
                   Home
                 </Link>
                 <ChevronRight className="h-4 w-4" />
-                <Link href="/topics" className="hover:text-emerald-500 transition-colors">
+                <Link href="/topics" className="hover:text-theme transition-colors">
                   Topics
                 </Link>
                 <ChevronRight className="h-4 w-4" />
@@ -109,7 +109,7 @@ export default function TopicDetailsPageContainer({ id }: TopicDetailsPageContai
                           <Link
                             key={sub._id}
                             href={`/sub-categories/${sub._id}`}
-                            className="text-sm text-emerald-600 hover:underline"
+                            className="text-sm text-theme hover:underline"
                           >
                             {sub.name}
                           </Link>

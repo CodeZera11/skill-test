@@ -111,7 +111,7 @@ const TopicsSection = () => {
               <Card className="h-full hover:shadow-lg transition-shadow dark:bg-slate-900">
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
-                    <div className="bg-emerald-100 dark:bg-emerald-900/30 p-3 rounded-full mr-4">
+                    <div className="bg-theme/10 dark:bg-theme/30 p-3 rounded-full mr-4">
                       <ChartBar />
                     </div>
                     <h3 className="text-xl font-bold">{topic.name}</h3>
@@ -127,7 +127,7 @@ const TopicsSection = () => {
                         transition={{ delay: 0.1 * idx }}
                         viewport={{ once: true }}
                       >
-                        <Dot className="h-8 w-8 text-emerald-500" />
+                        <Dot className="h-8 w-8 text-theme" />
                         <span>{category.name}</span>
                       </motion.li>
                     ))}

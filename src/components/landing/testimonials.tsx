@@ -42,7 +42,7 @@ const TestimonialsSection = () => {
   ];
 
   return (
-    <section id="testimonials" className="py-20 bg-gradient-to-b from-white to-emerald-50 dark:from-background dark:to-emerald-950/30 h-fit flex items-center justify-center">
+    <section id="testimonials" className="py-20 bg-gradient-to-b from-white to-theme/20 dark:from-background dark:to-theme/30 h-fit flex items-center justify-center">
       <AnimatedTestimonials testimonials={testimonials} />
     </section>
   )

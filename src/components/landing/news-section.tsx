@@ -34,7 +34,7 @@ const NewsSection = () => {
             variants={fadeIn}
           >
             <div className="flex items-center justify-center mb-4">
-              <Newspaper className="h-8 w-8 text-emerald-500 mr-3" />
+              <Newspaper className="h-8 w-8 text-theme mr-3" />
               <h2 className="text-3xl md:text-4xl font-bold">Latest News & Updates</h2>
             </div>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -94,7 +94,7 @@ const NewsSection = () => {
           variants={fadeIn}
         >
           <div className="flex items-center justify-center mb-4">
-            <Newspaper className="h-8 w-8 text-emerald-500 mr-3" />
+            <Newspaper className="h-8 w-8 text-theme mr-3" />
             <h2 className="text-3xl md:text-4xl font-bold">Latest News & Updates</h2>
           </div>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -112,13 +112,13 @@ const NewsSection = () => {
               className={`${index === 0 ? "md:col-span-2 lg:col-span-1" : ""}`}
             >
               <Card
-                className={`h-full hover:shadow-lg transition-all duration-300 ${index === 0 ? "border-emerald-200 dark:border-emerald-800" : ""
+                className={`h-full hover:shadow-lg transition-all duration-300 ${index === 0 ? "border-theme/40 dark:border-theme/60" : ""
                   }`}
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between gap-2">
                     <CardTitle
-                      className={`line-clamp-2 group-hover:text-emerald-600 transition-colors ${index === 0 ? "text-lg" : "text-base"
+                      className={`line-clamp-2 group-hover:text-theme transition-colors ${index === 0 ? "text-lg" : "text-base"
                         }`}
                     >
                       {article.title}
@@ -126,7 +126,7 @@ const NewsSection = () => {
                     {index === 0 && (
                       <Badge
                         variant="secondary"
-                        className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 flex-shrink-0"
+                        className="bg-theme/10 text-theme dark:bg-theme/70 dark:text-white flex-shrink-0"
                       >
                         Latest
                       </Badge>

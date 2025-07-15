@@ -140,7 +140,7 @@ const CategoryDetailsContainer = ({ id }: { id: Id<"categories"> }) => {
     <div className="min-h-screen flex flex-col">
       <main className="flex-1">
         {/* Breadcrumb and Header */}
-        <section className="py-12 md:py-16 bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/30 dark:to-background">
+        <section className="py-12 md:py-16 bg-gradient-to-b from-theme/15 to-white dark:from-theme/30 dark:to-background">
           <div className="container mx-auto px-4">
             <motion.div initial="hidden" animate="visible" variants={fadeIn}>
               <div className="flex flex-wrap items-center text-sm text-muted-foreground mb-4 gap-2">

@@ -5,18 +5,10 @@ import { useQuery } from "convex/react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Search, Layers3, ChevronRight, BookOpenCheck, Landmark, Building2 } from "lucide-react"
+import { Search, Layers3, ChevronRight } from "lucide-react"
 import { useState, useMemo } from "react"
 import TopicsPageLoading from "./loading"
 import { api } from "~/convex/_generated/api"
-
-const getTopicIcon = (topicName: string) => {
-  const name = topicName.toLowerCase()
-  if (name.includes("bank")) return <BookOpenCheck className="h-8 w-8 text-emerald-500" />
-  if (name.includes("gov") || name.includes("ssc")) return <Landmark className="h-8 w-8 text-blue-500" />
-  if (name.includes("railway")) return <Building2 className="h-8 w-8 text-red-500" />
-  return <Layers3 className="h-8 w-8 text-gray-500" />
-}
 
 export default function TopicsPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -42,7 +34,7 @@ export default function TopicsPage() {
   }
 
   return (
-    <div className="px-4 py-12 bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/30 dark:to-background">
+    <div className="px-4 py-12 bg-gradient-to-b from-theme/20 to-white dark:from-theme/30 dark:to-background">
       <div className="mx-auto container">
         <header className="mb-12 text-center ">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Explore Exam Topics</h1>
@@ -74,7 +66,6 @@ export default function TopicsPage() {
               >
                 <CardHeader className="pb-4">
                   <div className="flex items-center space-x-4 mb-3">
-                    <div className="p-3 bg-muted rounded-full">{getTopicIcon(topic.name)}</div>
                     <CardTitle className="text-2xl font-semibold">{topic.name}</CardTitle>
                   </div>
                   <CardDescription className="text-sm text-muted-foreground h-12 overflow-hidden">
@@ -82,7 +73,7 @@ export default function TopicsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow flex flex-col justify-end">
-                  <Button asChild className="w-full mt-auto bg-emerald-500 hover:bg-emerald-600 text-white">
+                  <Button asChild className="w-full mt-auto bg-theme hover:bg-theme/90 text-white">
                     <Link href={`/topics/${topic._id}`}>
                       Explore Topic <ChevronRight className="ml-2 h-4 w-4" />
                     </Link>

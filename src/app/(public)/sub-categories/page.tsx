@@ -63,7 +63,7 @@ export default function SubCategoriesPage() {
     <div className="min-h-screen flex flex-col">
       <main className="flex-1">
         {/* Page Header */}
-        <section className="py-12 md:py-16 bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/30 dark:to-background">
+        <section className="py-12 md:py-16 bg-gradient-to-b from-theme/15 to-white dark:from-theme/30 dark:to-background">
           <div className="container mx-auto px-4">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <motion.div initial="hidden" animate="visible" variants={fadeIn}>

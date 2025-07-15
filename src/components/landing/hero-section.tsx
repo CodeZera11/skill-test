@@ -11,10 +11,10 @@ import { fadeIn } from "@/constants/animations"
 
 const HeroSection = () => {
 
-  
+
 
   return (
-    <section className="py-20 md:py-32 bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/30 dark:to-background">
+    <section className="py-20 md:py-32 bg-gradient-to-b from-theme/15 to-white dark:from-theme/30 dark:to-background">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row items-center">
           <motion.div
@@ -25,18 +25,18 @@ const HeroSection = () => {
             variants={fadeIn}
           >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-              Master Any Exam With <span className="text-blue-500">Confidence</span>
+              Master Any Exam With <span className="text-theme">Confidence</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-lg">
               Practice thousands of MCQs across various competitive exams and track your progress with our
               intelligent learning platform.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600" asChild>
-                <Link href={PageRoutes.TESTS}>
+              <Link href={PageRoutes.TESTS}>
+                <Button size="lg" className="bg-theme text-white hover:bg-theme/80">
                   Start Practicing
-                </Link>
-              </Button>
+                </Button>
+              </Link>
               <Button size="lg" variant="outline" asChild>
                 <Link href={PageRoutes.CATEGORIES}>
                   Explore Categories
