@@ -3,12 +3,13 @@
 import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
-import { SubCategoryWithTests } from "../../../../../convex/subCategories";
+import { SubCategoryWithTests } from "~/convex/subCategories";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
 import { deleteSubCategory, toggleSubCategoryPublishStatus } from "@/actions/sub-categories";
+import EditSubCategoryDialog from "./edit-subcategory-dialog";
 
 export const columns: ColumnDef<SubCategoryWithTests>[] = [
   {
@@ -103,6 +104,7 @@ export const columns: ColumnDef<SubCategoryWithTests>[] = [
       const subCategory = row.original;
       return (
         <div className="flex items-center gap-2">
+          <EditSubCategoryDialog subCategory={subCategory} />
           <Button variant="secondary" onClick={() => {
             toast.promise(
               toggleSubCategoryPublishStatus(subCategory._id, !subCategory.isPublished),

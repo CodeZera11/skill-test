@@ -1,31 +1,34 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import AddCategoryForm from "./add-category-form"
-import { useState } from "react"
+import { TopicWithCategory } from "~/convex/topics"
+import EditTopicForm from "./edit-topic-form"
 
-const AddCategoryDialog = () => {
+const EditTopicDialog = ({topic}: {topic: TopicWithCategory}) => {
   const [open, setOpen] = useState(false)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="">Add New Category</Button>
+        <Button variant="secondary" className="">
+          Edit Topic
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Add New Category
+            Edit Topic
           </DialogTitle>
           <DialogDescription>
-            Fill in the details to create a new category.
+            Update the details of the topic.
           </DialogDescription>
         </DialogHeader>
-        <AddCategoryForm afterSubmit={() => setOpen(false)} />
+        <EditTopicForm afterSubmit={() => setOpen(false)} topic={topic} />
       </DialogContent>
     </Dialog>
   )
 }
 
-export default AddCategoryDialog
+export default EditTopicDialog;

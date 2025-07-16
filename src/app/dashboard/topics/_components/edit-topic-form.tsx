@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { AddTopicRequest, AddTopicSchema } from "./topic.schema"
+import { EditTopicRequest, EditTopicSchema } from "./topic.schema"
 import { Form } from "@/components/ui/form"
 import InputElement from "@/components/form-elements/input-element"
 import { Button } from "@/components/ui/button"
@@ -11,39 +11,44 @@ import { api } from "../../../../../convex/_generated/api"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import TextAreaElement from "@/components/form-elements/textarea-element"
+import { Id } from "~/convex/_generated/dataModel"
+import { TopicWithCategory } from "~/convex/topics"
 
-interface AddTopicFormProps {
+interface EditTopicFormProps {
   afterSubmit?: () => void
+  topic: TopicWithCategory
 }
 
-const AddTopicForm: React.FC<AddTopicFormProps> = ({ afterSubmit }) => {
+const EditTopicForm: React.FC<EditTopicFormProps> = ({ afterSubmit, topic }) => {
   const router = useRouter()
-  const createTopic = useMutation(api.topics.create)
-  const form = useForm<AddTopicRequest>({
-    resolver: zodResolver(AddTopicSchema),
+  const updateTopic = useMutation(api.topics.update)
+  const form = useForm<EditTopicRequest>({
+    resolver: zodResolver(EditTopicSchema),
     defaultValues: {
-      name: "",
-      description: "",
+      ...topic,
+      id: topic._id
     }
   })
 
-  const onSubmit = async (values: AddTopicRequest) => {
+  const onSubmit = async (values: EditTopicRequest) => {
     try {
       toast.promise(
-        createTopic({ ...values }),
+        updateTopic({
+          ...values,
+          id: values.id as Id<"topics">
+        }),
         {
-          loading: "Creating topic...",
+          loading: "Updating topic...",
           success: () => {
             afterSubmit?.()
-            return "Topic created successfully"
+            return "Topic updated successfully"
           },
-          error: "Failed to create topic"
+          error: "Failed to update topic"
         }
       )
-      // await createCategory(values)
       router.push("/dashboard/topics")
     } catch (error) {
-      console.error("Failed to create topic:", error)
+      console.error("Failed to update topic:", error)
     }
   }
 
@@ -61,11 +66,11 @@ const AddTopicForm: React.FC<AddTopicFormProps> = ({ afterSubmit }) => {
           placeholder="Enter topic description (optional)"
         />
         <Button type="submit" className="w-full">
-          Add Topic
+          Update Topic
         </Button>
       </form>
     </Form>
   )
 }
 
-export default AddTopicForm
+export default EditTopicForm

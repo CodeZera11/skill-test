@@ -140,13 +140,19 @@ export const update = mutation({
     id: v.id("categories"),
     name: v.string(),
     description: v.optional(v.string()),
+    topicId: v.optional(v.id("topics")),
   },
   handler: async (ctx, args) => {
     const { id, ...data } = args;
-    return await ctx.db.patch(id, {
+    const timestamp = Date.now();
+    const updateData: Partial<Category & { topicId: Id<"topics"> }> = {
       ...data,
-      updatedAt: Date.now(),
-    });
+      updatedAt: timestamp,
+    };
+    if (data.topicId) {
+      updateData.topicId = data.topicId;
+    }
+    return await ctx.db.patch(id, updateData);
   },
 });
 

@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import AddSubCategoryForm from "../add/_components/add-subcategory-form"
+import AddSubCategoryForm from "./add-subcategory-form"
 import { useState } from "react"
 
 const AddSubCategoryDialog = () => {

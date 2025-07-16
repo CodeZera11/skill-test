@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const AddCategorySchema = z.object({
+export const AddTopicSchema = z.object({
   name: z
     .string()
     .min(1, { message: "Name is required" })
@@ -9,7 +9,11 @@ export const AddCategorySchema = z.object({
     .string()
     .max(500, { message: "Description must be less than 500 characters" })
     .optional(),
-  topicId: z.string().optional(),
 });
 
-export type AddCategoryRequest = z.infer<typeof AddCategorySchema>;
+export const EditTopicSchema = AddTopicSchema.extend({
+  id: z.string().min(1, { message: "ID is required" }),
+});
+
+export type AddTopicRequest = z.infer<typeof AddTopicSchema>;
+export type EditTopicRequest = z.infer<typeof EditTopicSchema>;

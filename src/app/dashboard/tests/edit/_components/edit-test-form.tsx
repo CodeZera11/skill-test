@@ -217,6 +217,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
     console.log("Section:", section.name, "Total Questions:", section.totalQuestions)
   })
 
+  console.log([test?.subCategoryId], subCategories)
 
   return (
     <Card className="max-w-7xl mx-auto">
@@ -241,13 +242,14 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                   />
                   <SelectElement
                     name="subCategoryId"
-                    label="Sub Category"
+                    label="Sub Category test"
                     placeholder="Select a sub category"
                     className="w-full"
                     options={subCategories?.map((subCategory: { name: string, _id: string }) => ({
                       label: subCategory.name,
                       value: subCategory._id,
                     })) ?? []}
+                    defaultValue={test?.subCategoryId || ""}
                   />
                 </div>
                 <TextareaElement

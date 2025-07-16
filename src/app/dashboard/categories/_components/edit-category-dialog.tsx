@@ -2,16 +2,17 @@
 
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import AddCategoryForm from "./add-category-form"
 import { useState } from "react"
+import { CategoryWithCount } from "./columns"
+import EditCategoryForm from "./edit-category-form"
 
-const AddCategoryDialog = () => {
+const EditCategoryDialog = ({ category }: { category: CategoryWithCount }) => {
   const [open, setOpen] = useState(false)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="">Add New Category</Button>
+        <Button variant="secondary" className="">Edit New Category</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -22,10 +23,10 @@ const AddCategoryDialog = () => {
             Fill in the details to create a new category.
           </DialogDescription>
         </DialogHeader>
-        <AddCategoryForm afterSubmit={() => setOpen(false)} />
+        <EditCategoryForm category={category} afterSubmit={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   )
 }
 
-export default AddCategoryDialog
+export default EditCategoryDialog

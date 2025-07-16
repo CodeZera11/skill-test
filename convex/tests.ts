@@ -247,7 +247,7 @@ export const create = mutation({
     questions: v.array(
       v.object({
         question: v.string(),
-        options: v.array(v.string()),
+        options: v.array(v.any()),
         correctAnswer: v.number(),
         sectionKey: v.string(),
         explanation: v.optional(v.string()),
@@ -307,7 +307,7 @@ export const create = mutation({
           questionsBySection.map(async (question) => {
             return await ctx.db.insert("questions", {
               question: question.question,
-              options: question.options,
+              options: question.options.map(option => String(option)),
               correctAnswer: question.correctAnswer,
               sectionId,
               explanation: question.explanation || undefined,

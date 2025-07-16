@@ -1,4 +1,4 @@
-import AddTopicDialog from "./_components/add-topics-dialog";
+import AddTopicDialog from "./_components/add-topic-dialog";
 import TopicsTable from "./_components/topics-table";
 
 export default function TopicsPage() {

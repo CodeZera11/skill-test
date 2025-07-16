@@ -34,8 +34,9 @@ export const AddTestSchema = z.object({
     z.object({
       question: z.string().min(1, { message: "Question text is required" }),
       options: z
-        .array(z.string().min(1, { message: "Options are required" }))
-        .min(2, { message: "At least two options are required" }),
+        .array(z.union([z.string(), z.number()]))
+        .min(2, { message: "At least two options are required" })
+        .max(5, { message: "A maximum of five options is allowed" }),
       // Index of the correct option
       correctAnswer: z.number(),
       sectionKey: z.string().min(1, { message: "Section is required" }),

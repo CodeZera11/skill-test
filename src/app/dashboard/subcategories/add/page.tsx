@@ -1,4 +1,4 @@
-import AddSubCategoryForm from "./_components/add-subcategory-form";
+import AddSubCategoryForm from "../_components/add-subcategory-form";
 
 export default function AddSubCategoryPage() {
   return (

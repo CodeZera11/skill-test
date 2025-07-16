@@ -15,6 +15,7 @@ export type SubCategoryWithTests = {
     _id: Id<"categories">;
     name: string;
   };
+  imageStorageId?: Id<"_storage">;
   tests: {
     _id: Id<"tests">;
     name: string;
@@ -181,10 +182,24 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     const { id, ...data } = args;
-    return await ctx.db.patch(id, {
+    const timestamp = Date.now();
+    const updateData: Partial<{
+      name: string;
+      description?: string;
+      categoryId: Id<"categories">;
+      imageStorageId?: Id<"_storage">;
+      updatedAt: number;
+    }> = {
       ...data,
-      updatedAt: Date.now(),
-    });
+      updatedAt: timestamp,
+    };
+    if (data.categoryId) {
+      updateData.categoryId = data.categoryId;
+    }
+    if (data.imageStorageId) {
+      updateData.imageStorageId = data.imageStorageId;
+    }
+    return await ctx.db.patch(id, updateData);
   },
 });
 

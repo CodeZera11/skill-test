@@ -3,15 +3,16 @@
 import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
-import { Doc } from "../../../../../convex/_generated/dataModel";
-import { Topic } from "../../../../../convex/topics";
+import { Doc } from "~/convex/_generated/dataModel";
+import { Topic } from "~/convex/topics";
 import { Button } from "@/components/ui/button";
 import { Trash } from "lucide-react";
 import { toast } from "sonner";
 import { deleteCategory, toggleCategoryPublishStatus } from "@/actions/categories";
 import { Badge } from "@/components/ui/badge";
+import EditCategoryDialog from "./edit-category-dialog";
 
-type CategoryWithCount = Doc<"categories"> & { _subcategoriesCount: number, topic: Topic | null };
+export type CategoryWithCount = Doc<"categories"> & { _subcategoriesCount: number, topic: Topic | null };
 
 export const columns: ColumnDef<CategoryWithCount>[] = [
   {
@@ -108,6 +109,7 @@ export const columns: ColumnDef<CategoryWithCount>[] = [
 
       return (
         <div className="flex items-center gap-2">
+          <EditCategoryDialog category={category} />
           <Button variant="secondary" onClick={() => {
             toast.promise(
               toggleCategoryPublishStatus(category._id, !category.isPublished),

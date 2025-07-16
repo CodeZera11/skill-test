@@ -2,51 +2,59 @@
 
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { AddCategoryRequest, AddCategorySchema } from "./add-category.schema"
+import { EditCategoryRequest, EditCategorySchema } from "./category.schema"
 import { Form } from "@/components/ui/form"
 import InputElement from "@/components/form-elements/input-element"
 import { Button } from "@/components/ui/button"
 import { useMutation, useQuery } from "convex/react"
-import { api } from "../../../../../../convex/_generated/api"
+import { api } from "~/convex/_generated/api"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import TextAreaElement from "@/components/form-elements/textarea-element"
-import { Id } from "../../../../../../convex/_generated/dataModel"
+import { Id } from "~/convex/_generated/dataModel"
 import SelectElement from "@/components/form-elements/select-element"
+import { CategoryWithCount } from "./columns"
 
-interface AddCategoryFormProps {
+interface EditCategoryFormProps {
   afterSubmit?: () => void
+  category: CategoryWithCount
 }
 
-const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ afterSubmit }) => {
+const EditCategoryForm: React.FC<EditCategoryFormProps> = ({ afterSubmit, category }) => {
   const router = useRouter()
-  const createCategory = useMutation(api.categories.create)
+  const updateCategory = useMutation(api.categories.update)
   const topics = useQuery(api.topics.list, { onlyPublished: false })
-  const form = useForm<AddCategoryRequest>({
-    resolver: zodResolver(AddCategorySchema),
+  const form = useForm<EditCategoryRequest>({
+    resolver: zodResolver(EditCategorySchema),
     defaultValues: {
-      name: "",
-      description: "",
+      id: category._id,
+      description: category.description || "",
+      name: category.name,
+      topicId: category.topic?._id || "",
     }
   })
 
-  const onSubmit = async (values: AddCategoryRequest) => {
+  const onSubmit = async (values: EditCategoryRequest) => {
     try {
       toast.promise(
-        createCategory({ ...values, topicId: values.topicId as Id<"topics"> }),
+        updateCategory({
+          ...values,
+          topicId: values.topicId as Id<"topics">,
+          id: category._id
+        }),
         {
-          loading: "Creating category...",
+          loading: "Updating category...",
           success: () => {
             afterSubmit?.()
-            return "Category created successfully"
+            return "Category updated successfully"
           },
-          error: "Failed to create category"
+          error: "Failed to update category"
         }
       )
       // await createCategory(values)
       router.push("/dashboard/categories")
     } catch (error) {
-      console.error("Failed to create category:", error)
+      console.error("Failed to update category:", error)
     }
   }
 
@@ -69,6 +77,7 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ afterSubmit }) => {
             label: topic.name,
             value: topic._id,
           }))}
+          defaultValue={category.topic?._id || ""}
         />
         <InputElement
           name="name"
@@ -81,11 +90,11 @@ const AddCategoryForm: React.FC<AddCategoryFormProps> = ({ afterSubmit }) => {
           placeholder="Enter category description (optional)"
         />
         <Button type="submit" className="w-full">
-          Add Category
+          Update Category
         </Button>
       </form>
     </Form>
   )
 }
 
-export default AddCategoryForm
+export default EditCategoryForm

@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { deleteTopic, toggleTopicPublishStatus } from "@/actions/topics";
 import { Trash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import EditTopicDialog from "./edit-topic-dialog";
 
 export const columns: ColumnDef<TopicWithCategory>[] = [
   {
@@ -89,6 +90,7 @@ export const columns: ColumnDef<TopicWithCategory>[] = [
       const topic = row.original;
       return (
         <div className="flex items-center gap-2">
+          <EditTopicDialog topic={topic} />
           <Button variant="secondary" onClick={() => {
             toast.promise(
               toggleTopicPublishStatus(topic._id, !topic.isPublished),

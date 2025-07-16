@@ -3,43 +3,47 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { useQuery, useMutation } from "convex/react"
-import { AddSubCategoryRequest, AddSubCategorySchema } from "./add-subcategory.schema"
+import { EditSubCategoryRequest, EditSubCategorySchema } from "./subcategory.schema"
 import { Form } from "@/components/ui/form"
 
 import InputElement from "@/components/form-elements/input-element"
 import SelectElement from "@/components/form-elements/select-element"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import { api } from "../../../../../../convex/_generated/api"
-import { Id } from "../../../../../../convex/_generated/dataModel"
+import { api } from "~/convex/_generated/api"
+import { Id } from "~/convex/_generated/dataModel"
 import { toast } from "sonner"
 import TextAreaElement from "@/components/form-elements/textarea-element"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useState } from "react"
+import { SubCategoryWithTests } from "~/convex/subCategories"
 
-interface AddSubCategoryFormProps {
+interface EditSubCategoryFormProps {
   afterSubmit?: () => void
+  subCategory: SubCategoryWithTests
+
 }
 
-const AddSubCategoryForm: React.FC<AddSubCategoryFormProps> = ({ afterSubmit }) => {
+const EditSubCategoryForm: React.FC<EditSubCategoryFormProps> = ({ subCategory, afterSubmit }) => {
   const router = useRouter()
   const categories = useQuery(api.categories.list, {
     searchQuery: "",
     sortOrder: "desc",
     onlyPublished: false,
   })
-  const createSubCategory = useMutation(api.subCategories.create)
+  const updateSubCategory = useMutation(api.subCategories.update)
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const [imageUrl, setImageUrl] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
 
-  const form = useForm<AddSubCategoryRequest>({
-    resolver: zodResolver(AddSubCategorySchema),
+  const form = useForm<EditSubCategoryRequest>({
+    resolver: zodResolver(EditSubCategorySchema),
     defaultValues: {
-      name: "",
-      categoryId: "",
-      description: "",
-      imageStorageId: "",
+      _id: subCategory._id,
+      name: subCategory.name,
+      categoryId: subCategory.category._id,
+      description: subCategory.description || "",
+      imageStorageId: subCategory.imageStorageId
     }
   })
 
@@ -71,27 +75,28 @@ const AddSubCategoryForm: React.FC<AddSubCategoryFormProps> = ({ afterSubmit }) 
     }
   };
 
-  const onSubmit = async (values: AddSubCategoryRequest) => {
+  const onSubmit = async (values: EditSubCategoryRequest) => {
     try {
       toast.promise(
-        createSubCategory({
+        updateSubCategory({
           name: values.name,
           categoryId: values.categoryId as Id<"categories">,
           description: values.description || undefined,
-          imageStorageId: values.imageStorageId as Id<"_storage">
+          imageStorageId: values.imageStorageId as Id<"_storage">,
+          id: values._id as Id<"subCategories">
         }),
         {
-          loading: "Creating sub category...",
+          loading: "Updating sub category...",
           success: () => {
             afterSubmit?.()
             router.push("/dashboard/subcategories")
-            return "Sub category created successfully"
+            return "Sub category updated successfully"
           },
-          error: "Failed to create sub category"
+          error: "Failed to update sub category"
         }
       )
     } catch (error) {
-      console.error("Failed to create sub category:", error)
+      console.error("Failed to update sub category:", error)
     }
   }
 
@@ -151,7 +156,7 @@ const AddSubCategoryForm: React.FC<AddSubCategoryFormProps> = ({ afterSubmit }) 
           placeholder="Enter sub category description (optional)"
         />
         <Button type="submit" className="w-full mt-4">
-          Add Sub Category
+          Update Sub Category
         </Button>
       </form>
     </Form>
@@ -159,4 +164,4 @@ const AddSubCategoryForm: React.FC<AddSubCategoryFormProps> = ({ afterSubmit }) 
   )
 }
 
-export default AddSubCategoryForm
+export default EditSubCategoryForm

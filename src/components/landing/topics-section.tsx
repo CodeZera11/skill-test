@@ -3,7 +3,7 @@
 import { fadeIn, staggerContainer } from "@/constants/animations"
 import { ChartBar, Dot } from "lucide-react"
 import { motion } from "motion/react"
-import { Card, CardContent } from "../ui/card"
+import { Card, CardContent, CardFooter } from "../ui/card"
 import { Button } from "../ui/button"
 import { useQuery } from "convex/react"
 import { api } from "../../../convex/_generated/api"
@@ -118,7 +118,7 @@ const TopicsSection = () => {
                   </div>
 
                   <ul className="space-y-2 mb-6">
-                    {topic.categories.slice(0, 2).map((category, idx) => (
+                    {topic?.categories?.slice(0, 2).map((category, idx) => (
                       <motion.li
                         key={idx}
                         className="flex items-center"
@@ -131,14 +131,27 @@ const TopicsSection = () => {
                         <span>{category.name}</span>
                       </motion.li>
                     ))}
+                    {!topic?.categories?.length && (
+                      <motion.li
+                        className="text-muted-foreground text-center flex items-center justify-center w-full h-full"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        No categories available for this topic.
+                      </motion.li>
+                    )}
                   </ul>
 
-                  <Button variant="outline" className="w-full" asChild>
+
+                </CardContent>
+                <CardFooter className="mt-auto">
+                  <Button variant="outline" className="w-full mt-auto" asChild>
                     <Link href={PageRoutes.TOPICS + `/${topic._id}`}>
                       Explore {topic.name}
                     </Link>
                   </Button>
-                </CardContent>
+                </CardFooter>
               </Card>
             </motion.div>
           ))}

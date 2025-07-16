@@ -15,4 +15,9 @@ export const AddSubCategorySchema = z.object({
     .optional(),
 });
 
+export const EditSubCategorySchema = AddSubCategorySchema.extend({
+  _id: z.string().min(1, { message: "Sub Category ID is required" }),
+});
+
 export type AddSubCategoryRequest = z.infer<typeof AddSubCategorySchema>;
+export type EditSubCategoryRequest = z.infer<typeof EditSubCategorySchema>;
