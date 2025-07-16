@@ -213,9 +213,6 @@ const AddTestForm = () => {
     return acc;
   }, {} as Record<string, { question: { question: string, options: (string | number)[], correctAnswer: number, sectionKey: string, explanation?: string, marks?: string, negativeMarks?: string }; index: number }[]>);
 
-
-  console.log("questions", form.getValues("questions").filter(q => q.question === "whatt is he margin under Gold loan retail Term Loan with bulleet repayment?"))
-
   return (
     <Card className="max-w-7xl mx-auto">
       <CardHeader>
