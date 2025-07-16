@@ -27,8 +27,8 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
     if (agreedToTerms) {
       toast.promise(attemptTest({ testId, userId: user._id }), {
         loading: "Starting test...",
-        success: () => {
-          router.push(`/tests/${testId}/sections`) // Navigate to section navigation page
+        success: (testAttemptId) => {
+          router.push(`/tests/${testId}/${testAttemptId}/sections`) // Navigate to section navigation page
           return "Test started successfully"
         },
         error: (err) => `Error starting test: ${err}`,
