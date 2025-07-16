@@ -162,10 +162,28 @@ export const getByIdWithSections = query({
       throw new Error("Test not found");
     }
 
-    const sections = await ctx.db
+    let sections = await ctx.db
       .query("sections")
       .filter((q) => q.eq(q.field("testId"), args.id))
       .collect();
+
+    // for each section, get the total questions
+    sections = await Promise.all(
+      sections.map(async (section) => {
+        const totalQuestions = (
+          await ctx.db
+            .query("questions")
+            .withIndex("by_section")
+            .filter((q) => q.eq(q.field("sectionId"), section._id))
+            .collect()
+        ).length;
+
+        return {
+          ...section,
+          totalQuestions,
+        };
+      })
+    );
 
     return {
       ...test,
@@ -307,7 +325,7 @@ export const create = mutation({
           questionsBySection.map(async (question) => {
             return await ctx.db.insert("questions", {
               question: question.question,
-              options: question.options.map(option => String(option)),
+              options: question.options.map((option) => String(option)),
               correctAnswer: question.correctAnswer,
               sectionId,
               explanation: question.explanation || undefined,
@@ -425,7 +443,7 @@ export const update = mutation({
           questionsBySection.map(async (question) => {
             return await ctx.db.insert("questions", {
               question: question.question,
-              options: question.options.map(option => String(option)),
+              options: question.options.map((option) => String(option)),
               correctAnswer: question.correctAnswer,
               sectionId,
               explanation: question.explanation || undefined,

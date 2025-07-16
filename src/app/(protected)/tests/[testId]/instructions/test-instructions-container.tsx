@@ -15,34 +15,33 @@ import { formatSeconds } from "@/lib/utils"
 
 const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
   const router = useRouter()
-  const test = useQuery(api.tests.getById, { id: testId })
+  const test = useQuery(api.tests.getByIdWithSections, { id: testId })
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const attemptTest = useMutation(api.testAttempts.startTestAttempt)
 
-  const { user, isLoading, isAuthenticated } = useCurrentUser();
+  const { user, isLoading, isAuthenticated } = useCurrentUser()
 
   const startTest = () => {
-
-    if (isLoading || !isAuthenticated || !user) return;
+    if (isLoading || !isAuthenticated || !user) return
 
     if (agreedToTerms) {
       toast.promise(attemptTest({ testId, userId: user._id }), {
         loading: "Starting test...",
-        success: (testAttemptId) => {
-          router.push(`/tests/${testId}/attempt/${testAttemptId}/q/1`)
+        success: () => {
+          router.push(`/tests/${testId}/sections`) // Navigate to section navigation page
           return "Test started successfully"
         },
         error: (err) => `Error starting test: ${err}`,
       })
-
     }
   }
 
-
   if (test === undefined) {
-    return <div className="h-[calc(100vh-75px)] flex items-center justify-center ">
-      Loading...
-    </div>
+    return (
+      <div className="h-[calc(100vh-75px)] flex items-center justify-center">
+        Loading...
+      </div>
+    )
   }
 
   if (!test) {
@@ -69,6 +68,17 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
               <li>Total Questions: {test.totalQuestions}</li>
               <li>Duration: {formatSeconds(test.durationInSeconds)} minutes</li>
               <li>Total Marks: {test.totalMarks}</li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-medium mb-2">Sections Overview</h3>
+            <ul className="list-disc pl-5 space-y-1">
+              {test.sections.map((section, index) => (
+                <li key={index}>
+                  {section.name}: {formatSeconds(section.durationInSeconds)}, {section.totalQuestions} questions
+                </li>
+              ))}
             </ul>
           </div>
 

@@ -1,5 +1,5 @@
 "use client"
-import { CheckCircle, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import React, { useState } from 'react'
 import { ModeToggle } from '../theme-switcher'
@@ -19,7 +19,7 @@ const PublicNav = () => {
     <header className="border-b sticky top-0 bg-white/40 dark:bg-background/40 backdrop-blur-lg z-50">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center space-x-2">
-          <Image src="/1.png" alt='main-logo' className='bg-red-500' width={100} height={100} />
+          <Image src="/1.png" alt='main-logo' className='' width={50} height={50} />
         </Link>
 
         {/* Mobile menu button */}

@@ -3,7 +3,6 @@ import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { Question } from "./sections";
 
-// Function to start a test attempt
 export const startTestAttempt = mutation({
   args: {
     userId: v.id("users"),
@@ -17,6 +16,22 @@ export const startTestAttempt = mutation({
       .filter((q) => q.eq(q.field("_id"), testId))
       .first();
 
+    if (!test) {
+      throw new Error("Test not found");
+    }
+
+    const sections = await db
+      .query("sections")
+      .filter((q) => q.eq(q.field("testId"), testId))
+      .order("asc") // Ensure sections are ordered
+      .collect();
+
+    if (!sections || sections.length === 0) {
+      throw new Error("No sections found for this test");
+    }
+
+    const firstSection = sections[0];
+
     await db.patch(testId, {
       attempts: test?.attempts ? test.attempts + 1 : 1,
     });
@@ -25,14 +40,53 @@ export const startTestAttempt = mutation({
       userId,
       testId,
       startTime,
+      currentSection: firstSection._id, // Initialize with the first section
+      sectionTimes: [], // Empty array to track time spent on each section
       createdAt: startTime,
       updatedAt: startTime,
     });
+
     return testAttemptId;
   },
 });
 
-// Function to submit a test attempt
+export const updateCurrentSection = mutation({
+  args: {
+    testAttemptId: v.id("testAttempts"),
+    newSectionId: v.id("sections"),
+    timeSpentInSeconds: v.number(),
+  },
+  handler: async (
+    { db },
+    { testAttemptId, newSectionId, timeSpentInSeconds }
+  ) => {
+    const testAttempt = await db
+      .query("testAttempts")
+      .filter((q) => q.eq(q.field("_id"), testAttemptId))
+      .first();
+
+    if (!testAttempt) {
+      throw new Error("Test attempt not found");
+    }
+
+    const updatedSectionTimes = [
+      ...(testAttempt.sectionTimes || []),
+      {
+        sectionId: newSectionId,
+        timeSpentInSeconds,
+      },
+    ];
+
+    await db.patch(testAttemptId, {
+      currentSection: newSectionId, // Update to the new section
+      sectionTimes: updatedSectionTimes, // Update the time spent on sections
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
 export const submitTestAttempt = mutation({
   args: {
     testAttemptId: v.id("testAttempts"),
@@ -126,7 +180,6 @@ export const submitTestAttempt = mutation({
   },
 });
 
-// Function to get a test attempt with detailed answers
 export const getTestAttempt = query({
   args: {
     id: v.id("testAttempts"),
@@ -153,48 +206,24 @@ export const getTestAttempt = query({
         .filter((s) => s.eq(s.field("testId"), testAttempt.testId))
         .collect();
 
-      const questionsData = await Promise.all(
-        sections.map(async (section) => {
-          return await ctx.db
-            .query("questions")
-            .filter((q) => q.eq(q.field("sectionId"), section._id))
-            .collect();
-        })
+      const currentSection = sections.find(
+        (section) => section._id === testAttempt.currentSection
       );
 
-      if (!questionsData) {
-        throw new Error("No questions found for this test");
-      }
-
-      const questions = questionsData.flatMap((questions) => questions);
-
-      // Populate detailed answers with full question data
-      const populatedAnswers = testAttempt.answers?.map((answer) => {
-        const question = questions.find((q) => q._id === answer.questionId);
-        return {
-          ...answer,
-          question: question
-            ? {
-                question: question.question,
-                options: question.options,
-                correctAnswer: question.correctAnswer,
-                explanation: question.explanation,
-                marks: question.marks,
-                negativeMarks: question.negativeMarks,
-              }
-            : null,
-        };
-      });
+      const questions = await ctx.db
+        .query("questions")
+        .filter((q) => q.eq(q.field("sectionId"), testAttempt.currentSection))
+        .collect();
 
       return {
         testAttempt: {
           ...testAttempt,
-          answers: populatedAnswers, // Include detailed answers with question data
+          currentSection, // Include current section details
+          sectionTimes: testAttempt.sectionTimes || [], // Include section times
         },
         test,
         sections,
         questions,
-        // answers: testAttempt.answers, // Include detailed answers
       };
     } catch (error) {
       console.error("Error fetching test attempt:", error);
