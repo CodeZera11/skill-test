@@ -9,6 +9,7 @@ import { Authenticated, Unauthenticated } from 'convex/react'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { Skeleton } from '../ui/skeleton'
 import ClerkUserButton from '../auth/user-button'
+import Image from 'next/image'
 
 const PublicNav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -18,8 +19,7 @@ const PublicNav = () => {
     <header className="border-b sticky top-0 bg-white/40 dark:bg-background/40 backdrop-blur-lg z-50">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center space-x-2">
-          <CheckCircle className="h-6 w-6 text-emerald-500" />
-          <span className="font-bold text-xl">Skill Test</span>
+          <Image src="/1.png" alt='main-logo' className='bg-red-500' width={100} height={100} />
         </Link>
 
         {/* Mobile menu button */}

@@ -5,7 +5,7 @@ const EditTestPage = async ({ params }: PageProps) => {
   const id = (await params).id as string;
 
   return (
-    <div className="container py-6">
+    <div className="container py-6 max-h-[calc(100vh+100px)] overflow-y-clip">
       <EditTestContainer id={id} />
     </div>
   );

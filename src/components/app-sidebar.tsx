@@ -22,16 +22,12 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className={cn(state === "expanded" ? "p-4" : "p-2")}>
         <Link
-          href={PageRoutes.HOME}
-          className={cn(
-            "flex items-center justify-center w-full",
-            state === "expanded"
-              ? "size-10 rounded-lg bg-primary text-primary-foreground"
-              : "size-6 text-foreground p-0 mx-auto"
-          )}>
-          <GraduationCap className={state === "expanded" ? "size-5" : "size-4"} />
+          href={PageRoutes.HOME}>
+          {state === "expanded" && <span className="font-semibold">
+            Skill Test
+          </span>}
         </Link>
-        {state === "expanded" && <span className="font-semibold">Quiz Admin</span>}
+
       </SidebarHeader>
 
       <SidebarMenu className={cn(state === "expanded" ? "px-2" : "w-full flex items-center justify-center")}>
