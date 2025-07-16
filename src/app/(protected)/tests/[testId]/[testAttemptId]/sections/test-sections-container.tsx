@@ -32,14 +32,14 @@ const TestSectionsContainer = ({ testId, testAttemptId }: { testId: Id<"tests">,
   const startSection = async (sectionId: Id<"sections">) => {
     toast.promise(
       updateCurrentSection({
-        testAttemptId: testAttemptId,
+        testAttemptId: testAttemptId, // Ensure this is passed correctly
         newSectionId: sectionId,
         timeSpentInSeconds: 0, // Initialize with 0 time spent
       }),
       {
         loading: "Starting section...",
         success: () => {
-          router.push(`/tests/${testId}/sections/${sectionId}/q/1`)
+          router.push(`/tests/${testId}/${testAttemptId}/sections/${sectionId}/q/1`)
           return "Section started successfully"
         },
         error: (err) => `Error starting section: ${err}`,
