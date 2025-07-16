@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "~/convex/_generated/api"
 import { Id } from "~/convex/_generated/dataModel"
@@ -12,13 +13,14 @@ import { toast } from "sonner"
 const TestSectionsContainer = ({ testId, testAttemptId }: { testId: Id<"tests">, testAttemptId: Id<"testAttempts"> }) => {
   const router = useRouter()
   const test = useQuery(api.tests.getByIdWithSections, { id: testId })
+  const testAttempt = useQuery(api.testAttempts.getTestAttempt, { id: testAttemptId }) // Fetch test attempt details
   const updateCurrentSection = useMutation(api.testAttempts.updateCurrentSection)
 
-  if (test === undefined) {
+  if (test === undefined || testAttempt === undefined) {
     return <div className="h-[calc(100vh-75px)] flex items-center justify-center">Loading...</div>
   }
 
-  if (!test) {
+  if (!test || !testAttempt) {
     return (
       <div className="container mx-auto py-10">
         <h1 className="text-3xl font-bold mb-6">Test not found</h1>
@@ -28,6 +30,7 @@ const TestSectionsContainer = ({ testId, testAttemptId }: { testId: Id<"tests">,
   }
 
   const sections = test.sections || []
+  const submittedSections = testAttempt.testAttempt.submittedSections || [] // Track submitted sections
 
   const startSection = async (sectionId: Id<"sections">) => {
     toast.promise(
@@ -61,12 +64,18 @@ const TestSectionsContainer = ({ testId, testAttemptId }: { testId: Id<"tests">,
                 <li>Duration: {formatSeconds(section.durationInSeconds)} minutes</li>
                 <li>Total Questions: {section.totalQuestions}</li>
               </ul>
-              <Button
-                className="mt-4"
-                onClick={() => startSection(section._id)}
-              >
-                Start Section
-              </Button>
+              {submittedSections.includes(section._id) ? (
+                <Badge variant="outline" className="bg-green-100 text-green-800">
+                  Submitted
+                </Badge>
+              ) : (
+                <Button
+                  className="mt-4"
+                  onClick={() => startSection(section._id)}
+                >
+                  Start Section
+                </Button>
+              )}
             </div>
           ))}
         </CardContent>

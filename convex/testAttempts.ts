@@ -110,22 +110,21 @@ export const submitTestAttempt = mutation({
         throw new Error("Test not found");
       }
 
-      const duration = test.durationInSeconds;
-
-      if (!duration || duration <= 0) {
-        throw new Error("Test duration is not set or invalid.");
+      const currentSectionId = testAttempt.currentSection;
+      if (!currentSectionId) {
+        throw new Error("Current section not found.");
       }
-      const durationInMinutes = duration / 60;
-      const allowedEndTime =
-        testAttempt.startTime + durationInMinutes + 3600000;
 
-      if (endTime > allowedEndTime) {
-        throw new Error("Test duration exceeded. Possible cheating detected.");
+      const submittedSections = testAttempt.submittedSections || [];
+      if (submittedSections.includes(currentSectionId)) {
+        throw new Error("Section already submitted.");
       }
+
+      const updatedSubmittedSections = [...submittedSections, currentSectionId];
 
       const questions = await ctx.db
         .query("questions")
-        .filter((q) => q.eq(q.field("testId"), testAttempt.testId))
+        .filter((q) => q.eq(q.field("sectionId"), currentSectionId))
         .collect();
 
       let correctAnswers = 0;
@@ -163,6 +162,7 @@ export const submitTestAttempt = mutation({
         score,
         timeTakenInSeconds: timeTaken,
         answers: detailedAnswers, // Store detailed answers
+        submittedSections: updatedSubmittedSections, // Update submitted sections
         updatedAt: endTime,
       });
 
@@ -220,6 +220,7 @@ export const getTestAttempt = query({
           ...testAttempt,
           currentSection, // Include current section details
           sectionTimes: testAttempt.sectionTimes || [], // Include section times
+          submittedSections: testAttempt.submittedSections || [], // Include submitted sections
         },
         test,
         sections,

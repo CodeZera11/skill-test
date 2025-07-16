@@ -236,7 +236,7 @@ const TestPageContainer = ({
                   id="review"
                   checked={markedForReview[currentQuestion._id] || false}
                   onCheckedChange={(checked) => handleMarkForReview(checked as boolean)}
-                />
+              />
                 <label htmlFor="review" className="text-sm font-medium leading-none">
                   Mark for review
                 </label>

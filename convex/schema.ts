@@ -141,6 +141,7 @@ export default defineSchema({
         })
       )
     ),
+    submittedSections: v.optional(v.array(v.id("sections"))), // Tracks submitted sections
     createdAt: v.number(),
     updatedAt: v.number(),
   }),
