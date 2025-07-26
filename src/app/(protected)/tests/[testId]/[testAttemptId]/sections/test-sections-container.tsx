@@ -50,6 +50,8 @@ const TestSectionsContainer = ({ testId, testAttemptId }: { testId: Id<"tests">,
     )
   }
 
+  console.log("sections", sections)
+
   return (
     <div className="container mx-auto py-10 max-w-3xl">
       <Card>

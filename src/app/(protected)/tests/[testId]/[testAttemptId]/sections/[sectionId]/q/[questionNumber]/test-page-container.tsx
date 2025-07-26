@@ -98,7 +98,7 @@ const TestPageContainer = ({
         localStorage.removeItem(`test_${testId}_marked`)
         localStorage.removeItem(`test_${testId}_section_${sectionId}_remainingTime`)
         if (isLastSection) {
-          router.push(`/tests/${testId}/${attemptId}/result`) // Navigate to test result page
+          router.push(`/tests/${testId}/attempt/${attemptId}/result`) // Navigate to test result page
         } else {
           router.push(`/tests/${testId}/${attemptId}/sections`) // Navigate back to section navigation
         }
