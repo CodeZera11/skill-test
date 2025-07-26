@@ -9,12 +9,32 @@ import { api } from "~/convex/_generated/api"
 import { Id } from "~/convex/_generated/dataModel"
 import { formatSeconds } from "@/lib/utils"
 import { toast } from "sonner"
+import { useEffect } from "react"
 
 const TestSectionsContainer = ({ testId, testAttemptId }: { testId: Id<"tests">, testAttemptId: Id<"testAttempts"> }) => {
   const router = useRouter()
   const test = useQuery(api.tests.getByIdWithSections, { id: testId })
   const testAttempt = useQuery(api.testAttempts.getTestAttempt, { id: testAttemptId }) // Fetch test attempt details
   const updateCurrentSection = useMutation(api.testAttempts.updateCurrentSection)
+  const submitTestAttempt = useMutation(api.testAttempts.submitTestAttempt)
+
+  const sections = test?.sections || [] // Ensure sections is defined
+
+  useEffect(() => {
+    if (testAttempt?.testAttempt.submittedSections?.length === sections.length) {
+      toast.promise(
+        submitTestAttempt({ testAttemptId: testAttempt.testAttempt._id }),
+        {
+          loading: "Submitting test...",
+          success: () => {
+            router.push(`/tests/${testId}/attempt/${testAttemptId}/result`) // Navigate to result page
+            return "Test submitted successfully!"
+          },
+          error: (error) => `Error: ${error.message}`,
+        }
+      )
+    }
+  }, [testAttempt?.testAttempt?.submittedSections, test?.sections?.length])
 
   if (test === undefined || testAttempt === undefined) {
     return <div className="h-[calc(100vh-75px)] flex items-center justify-center">Loading...</div>
@@ -28,8 +48,7 @@ const TestSectionsContainer = ({ testId, testAttemptId }: { testId: Id<"tests">,
       </div>
     )
   }
-
-  const sections = test.sections || []
+  
   const submittedSections = testAttempt.testAttempt.submittedSections || [] // Track submitted sections
 
   const startSection = async (sectionId: Id<"sections">) => {

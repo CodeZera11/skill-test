@@ -149,7 +149,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                     Marked for Review
                   </Badge>
                 )}
-                <TestTimer durationInMinutes={(test.durationInSeconds || 0) / 60} onTimeUp={handleTimeUp} testAttempt={attempt} />
+              <TestTimer onTimeUp={handleTimeUp} remainingTime={} />
               </div>
             </CardHeader>
             <CardContent className="space-y-6">

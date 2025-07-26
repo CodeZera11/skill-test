@@ -35,7 +35,7 @@ const TestPageContainer = ({
   const [remainingTime, setRemainingTime] = useState<number | null>(null) // Track remaining time
 
 
-  const submitTestAttempt = useMutation(api.testAttempts.submitTestAttempt)
+  const submitSectionMutation = useMutation(api.testAttempts.submitSection)
 
   const currentSectionDurationInMinutes = (attempt?.sections.find(s => s._id === sectionId)?.durationInSeconds || 0) / 60
 
@@ -88,24 +88,46 @@ const TestPageContainer = ({
     console.log("Updated answers:", updatedAnswers) // Debugging
   }
 
-  const submitSection = () => {
-    const isLastSection = attempt?.sections[attempt.sections.length - 1]._id === sectionId
+  // const submitSection = () => {
+  //   const isLastSection = attempt?.sections[attempt.sections.length - 1]._id === sectionId
 
-    toast.promise(() => submitTestAttempt({ answers, testAttemptId: attemptId }), {
-      loading: isLastSection ? "Submitting test..." : "Submitting section...",
-      success: () => {
-        localStorage.removeItem(`test_${testId}_answers`)
-        localStorage.removeItem(`test_${testId}_marked`)
-        localStorage.removeItem(`test_${testId}_section_${sectionId}_remainingTime`)
-        if (isLastSection) {
-          router.push(`/tests/${testId}/attempt/${attemptId}/result`) // Navigate to test result page
-        } else {
-          router.push(`/tests/${testId}/${attemptId}/sections`) // Navigate back to section navigation
-        }
-        return isLastSection ? "Test submitted successfully!" : "Section submitted successfully!"
-      },
-      error: (error) => `Error: ${error.message}`,
-    })
+  //   toast.promise(() => submitTestAttempt({ answers, testAttemptId: attemptId }), {
+  //     loading: isLastSection ? "Submitting test..." : "Submitting section...",
+  //     success: () => {
+  //       localStorage.removeItem(`test_${testId}_answers`)
+  //       localStorage.removeItem(`test_${testId}_marked`)
+  //       localStorage.removeItem(`test_${testId}_section_${sectionId}_remainingTime`)
+  //       if (isLastSection) {
+  //         router.push(`/tests/${testId}/attempt/${attemptId}/result`) // Navigate to test result page
+  //       } else {
+  //         router.push(`/tests/${testId}/${attemptId}/sections`) // Navigate back to section navigation
+  //       }
+  //       return isLastSection ? "Test submitted successfully!" : "Section submitted successfully!"
+  //     },
+  //     error: (error) => `Error: ${error.message}`,
+  //   })
+  // }
+
+  const submitSection = () => {
+    toast.promise(
+      submitSectionMutation({
+        testAttemptId: attemptId,
+        sectionId,
+        timeSpentInSeconds: currentSectionDurationInMinutes * 60 - (remainingTime || 0), // Calculate time spent
+        answers,
+      }),
+      {
+        loading: "Submitting section...",
+        success: () => {
+          localStorage.removeItem(`test_${testId}_answers`)
+          localStorage.removeItem(`test_${testId}_marked`)
+          localStorage.removeItem(`test_${testId}_section_${sectionId}_remainingTime`)
+          router.push(`/tests/${testId}/${attemptId}/sections`) // Navigate back to sections page
+          return "Section submitted successfully!"
+        },
+        error: (error) => `Error: ${error.message}`,
+      }
+    )
   }
 
   const navigateToQuestion = (number: number) => {
@@ -166,7 +188,7 @@ const TestPageContainer = ({
     )
   }
 
-  const sectionQuestions = attempt.questions.filter((q) => q.sectionId === sectionId)
+  const sectionQuestions = attempt?.questions?.filter((q) => q.sectionId === sectionId)
   if (sectionQuestions.length === 0) {
     console.error("No questions found for the current section.")
   }
@@ -236,7 +258,7 @@ const TestPageContainer = ({
                   id="review"
                   checked={markedForReview[currentQuestion._id] || false}
                   onCheckedChange={(checked) => handleMarkForReview(checked as boolean)}
-              />
+                />
                 <label htmlFor="review" className="text-sm font-medium leading-none">
                   Mark for review
                 </label>
