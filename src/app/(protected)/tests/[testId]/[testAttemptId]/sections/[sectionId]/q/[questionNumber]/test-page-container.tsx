@@ -12,6 +12,7 @@ import { api } from "~/convex/_generated/api"
 import { Id } from "~/convex/_generated/dataModel"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 const TestPageContainer = ({
   testId,
@@ -31,6 +32,7 @@ const TestPageContainer = ({
   const attempt = useQuery(api.testAttempts.getTestAttempt, { id: attemptId })
   const [answers, setAnswers] = useState<Record<string, number | null>>({})
   const [remainingTime, setRemainingTime] = useState<number | null>(null) // Track remaining time
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // Track dialog state
 
   const [currentQuestion, setCurrentQuestion] = useState<number>(questionNumber) // Track current question
 
@@ -78,24 +80,21 @@ const TestPageContainer = ({
   }
 
   const submitTest = () => {
-
-    console.log("Submitting test with answers:", answers)
-
-    // toast.promise(
-    //   submitTestMutation({
-    //     testAttemptId: attemptId,
-    //     answers,
-    //   }),
-    //   {
-    //     loading: "Submitting test...",
-    //     success: () => {
-    //       localStorage.removeItem(`test_${testId}_remainingTime`)
-    //       router.push(`/tests/${testId}/attempt/${attemptId}/result`) // Navigate to result page
-    //       return "Test submitted successfully!"
-    //     },
-    //     error: (error) => `Error: ${error.message}`,
-    //   }
-    // )
+    toast.promise(
+      submitTestMutation({
+        testAttemptId: attemptId,
+        answers,
+      }),
+      {
+        loading: "Submitting test...",
+        success: () => {
+          localStorage.removeItem(`test_${testId}_remainingTime`)
+          router.push(`/tests/${testId}/attempt/${attemptId}/result`) // Navigate to result page
+          return "Test submitted successfully!"
+        },
+        error: (error) => `Error: ${error.message}`,
+      }
+    )
   }
 
   const handleSectionChange = (newSectionId: Id<"sections">) => {
@@ -108,6 +107,10 @@ const TestPageContainer = ({
     setCurrentQuestion(number)
     router.push(`/tests/${testId}/${attemptId}?sectionId=${sectionId}&questionNumber=${number}`)
   }
+
+  const hasUnansweredQuestions = () => {
+    return sectionQuestions.some((q) => answers[q._id] === undefined || answers[q._id] === null);
+  };
 
   if (attempt === undefined) {
     return (
@@ -159,7 +162,7 @@ const TestPageContainer = ({
                 Section:{" "}
                 <Select
                   onValueChange={handleSectionChange}
-                  value={sectionId}                 
+                  value={sectionId}
                 >
                   <SelectTrigger>
                     <span className="truncate text-black">
@@ -249,12 +252,11 @@ const TestPageContainer = ({
                       let bgColor = "bg-muted"
 
                       if (answers[qId] !== undefined && answers[qId] !== null) {
-                        bgColor = "bg-green-100 text-black dark:bg-green-200 dark:text-black dark:hover:bg-green-300"
+                        bgColor = "bg-green-100 text-black dark:bg-green-200 dark:text-black dark:hover:bg-green-300";
                       }
 
-                      if (qNum === questionNumber) {
-                        bgColor = "bg-primary text-white dark:bg-primary-200 dark:text-black dark:hover:bg-white hover:bg-primary/90 hover:text-white"
-                      }
+
+                      
 
                       return (
                         <Button
@@ -287,9 +289,38 @@ const TestPageContainer = ({
               </div>
             </CardContent>
             <CardFooter>
-              <Button className="w-full" onClick={submitTest} disabled={remainingTime === 0}>
+              {/* <Button className="w-full" onClick={submitTest} disabled={remainingTime === 0}>
                 Submit Test
-              </Button>
+              </Button> */}
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="w-full" disabled={remainingTime === 0}>
+                    Submit Test
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Submit Test</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    {hasUnansweredQuestions() ? (
+                      <DialogDescription>
+                        You have unanswered questions. Are you sure you want to submit the test?
+                      </DialogDescription>
+                    ) : (
+                      <DialogDescription>
+                        Are you sure you want to submit the test? Once submitted, you cannot make changes.
+                      </DialogDescription>
+                    )}
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={submitTest}>Submit</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardFooter>
           </Card>
         </div>
