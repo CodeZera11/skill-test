@@ -3,55 +3,41 @@
 import { useEffect, useState } from "react"
 import { Progress } from "@/components/ui/progress"
 import { Clock } from "lucide-react"
-import { TestAttemptWithDetails } from "~/convex/testAttempts"
 
 interface TestTimerProps {
-  durationInMinutes: number
+  remainingTime: number
   onTimeUp: () => void
-  testAttempt: TestAttemptWithDetails
+  updateRemainingTime: (time: number) => void
 }
 
-export function TestTimer({ durationInMinutes, onTimeUp, testAttempt }: TestTimerProps) {
-  const [timeRemaining, setTimeRemaining] = useState(0)
-  const totalDurationInSeconds = durationInMinutes * 60
-  const startTime = new Date(testAttempt.testAttempt.startTime).getTime()
-  const endTime = startTime + totalDurationInSeconds * 1000
+export function TestTimer({ remainingTime, onTimeUp, updateRemainingTime }: TestTimerProps) {
+  const [timeRemaining, setTimeRemaining] = useState(remainingTime)
 
   useEffect(() => {
-    const calculateRemainingTime = () => {
-      const currentTime = Date.now()
-      const remainingTimeInSeconds = Math.floor((endTime - currentTime) / 1000)
-
-      if (remainingTimeInSeconds <= 0) {
-        setTimeRemaining(0)
-        onTimeUp()
-      } else {
-        setTimeRemaining(remainingTimeInSeconds)
-      }
-    }
-
-    calculateRemainingTime()
 
     const timer = setInterval(() => {
-      calculateRemainingTime()
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer)
+          onTimeUp()
+          return 0
+        }
+        const newTime = prev - 1
+        updateRemainingTime(newTime)
+        return newTime
+      })
     }, 1000)
 
-    return () => clearInterval(timer)
-  }, [endTime, onTimeUp])
+    return () => clearInterval(timer) // Cleanup timer on unmount
+  }, [onTimeUp, updateRemainingTime])
 
-  // const formatTime = (seconds: number) => {
-  //   const duration = intervalToDuration({ start: 0, end: seconds * 1000 })
-  //   return formatDuration(duration, { format: ["hours", "minutes", "seconds"], zero: true })
-  // }
   const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
+    const minutes = Math.floor(seconds / 60)
     const secs = seconds % 60
-
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
+    return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
   }
 
-  const progressPercentage = (timeRemaining / totalDurationInSeconds) * 100
+  const progressPercentage = (timeRemaining / remainingTime) * 100
 
   return (
     <div className="p-4 space-y-2 border rounded-md">

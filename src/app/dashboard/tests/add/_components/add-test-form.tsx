@@ -140,6 +140,9 @@ const AddTestForm = () => {
               localStorage.removeItem(step.key)
             })
 
+            localStorage.removeItem("basic-information")
+            localStorage.removeItem("section-configuration")
+
             router.push(PageRoutes.DASHBOARD.TESTS)
             return "Test created successfully"
           },
@@ -347,7 +350,6 @@ const AddTestForm = () => {
                         <div className="flex items-center gap-2">
                           <ImportQuestionsDialog
                             onImport={async (questions) => {
-                              console.log(questions)
                               try {
                                 questions.forEach((question) => {
                                   appendQuestion({

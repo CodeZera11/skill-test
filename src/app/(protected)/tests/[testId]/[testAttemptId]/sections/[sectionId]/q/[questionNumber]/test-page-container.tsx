@@ -6,98 +6,157 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
+import { TestTimer } from "@/components/test-timer"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 
-import { useQuery } from "convex/react"
+import { useMutation, useQuery } from "convex/react"
 import { api } from "~/convex/_generated/api"
 import { Id } from "~/convex/_generated/dataModel"
-// import { toast } from "sonner"
+import { toast } from "sonner"
 
-
-const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumber: number, testId: Id<"tests">, attemptId: Id<"testAttempts"> }) => {
+const TestPageContainer = ({
+  testId,
+  questionNumber,
+  attemptId,
+  sectionId,
+}: {
+  questionNumber: number
+  testId: Id<"tests">
+  attemptId: Id<"testAttempts">
+  sectionId: Id<"sections">
+}) => {
   const router = useRouter()
 
   const attempt = useQuery(api.testAttempts.getTestAttempt, { id: attemptId })
 
   const [answers, setAnswers] = useState<Record<string, number | null>>({})
   const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>({})
-  // const submitTestAttempt = useMutation(api.testAttempts.submitTestAttempt);
+  const [remainingTime, setRemainingTime] = useState<number | null>(null) // Track remaining time
 
-  const saveAnswerToLocalStorage = (questionId: string, answerIndex: number | null) => {
-    // Get existing answers from localStorage
-    const savedAnswers = localStorage.getItem(`test_${testId}_answers`)
-    const allAnswers = savedAnswers ? JSON.parse(savedAnswers) : {}
 
-    // Update just this answer
-    allAnswers[questionId] = answerIndex
+  const submitSectionMutation = useMutation(api.testAttempts.submitSection)
 
-    // Save back to localStorage
-    localStorage.setItem(`test_${testId}_answers`, JSON.stringify(allAnswers))
-
-    // Update state
-    setAnswers(allAnswers)
-  }
-
-  const saveMarkedForReviewToLocalStorage = (questionId: string, isMarked: boolean) => {
-    // Get existing marked questions from localStorage
-    const savedMarked = localStorage.getItem(`test_${testId}_marked`)
-    const allMarked = savedMarked ? JSON.parse(savedMarked) : {}
-
-    // Update just this question
-    allMarked[questionId] = isMarked
-
-    // Save back to localStorage
-    localStorage.setItem(`test_${testId}_marked`, JSON.stringify(allMarked))
-
-    // Update state
-    setMarkedForReview(allMarked)
-  }
+  const currentSectionDurationInMinutes = (attempt?.sections.find(s => s._id === sectionId)?.durationInSeconds || 0) / 60
 
   useEffect(() => {
     const savedAnswers = localStorage.getItem(`test_${testId}_answers`)
-    const savedMarkedForReview = localStorage.getItem(`test_${testId}_marked`)
-
     if (savedAnswers) {
       setAnswers(JSON.parse(savedAnswers))
-    }
-
-    if (savedMarkedForReview) {
-      setMarkedForReview(JSON.parse(savedMarkedForReview))
+      console.log("Loaded answers from local storage:", JSON.parse(savedAnswers)) // Debugging
     }
   }, [testId])
 
-  const handleAnswerChange = (value: string) => {
-    saveAnswerToLocalStorage(currentQuestion._id, Number.parseInt(value))
+  useEffect(() => {
+    const savedTime = localStorage.getItem(`test_${testId}_section_${sectionId}_remainingTime`)
+    if (savedTime) {
+      setRemainingTime(Number(savedTime))
+    } else if (currentSectionDurationInMinutes) {
+      setRemainingTime(currentSectionDurationInMinutes * 60) // Initialize with total duration in seconds
+    }
+  }, [testId, sectionId, currentSectionDurationInMinutes])
+
+  useEffect(() => {
+    const savedMarkedForReview = localStorage.getItem(`test_${testId}_marked`)
+    if (savedMarkedForReview) {
+      setMarkedForReview(JSON.parse(savedMarkedForReview))
+      console.log("Loaded marked for review from local storage:", JSON.parse(savedMarkedForReview)) // Debugging
+    }
+  }, [testId])
+
+  const updateRemainingTime = (time: number) => {
+    setRemainingTime(time)
+    localStorage.setItem(`test_${testId}_section_${sectionId}_remainingTime`, time.toString())
   }
 
-  const handleMarkForReview = (checked: boolean) => {
-    saveMarkedForReviewToLocalStorage(currentQuestion._id, checked)
+  const handleTimeUp = () => {
+    console.log({ submit: "Time is up, submitting section..." })
+    submitSection()
+  }
+
+  const handleAnswerChange = (value: string) => {
+    const questionId = currentQuestion?._id
+    if (!questionId) {
+      console.error("Question ID is undefined.")
+      return
+    }
+
+    const updatedAnswers = { ...answers, [questionId]: Number(value) }
+    setAnswers(updatedAnswers)
+
+    localStorage.setItem(`test_${testId}_answers`, JSON.stringify(updatedAnswers))
+    console.log("Updated answers:", updatedAnswers) // Debugging
+  }
+
+  // const submitSection = () => {
+  //   const isLastSection = attempt?.sections[attempt.sections.length - 1]._id === sectionId
+
+  //   toast.promise(() => submitTestAttempt({ answers, testAttemptId: attemptId }), {
+  //     loading: isLastSection ? "Submitting test..." : "Submitting section...",
+  //     success: () => {
+  //       localStorage.removeItem(`test_${testId}_answers`)
+  //       localStorage.removeItem(`test_${testId}_marked`)
+  //       localStorage.removeItem(`test_${testId}_section_${sectionId}_remainingTime`)
+  //       if (isLastSection) {
+  //         router.push(`/tests/${testId}/attempt/${attemptId}/result`) // Navigate to test result page
+  //       } else {
+  //         router.push(`/tests/${testId}/${attemptId}/sections`) // Navigate back to section navigation
+  //       }
+  //       return isLastSection ? "Test submitted successfully!" : "Section submitted successfully!"
+  //     },
+  //     error: (error) => `Error: ${error.message}`,
+  //   })
+  // }
+
+  const submitSection = () => {
+    toast.promise(
+      submitSectionMutation({
+        testAttemptId: attemptId,
+        sectionId,
+        timeSpentInSeconds: currentSectionDurationInMinutes * 60 - (remainingTime || 0), // Calculate time spent
+        answers,
+      }),
+      {
+        loading: "Submitting section...",
+        success: () => {
+          localStorage.removeItem(`test_${testId}_answers`)
+          localStorage.removeItem(`test_${testId}_marked`)
+          localStorage.removeItem(`test_${testId}_section_${sectionId}_remainingTime`)
+          router.push(`/tests/${testId}/${attemptId}/sections`) // Navigate back to sections page
+          return "Section submitted successfully!"
+        },
+        error: (error) => `Error: ${error.message}`,
+      }
+    )
   }
 
   const navigateToQuestion = (number: number) => {
-    router.push(`/tests/${testId}/attempt/${attemptId}/q/${number}`)
+    if (number < 1 || number > sectionQuestions.length) return // Ensure valid question number
+    localStorage.setItem(`test_${testId}_section_${sectionId}_remainingTime`, remainingTime?.toString() || "")
+    router.push(`/tests/${testId}/${attemptId}/sections/${sectionId}/q/${number}`)
   }
 
-  // const handleTimeUp = () => {
-  //   // Submit the test when time is up
-  //   console.log({ submit: "Time is up, submitting test..." })
-  //   // router.push(`/tests/${testId}/result`)
-  //   submitTest()
-  // }
+  const handleMarkForReview = (checked: boolean) => {
+    const questionId = currentQuestion?._id
+    if (!questionId) {
+      console.error("Question ID is undefined.")
+      return
+    }
 
-  const submitTest = () => {
-    // toast.promise(() => submitTestAttempt({ answers, testAttemptId: attemptId }), {
-    //   loading: "Submitting test...",
-    //   success: () => {
-    //     localStorage.removeItem(`test_${testId}_answers`)
-    //     localStorage.removeItem(`test_${testId}_marked`)
-    //     router.push(`/tests/${testId}/attempt/${attemptId}/result`)
-    //     return "Test submitted successfully!"
-    //   },
-    //   error: (error) => `Error: ${error.message}`,
-    // })
+    const updatedMarkedForReview = { ...markedForReview, [questionId]: checked }
+    setMarkedForReview(updatedMarkedForReview)
+
+    localStorage.setItem(`test_${testId}_marked`, JSON.stringify(updatedMarkedForReview))
+    console.log("Updated marked for review:", updatedMarkedForReview) // Debugging
   }
+
+  useEffect(() => {
+    const savedMarkedForReview = localStorage.getItem(`test_${testId}_marked`)
+    if (savedMarkedForReview) {
+      setMarkedForReview(JSON.parse(savedMarkedForReview))
+      console.log("Loaded marked for review from local storage:", JSON.parse(savedMarkedForReview)) // Debugging
+    }
+  }, [testId])
 
   if (attempt === undefined) {
     return (
@@ -129,9 +188,31 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
     )
   }
 
-  const questions = attempt?.questions;
-  // const test = attempt?.test;
-  const currentQuestion = questions[questionNumber - 1]
+  const sectionQuestions = attempt?.questions?.filter((q) => q.sectionId === sectionId)
+  if (sectionQuestions.length === 0) {
+    console.error("No questions found for the current section.")
+  }
+  const currentQuestion = sectionQuestions[questionNumber - 1]
+  if (!currentQuestion) {
+    console.error(`Question ${questionNumber} not found in section ${sectionId}.`)
+  }
+
+  if (!currentQuestion) {
+    return (
+      <div className="container mx-auto py-10 px-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Question not found</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p>The question you are looking for does not exist.</p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (!remainingTime) return <div>Loading...</div>
 
   return (
     <div className="container mx-auto py-6 px-2">
@@ -140,7 +221,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
           <Card className="mb-6">
             <CardHeader className="flex flex-col items-start gap-4 md:gap-0 md:flex-row md:items-center">
               <CardTitle className="md:text-nowrap">
-                Question {questionNumber} of {questions.length}
+                Question {questionNumber} of {sectionQuestions.length}
               </CardTitle>
               <div className="flex items-center gap-2 flex-row-reverse md:flex-row justify-between w-full md:justify-end">
                 {markedForReview[currentQuestion?._id] && (
@@ -148,7 +229,11 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                     Marked for Review
                   </Badge>
                 )}
-                {/* <TestTimer onTimeUp={handleTimeUp} remainingTime={} /> */}
+                <TestTimer
+                  remainingTime={remainingTime}
+                  onTimeUp={handleTimeUp}
+                  updateRemainingTime={updateRemainingTime}
+                />
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -172,7 +257,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                 <Checkbox
                   id="review"
                   checked={markedForReview[currentQuestion._id] || false}
-                  onCheckedChange={(checked) => handleMarkForReview(!!checked)}
+                  onCheckedChange={(checked) => handleMarkForReview(checked as boolean)}
                 />
                 <label htmlFor="review" className="text-sm font-medium leading-none">
                   Mark for review
@@ -188,15 +273,16 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                 Previous
               </Button>
 
-              {questionNumber < questions.length ? (
+              {questionNumber < sectionQuestions.length ? (
                 <Button onClick={() => navigateToQuestion(questionNumber + 1)}>Next</Button>
               ) : (
-                <Button onClick={submitTest}>Submit Test</Button>
+                <Button onClick={submitSection}>Submit Section</Button>
               )}
             </CardFooter>
           </Card>
         </div>
 
+        {/* Question Navigator */}
         <div>
           <Card>
             <CardHeader>
@@ -205,14 +291,14 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
             <CardContent>
               <div className="flex flex-col space-y-4">
                 <div className="text-sm mb-2">
-                  <span className="font-medium">Question {questionNumber}</span> of {questions.length}
+                  <span className="font-medium">Question {questionNumber}</span> of {sectionQuestions.length}
                 </div>
 
                 <div className="flex flex-col space-y-4">
                   <div className="flex items-center flex-wrap gap-2 max-h-[300px] overflow-y-auto p-1">
-                    {questions.map((_, index) => {
+                    {sectionQuestions.map((_, index) => {
                       const qNum = index + 1
-                      const qId = questions[index]?._id || `index + test`
+                      const qId = sectionQuestions[index]?._id || `index + test`
                       let bgColor = "bg-muted"
 
                       if (answers[qId] !== undefined && answers[qId] !== null) {
@@ -224,8 +310,10 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                       }
 
                       if (qNum === questionNumber) {
-                        bgColor = "bg-primary text-white dark:bg-primary-200 dark:text-black dark:hover:bg-white  "
+                        bgColor = "bg-primary text-white dark:bg-primary-200 dark:text-black dark:hover:bg-white"
                       }
+
+                      console.log(`Question ${qNum} - Marked for Review:`, markedForReview[qId]) // Debugging
 
                       return (
                         <Button
@@ -292,8 +380,8 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={submitTest} className="w-full">
-                Submit Test
+              <Button onClick={submitSection} className="w-full">
+                Submit Section
               </Button>
             </CardFooter>
           </Card>

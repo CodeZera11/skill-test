@@ -228,7 +228,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
           Update the test details and configuration.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         <Form {...form}>
           <form className="space-y-6">
             <StepsHeader steps={steps} currentStepId={currentStep} />

@@ -27,7 +27,7 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch test attempt details from Convex
-  const data = useQuery(api.testAttempts.getTestAttempt, { id: testAttemptId });
+  const data = useQuery(api.testAttempts.getTestAttemptForResultPage, { id: testAttemptId });
 
   // const testId = data?.test?._id;
   const test = data?.test;
@@ -81,8 +81,6 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
   const timeTakenInSeconds = testAttempt?.timeTakenInSeconds || 0
   const durationInSeconds = test?.durationInSeconds || 0
   const detailedAnswers = testAttempt.answers;
-
-  console.log("Detailed Answers:", detailedAnswers);
 
 
 

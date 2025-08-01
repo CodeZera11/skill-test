@@ -114,24 +114,34 @@ export default defineSchema({
 
   // Test attempts
   testAttempts: defineTable({
-    userId: v.id("users"), // Placeholder for future auth
+    userId: v.id("users"),
     testId: v.id("tests"),
     startTime: v.number(),
     endTime: v.optional(v.number()),
     score: v.optional(v.number()),
     correctAnswers: v.optional(v.number()),
     incorrectAnswers: v.optional(v.number()),
-    timeTakenInSeconds: v.optional(v.number()), // in seconds
+    timeTakenInSeconds: v.optional(v.number()),
     performancePercentile: v.optional(v.number()),
     answers: v.optional(
       v.array(
         v.object({
           questionId: v.id("questions"),
-          selectedOption: v.optional(v.number()), // Index of the selected option, null if not answered
-          isCorrect: v.boolean(), // Whether the selected option is correct
+          selectedOption: v.optional(v.number()),
+          isCorrect: v.boolean(),
         })
       )
     ),
+    currentSection: v.optional(v.id("sections")), // Tracks the current section being attempted
+    sectionTimes: v.optional(
+      v.array(
+        v.object({
+          sectionId: v.id("sections"),
+          timeSpentInSeconds: v.number(), // Time spent on this section
+        })
+      )
+    ),
+    submittedSections: v.optional(v.array(v.id("sections"))), // Tracks submitted sections
     createdAt: v.number(),
     updatedAt: v.number(),
   }),
