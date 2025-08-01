@@ -29,13 +29,13 @@ const PublicNav = () => {
 
         {/* Desktop navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <Link href="/categories" className="text-sm font-medium hover:text-emerald-500 transition-colors">
+          <Link href="/categories" className="text-sm font-medium hover:text-theme transition-colors">
             Categories
           </Link>
-          <Link href="#how-it-works" className="text-sm font-medium hover:text-emerald-500 transition-colors">
+          <Link href="#how-it-works" className="text-sm font-medium hover:text-theme transition-colors">
             How It Works
           </Link>
-          <Link href="#testimonials" className="text-sm font-medium hover:text-emerald-500 transition-colors">
+          <Link href="#testimonials" className="text-sm font-medium hover:text-theme transition-colors">
             Testimonials
           </Link>
           <ModeToggle />
