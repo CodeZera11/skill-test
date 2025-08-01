@@ -6,14 +6,13 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { useRouter } from "next/navigation"
-import { TestTimer } from "@/components/test-timer"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 
-import { useMutation, useQuery } from "convex/react"
+import { useQuery } from "convex/react"
 import { api } from "~/convex/_generated/api"
 import { Id } from "~/convex/_generated/dataModel"
-import { toast } from "sonner"
+// import { toast } from "sonner"
 
 
 const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumber: number, testId: Id<"tests">, attemptId: Id<"testAttempts"> }) => {
@@ -23,7 +22,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
 
   const [answers, setAnswers] = useState<Record<string, number | null>>({})
   const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>({})
-  const submitTestAttempt = useMutation(api.testAttempts.submitTestAttempt);
+  // const submitTestAttempt = useMutation(api.testAttempts.submitTestAttempt);
 
   const saveAnswerToLocalStorage = (questionId: string, answerIndex: number | null) => {
     // Get existing answers from localStorage
@@ -80,24 +79,24 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
     router.push(`/tests/${testId}/attempt/${attemptId}/q/${number}`)
   }
 
-  const handleTimeUp = () => {
-    // Submit the test when time is up
-    console.log({ submit: "Time is up, submitting test..." })
-    // router.push(`/tests/${testId}/result`)
-    submitTest()
-  }
+  // const handleTimeUp = () => {
+  //   // Submit the test when time is up
+  //   console.log({ submit: "Time is up, submitting test..." })
+  //   // router.push(`/tests/${testId}/result`)
+  //   submitTest()
+  // }
 
   const submitTest = () => {
-    toast.promise(() => submitTestAttempt({ answers, testAttemptId: attemptId }), {
-      loading: "Submitting test...",
-      success: () => {
-        localStorage.removeItem(`test_${testId}_answers`)
-        localStorage.removeItem(`test_${testId}_marked`)
-        router.push(`/tests/${testId}/attempt/${attemptId}/result`)
-        return "Test submitted successfully!"
-      },
-      error: (error) => `Error: ${error.message}`,
-    })
+    // toast.promise(() => submitTestAttempt({ answers, testAttemptId: attemptId }), {
+    //   loading: "Submitting test...",
+    //   success: () => {
+    //     localStorage.removeItem(`test_${testId}_answers`)
+    //     localStorage.removeItem(`test_${testId}_marked`)
+    //     router.push(`/tests/${testId}/attempt/${attemptId}/result`)
+    //     return "Test submitted successfully!"
+    //   },
+    //   error: (error) => `Error: ${error.message}`,
+    // })
   }
 
   if (attempt === undefined) {
@@ -131,7 +130,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
   }
 
   const questions = attempt?.questions;
-  const test = attempt?.test;
+  // const test = attempt?.test;
   const currentQuestion = questions[questionNumber - 1]
 
   return (
@@ -149,7 +148,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                     Marked for Review
                   </Badge>
                 )}
-              <TestTimer onTimeUp={handleTimeUp} remainingTime={} />
+                {/* <TestTimer onTimeUp={handleTimeUp} remainingTime={} /> */}
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
