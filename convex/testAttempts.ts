@@ -20,18 +20,6 @@ export const startTestAttempt = mutation({
       throw new Error("Test not found");
     }
 
-    const sections = await db
-      .query("sections")
-      .filter((q) => q.eq(q.field("testId"), testId))
-      .order("asc") // Ensure sections are ordered
-      .collect();
-
-    if (!sections || sections.length === 0) {
-      throw new Error("No sections found for this test");
-    }
-
-    const firstSection = sections[0];
-
     await db.patch(testId, {
       attempts: test?.attempts ? test.attempts + 1 : 1,
     });
@@ -40,8 +28,7 @@ export const startTestAttempt = mutation({
       userId,
       testId,
       startTime,
-      currentSection: firstSection._id, // Initialize with the first section
-      sectionTimes: [], // Empty array to track time spent on each section
+      answers: [],
       createdAt: startTime,
       updatedAt: startTime,
     });
@@ -50,48 +37,49 @@ export const startTestAttempt = mutation({
   },
 });
 
-export const updateCurrentSection = mutation({
-  args: {
-    testAttemptId: v.id("testAttempts"),
-    newSectionId: v.id("sections"),
-    timeSpentInSeconds: v.number(),
-  },
-  handler: async (
-    { db },
-    { testAttemptId, newSectionId, timeSpentInSeconds }
-  ) => {
-    const testAttempt = await db
-      .query("testAttempts")
-      .filter((q) => q.eq(q.field("_id"), testAttemptId))
-      .first();
+// export const updateCurrentSection = mutation({
+//   args: {
+//     testAttemptId: v.id("testAttempts"),
+//     newSectionId: v.id("sections"),
+//     timeSpentInSeconds: v.number(),
+//   },
+//   handler: async (
+//     { db },
+//     { testAttemptId, newSectionId, timeSpentInSeconds }
+//   ) => {
+//     const testAttempt = await db
+//       .query("testAttempts")
+//       .filter((q) => q.eq(q.field("_id"), testAttemptId))
+//       .first();
 
-    if (!testAttempt) {
-      throw new Error("Test attempt not found");
-    }
+//     if (!testAttempt) {
+//       throw new Error("Test attempt not found");
+//     }
 
-    const updatedSectionTimes = [
-      ...(testAttempt.sectionTimes || []),
-      {
-        sectionId: newSectionId,
-        timeSpentInSeconds,
-      },
-    ];
+//     const updatedSectionTimes = [
+//       ...(testAttempt.sectionTimes || []),
+//       {
+//         sectionId: newSectionId,
+//         timeSpentInSeconds,
+//       },
+//     ];
 
-    await db.patch(testAttemptId, {
-      currentSection: newSectionId, // Update to the new section
-      sectionTimes: updatedSectionTimes, // Update the time spent on sections
-      updatedAt: Date.now(),
-    });
+//     await db.patch(testAttemptId, {
+//       currentSection: newSectionId, // Update to the new section
+//       sectionTimes: updatedSectionTimes, // Update the time spent on sections
+//       updatedAt: Date.now(),
+//     });
 
-    return { success: true };
-  },
-});
+//     return { success: true };
+//   },
+// });
 
 export const submitTestAttempt = mutation({
   args: {
     testAttemptId: v.id("testAttempts"),
+    answers: v.record(v.string(), v.union(v.null(), v.number())),
   },
-  handler: async (ctx, { testAttemptId }) => {
+  handler: async (ctx, { testAttemptId, answers }) => {
     try {
       const endTime = Date.now();
 
@@ -109,17 +97,6 @@ export const submitTestAttempt = mutation({
         throw new Error("Test not found");
       }
 
-      const sections = await ctx.db
-        .query("sections")
-        .filter((q) => q.eq(q.field("testId"), testAttempt.testId))
-        .collect();
-
-      const submittedSections = testAttempt.submittedSections || [];
-      if (submittedSections.length !== sections.length) {
-        throw new Error("Not all sections have been submitted.");
-      }
-
-      const answers = testAttempt.answers || [];
       let correctAnswers = 0;
       let incorrectAnswers = 0;
       let score = 0;
@@ -128,21 +105,30 @@ export const submitTestAttempt = mutation({
         .query("questions")
         .filter((q) => q.eq(q.field("testId"), testAttempt.testId))
         .collect();
+
       if (!questions || questions.length === 0) {
         throw new Error("No questions found for this test");
       }
 
-      answers.forEach((answer) => {
-        if (answer.isCorrect) {
-          correctAnswers++;
-          score +=
-            questions.find((q) => q._id === answer.questionId)?.marks || 1; // Default to 1 mark if not specified
-        } else {
-          incorrectAnswers++;
-          score -=
-            questions.find((q) => q._id === answer.questionId)?.negativeMarks ||
-            0; // Default to 0 negative marks if not specified
+      const detailedAnswers = questions.map((question) => {
+        const userAnswer = answers[question._id];
+        const isCorrect = userAnswer === question.correctAnswer;
+
+        if (userAnswer !== undefined) {
+          if (isCorrect) {
+            correctAnswers++;
+            score += question.marks || 1; // Default to 1 mark if not specified
+          } else {
+            incorrectAnswers++;
+            score -= question.negativeMarks || 0; // Default to 0 negative marks if not specified
+          }
         }
+
+        return {
+          questionId: question._id,
+          selectedOption: userAnswer || undefined,
+          isCorrect,
+        };
       });
 
       const startTime = testAttempt.startTime;
@@ -155,6 +141,7 @@ export const submitTestAttempt = mutation({
         score,
         timeTakenInSeconds: timeTaken,
         updatedAt: endTime,
+        answers: detailedAnswers,
       });
 
       return {
@@ -195,22 +182,23 @@ export const getTestAttempt = query({
         .query("sections")
         .filter((s) => s.eq(s.field("testId"), testAttempt.testId))
         .collect();
-
-      const currentSection = sections.find(
-        (section) => section._id === testAttempt.currentSection
-      );
+      if (!sections || sections.length === 0) {
+        throw new Error("No sections found for this test");
+      }
 
       const questions = await ctx.db
         .query("questions")
-        .filter((q) => q.eq(q.field("sectionId"), testAttempt.currentSection))
+        .filter((q) => q.eq(q.field("testId"), testAttempt.testId))
         .collect();
+
+      if (!questions || questions.length === 0) {
+        throw new Error("No questions found for this test");
+      }
 
       return {
         testAttempt: {
           ...testAttempt,
-          currentSection, // Include current section details
-          sectionTimes: testAttempt.sectionTimes || [], // Include section times
-          submittedSections: testAttempt.submittedSections || [], // Include submitted sections
+          answers: testAttempt.answers || [],
         },
         test,
         sections,
@@ -263,8 +251,8 @@ export const getTestAttemptForResultPage = query({
       return {
         testAttempt: {
           ...testAttempt,
-          sectionTimes: testAttempt.sectionTimes || [],
-          submittedSections: testAttempt.submittedSections || [],
+          // sectionTimes: testAttempt.sectionTimes || [],
+          // submittedSections: testAttempt.submittedSections || [],
           answers: detailedAnswers,
         },
         test,
@@ -366,88 +354,88 @@ export const getTestAttemptsByUser = query({
   },
 });
 
-export const submitSection = mutation({
-  args: {
-    testAttemptId: v.id("testAttempts"),
-    sectionId: v.id("sections"),
-    timeSpentInSeconds: v.number(),
-    answers: v.record(v.string(), v.union(v.null(), v.number())),
-  },
-  handler: async (
-    ctx,
-    { testAttemptId, sectionId, timeSpentInSeconds, answers }
-  ) => {
-    try {
-      const testAttempt = await ctx.db
-        .query("testAttempts")
-        .filter((q) => q.eq(q.field("_id"), testAttemptId))
-        .first();
+// export const submitSection = mutation({
+//   args: {
+//     testAttemptId: v.id("testAttempts"),
+//     sectionId: v.id("sections"),
+//     timeSpentInSeconds: v.number(),
+//     answers: v.record(v.string(), v.union(v.null(), v.number())),
+//   },
+//   handler: async (
+//     ctx,
+//     { testAttemptId, sectionId, timeSpentInSeconds, answers }
+//   ) => {
+//     try {
+//       const testAttempt = await ctx.db
+//         .query("testAttempts")
+//         .filter((q) => q.eq(q.field("_id"), testAttemptId))
+//         .first();
 
-      if (!testAttempt) {
-        throw new Error("Test attempt not found");
-      }
+//       if (!testAttempt) {
+//         throw new Error("Test attempt not found");
+//       }
 
-      const submittedSections = testAttempt.submittedSections || [];
-      if (submittedSections.includes(sectionId)) {
-        throw new Error("Section already submitted.");
-      }
+//       const submittedSections = testAttempt.submittedSections || [];
+//       if (submittedSections.includes(sectionId)) {
+//         throw new Error("Section already submitted.");
+//       }
 
-      const updatedSubmittedSections = [...submittedSections, sectionId];
+//       const updatedSubmittedSections = [...submittedSections, sectionId];
 
-      const questions = await ctx.db
-        .query("questions")
-        .filter((q) => q.eq(q.field("sectionId"), sectionId))
-        .collect();
+//       const questions = await ctx.db
+//         .query("questions")
+//         .filter((q) => q.eq(q.field("sectionId"), sectionId))
+//         .collect();
 
-      let correctAnswers = 0;
-      let incorrectAnswers = 0;
-      let score = 0;
+//       let correctAnswers = 0;
+//       let incorrectAnswers = 0;
+//       let score = 0;
 
-      const detailedAnswers = questions.map((question) => {
-        const userAnswer = answers[question._id];
-        const isCorrect = userAnswer === question.correctAnswer;
+//       const detailedAnswers = questions.map((question) => {
+//         const userAnswer = answers[question._id];
+//         const isCorrect = userAnswer === question.correctAnswer;
 
-        if (userAnswer !== undefined) {
-          if (isCorrect) {
-            correctAnswers++;
-            score += question.marks || 1;
-          } else {
-            incorrectAnswers++;
-            score -= question.negativeMarks || 0;
-          }
-        }
+//         if (userAnswer !== undefined) {
+//           if (isCorrect) {
+//             correctAnswers++;
+//             score += question.marks || 1;
+//           } else {
+//             incorrectAnswers++;
+//             score -= question.negativeMarks || 0;
+//           }
+//         }
 
-        return {
-          questionId: question._id,
-          selectedOption: userAnswer ?? undefined,
-          isCorrect,
-        };
-      });
+//         return {
+//           questionId: question._id,
+//           selectedOption: userAnswer ?? undefined,
+//           isCorrect,
+//         };
+//       });
 
-      const updatedSectionTimes = [
-        ...(testAttempt.sectionTimes || []),
-        {
-          sectionId,
-          timeSpentInSeconds,
-        },
-      ];
+//       const updatedSectionTimes = [
+//         ...(testAttempt.sectionTimes || []),
+//         {
+//           sectionId,
+//           timeSpentInSeconds,
+//         },
+//       ];
 
-      await ctx.db.patch(testAttemptId, {
-        submittedSections: updatedSubmittedSections,
-        sectionTimes: updatedSectionTimes,
-        answers: [...(testAttempt.answers || []), ...detailedAnswers],
-        updatedAt: Date.now(),
-      });
+//       await ctx.db.patch(testAttemptId, {
+//         submittedSections: updatedSubmittedSections,
+//         sectionTimes: updatedSectionTimes,
+//         answers: [...(testAttempt.answers || []), ...detailedAnswers],
+//         updatedAt: Date.now(),
+//       });
 
-      return {
-        submittedSections: updatedSubmittedSections,
-        correctAnswers,
-        incorrectAnswers,
-        score,
-      };
-    } catch (error) {
-      console.error("Error submitting section:", error);
-      return null;
-    }
-  },
-});
+//       return {
+//         submittedSections: updatedSubmittedSections,
+//         correctAnswers,
+//         incorrectAnswers,
+//         score,
+//       };
+//     } catch (error) {
+//       console.error("Error submitting section:", error);
+//       return null;
+//     }
+//   },
+// });

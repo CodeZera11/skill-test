@@ -132,16 +132,6 @@ export default defineSchema({
         })
       )
     ),
-    currentSection: v.optional(v.id("sections")), // Tracks the current section being attempted
-    sectionTimes: v.optional(
-      v.array(
-        v.object({
-          sectionId: v.id("sections"),
-          timeSpentInSeconds: v.number(), // Time spent on this section
-        })
-      )
-    ),
-    submittedSections: v.optional(v.array(v.id("sections"))), // Tracks submitted sections
     createdAt: v.number(),
     updatedAt: v.number(),
   }),

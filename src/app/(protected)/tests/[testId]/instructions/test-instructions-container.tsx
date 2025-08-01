@@ -28,7 +28,10 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
       toast.promise(attemptTest({ testId, userId: user._id }), {
         loading: "Starting test...",
         success: (testAttemptId) => {
-          router.push(`/tests/${testId}/${testAttemptId}/sections`) // Navigate to section navigation page
+          if(!test) return;
+
+          const firstSectionId = test.sections[0]._id // Get the first section ID
+          router.push(`/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`) // Navigate to the test page
           return "Test started successfully"
         },
         error: (err) => `Error starting test: ${err}`,
@@ -55,6 +58,11 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
     )
   }
 
+  const totalDurationInSeconds = test.sections.reduce(
+    (total, section) => total + (section?.durationInSeconds || 0),
+    0
+  )
+
   return (
     <div className="container mx-auto py-10 max-w-3xl">
       <Card>
@@ -66,7 +74,7 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
             <h3 className="text-lg font-medium mb-2">Test Overview</h3>
             <ul className="list-disc pl-5 space-y-1">
               <li>Total Questions: {test.totalQuestions}</li>
-              <li>Duration: {formatSeconds(test.durationInSeconds)} minutes</li>
+              <li>Duration: {formatSeconds(totalDurationInSeconds)} minutes</li>
               <li>Total Marks: {test.totalMarks}</li>
             </ul>
           </div>
@@ -86,7 +94,7 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
             <h3 className="text-lg font-medium mb-2">Important Instructions</h3>
             <ul className="list-disc pl-5 space-y-1">
               <li>Each question has only one correct answer.</li>
-              <li>You can navigate between questions using the next and previous buttons.</li>
+              <li>You can navigate between sections using the dropdown menu.</li>
               <li>You can mark questions for review and return to them later.</li>
               <li>The timer will start as soon as you begin the test.</li>
               <li>Your test will be automatically submitted when the time expires.</li>

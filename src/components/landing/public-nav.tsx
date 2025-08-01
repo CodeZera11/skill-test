@@ -19,7 +19,7 @@ const PublicNav = () => {
     <header className="border-b sticky top-0 bg-white/40 dark:bg-background/40 backdrop-blur-lg z-50">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center space-x-2">
-          <Image src="/1.png" alt='main-logo' className='' width={50} height={50} />
+          <Image src="/2.png" alt='main-logo' className='object-fill' width={50} height={50} />
         </Link>
 
         {/* Mobile menu button */}
