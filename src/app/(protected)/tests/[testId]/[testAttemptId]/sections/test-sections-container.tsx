@@ -1,113 +1,113 @@
-"use client"
+// "use client"
 
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { useMutation, useQuery } from "convex/react"
-import { api } from "~/convex/_generated/api"
-import { Id } from "~/convex/_generated/dataModel"
-import { formatSeconds } from "@/lib/utils"
-import { toast } from "sonner"
-import { useEffect } from "react"
+// import { useRouter } from "next/navigation"
+// import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+// import { Button } from "@/components/ui/button"
+// import { Badge } from "@/components/ui/badge"
+// import { useMutation, useQuery } from "convex/react"
+// import { api } from "~/convex/_generated/api"
+// import { Id } from "~/convex/_generated/dataModel"
+// import { formatSeconds } from "@/lib/utils"
+// import { toast } from "sonner"
+// import { useEffect } from "react"
 
-const TestSectionsContainer = ({ testId, testAttemptId }: { testId: Id<"tests">, testAttemptId: Id<"testAttempts"> }) => {
-  const router = useRouter()
-  const test = useQuery(api.tests.getByIdWithSections, { id: testId })
-  const testAttempt = useQuery(api.testAttempts.getTestAttempt, { id: testAttemptId }) // Fetch test attempt details
-  const updateCurrentSection = useMutation(api.testAttempts.updateCurrentSection)
-  const submitTestAttempt = useMutation(api.testAttempts.submitTestAttempt)
+// const TestSectionsContainer = ({ testId, testAttemptId }: { testId: Id<"tests">, testAttemptId: Id<"testAttempts"> }) => {
+//   const router = useRouter()
+//   const test = useQuery(api.tests.getByIdWithSections, { id: testId })
+//   const testAttempt = useQuery(api.testAttempts.getTestAttempt, { id: testAttemptId }) // Fetch test attempt details
+//   const updateCurrentSection = useMutation(api.testAttempts.updateCurrentSection)
+//   const submitTestAttempt = useMutation(api.testAttempts.submitTestAttempt)
 
-  const sections = test?.sections || [] // Ensure sections is defined
+//   const sections = test?.sections || [] // Ensure sections is defined
 
-  useEffect(() => {
-    if (testAttempt?.testAttempt.submittedSections?.length === sections.length) {
-      toast.promise(
-        submitTestAttempt({ testAttemptId: testAttempt.testAttempt._id }),
-        {
-          loading: "Submitting test...",
-          success: () => {
-            router.push(`/tests/${testId}/attempt/${testAttemptId}/result`) // Navigate to result page
-            return "Test submitted successfully!"
-          },
-          error: (error) => `Error: ${error.message}`,
-        }
-      )
-    }
-  }, [testAttempt?.testAttempt?.submittedSections, test?.sections?.length])
+//   useEffect(() => {
+//     if (testAttempt?.testAttempt.submittedSections?.length === sections.length) {
+//       toast.promise(
+//         submitTestAttempt({ testAttemptId: testAttempt.testAttempt._id }),
+//         {
+//           loading: "Submitting test...",
+//           success: () => {
+//             router.push(`/tests/${testId}/attempt/${testAttemptId}/result`) // Navigate to result page
+//             return "Test submitted successfully!"
+//           },
+//           error: (error) => `Error: ${error.message}`,
+//         }
+//       )
+//     }
+//   }, [testAttempt?.testAttempt?.submittedSections, test?.sections?.length])
 
-  if (test === undefined || testAttempt === undefined) {
-    return <div className="h-[calc(100vh-75px)] flex items-center justify-center">Loading...</div>
-  }
+//   if (test === undefined || testAttempt === undefined) {
+//     return <div className="h-[calc(100vh-75px)] flex items-center justify-center">Loading...</div>
+//   }
 
-  if (!test || !testAttempt) {
-    return (
-      <div className="container mx-auto py-10">
-        <h1 className="text-3xl font-bold mb-6">Test not found</h1>
-        <Button onClick={() => router.push("/tests")}>Back to Tests</Button>
-      </div>
-    )
-  }
+//   if (!test || !testAttempt) {
+//     return (
+//       <div className="container mx-auto py-10">
+//         <h1 className="text-3xl font-bold mb-6">Test not found</h1>
+//         <Button onClick={() => router.push("/tests")}>Back to Tests</Button>
+//       </div>
+//     )
+//   }
   
-  const submittedSections = testAttempt.testAttempt.submittedSections || [] // Track submitted sections
+//   const submittedSections = testAttempt.testAttempt.submittedSections || [] // Track submitted sections
 
-  const startSection = async (sectionId: Id<"sections">) => {
-    toast.promise(
-      updateCurrentSection({
-        testAttemptId: testAttemptId, // Ensure this is passed correctly
-        newSectionId: sectionId,
-        timeSpentInSeconds: 0, // Initialize with 0 time spent
-      }),
-      {
-        loading: "Starting section...",
-        success: () => {
-          router.push(`/tests/${testId}/${testAttemptId}/sections/${sectionId}/q/1`)
-          return "Section started successfully"
-        },
-        error: (err) => `Error starting section: ${err}`,
-      }
-    )
-  }
+//   const startSection = async (sectionId: Id<"sections">) => {
+//     toast.promise(
+//       updateCurrentSection({
+//         testAttemptId: testAttemptId, // Ensure this is passed correctly
+//         newSectionId: sectionId,
+//         timeSpentInSeconds: 0, // Initialize with 0 time spent
+//       }),
+//       {
+//         loading: "Starting section...",
+//         success: () => {
+//           router.push(`/tests/${testId}/${testAttemptId}/sections/${sectionId}/q/1`)
+//           return "Section started successfully"
+//         },
+//         error: (err) => `Error starting section: ${err}`,
+//       }
+//     )
+//   }
 
-  console.log("sections", sections)
+//   console.log("sections", sections)
 
-  return (
-    <div className="container mx-auto py-10 max-w-3xl">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Test Sections: {test.name}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {sections.map((section, index) => (
-            <div key={index} className="border rounded-md p-4">
-              <h3 className="text-lg font-medium">{section.name}</h3>
-              <ul className="list-disc pl-5 space-y-1">
-                <li>Duration: {formatSeconds(section.durationInSeconds)} minutes</li>
-                <li>Total Questions: {section.totalQuestions}</li>
-              </ul>
-              {submittedSections.includes(section._id) ? (
-                <Badge variant="outline" className="bg-green-100 text-green-800">
-                  Submitted
-                </Badge>
-              ) : (
-                <Button
-                  className="mt-4"
-                  onClick={() => startSection(section._id)}
-                >
-                  Start Section
-                </Button>
-              )}
-            </div>
-          ))}
-        </CardContent>
-        <CardFooter>
-          <Button variant="outline" onClick={() => router.push(`/tests/${testId}`)}>
-            Back to Instructions
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
-  )
-}
+//   return (
+//     <div className="container mx-auto py-10 max-w-3xl">
+//       <Card>
+//         <CardHeader>
+//           <CardTitle className="text-2xl">Test Sections: {test.name}</CardTitle>
+//         </CardHeader>
+//         <CardContent className="space-y-6">
+//           {sections.map((section, index) => (
+//             <div key={index} className="border rounded-md p-4">
+//               <h3 className="text-lg font-medium">{section.name}</h3>
+//               <ul className="list-disc pl-5 space-y-1">
+//                 <li>Duration: {formatSeconds(section.durationInSeconds)} minutes</li>
+//                 <li>Total Questions: {section.totalQuestions}</li>
+//               </ul>
+//               {submittedSections.includes(section._id) ? (
+//                 <Badge variant="outline" className="bg-green-100 text-green-800">
+//                   Submitted
+//                 </Badge>
+//               ) : (
+//                 <Button
+//                   className="mt-4"
+//                   onClick={() => startSection(section._id)}
+//                 >
+//                   Start Section
+//                 </Button>
+//               )}
+//             </div>
+//           ))}
+//         </CardContent>
+//         <CardFooter>
+//           <Button variant="outline" onClick={() => router.push(`/tests/${testId}`)}>
+//             Back to Instructions
+//           </Button>
+//         </CardFooter>
+//       </Card>
+//     </div>
+//   )
+// }
 
-export default TestSectionsContainer
+// export default TestSectionsContainer
