@@ -32,7 +32,7 @@ const HeroSection = () => {
               intelligent learning platform.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href={PageRoutes.TESTS}>
+              <Link href={PageRoutes.TOPICS}>
                 <Button size="lg" className="bg-theme text-white hover:bg-theme/80">
                   Start Practicing
                 </Button>
