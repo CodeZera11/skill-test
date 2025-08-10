@@ -31,19 +31,36 @@ const TestPageContainer = ({
 
   const attempt = useQuery(api.testAttempts.getTestAttempt, { id: attemptId })
   const [answers, setAnswers] = useState<Record<string, number | null>>({})
-  const [remainingTime, setRemainingTime] = useState<number | null>(null) // Track remaining time
-  const [isDialogOpen, setIsDialogOpen] = useState(false); // Track dialog state
-
-  const [currentQuestion, setCurrentQuestion] = useState<number>(questionNumber) // Track current question
-
+  const [remainingTime, setRemainingTime] = useState<number | null>(null)
+  const [currentQuestion, setCurrentQuestion] = useState<number>(questionNumber)
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const submitTestMutation = useMutation(api.testAttempts.submitTestAttempt)
 
-  // Calculate total test duration
   const totalTestDurationInSeconds = attempt?.sections.reduce(
     (total, section) => total + (section.durationInSeconds || 0),
     0
   )
+
+  useEffect(() => {
+    const savedAnswers = localStorage.getItem(`test_${testId}_answers`);
+    const savedCurrentQuestion = localStorage.getItem(`test_${testId}_currentQuestion`);
+
+    if (savedAnswers) {
+      setAnswers(JSON.parse(savedAnswers));
+    }
+    if (savedCurrentQuestion) {
+      setCurrentQuestion(Number(savedCurrentQuestion));
+    }
+  }, [testId]);
+
+  useEffect(() => {
+    localStorage.setItem(`test_${testId}_answers`, JSON.stringify(answers));
+  }, [answers, testId]);
+
+  useEffect(() => {
+    localStorage.setItem(`test_${testId}_currentQuestion`, currentQuestion.toString());
+  }, [currentQuestion, testId]);
 
   useEffect(() => {
     if (totalTestDurationInSeconds) {
@@ -51,7 +68,7 @@ const TestPageContainer = ({
       if (savedTime) {
         setRemainingTime(Number(savedTime))
       } else {
-        setRemainingTime(totalTestDurationInSeconds) // Initialize with total test duration
+        setRemainingTime(totalTestDurationInSeconds)
       }
     }
   }, [testId, totalTestDurationInSeconds])
@@ -75,8 +92,6 @@ const TestPageContainer = ({
 
     const updatedAnswers = { ...answers, [questionId]: Number(value) }
     setAnswers(updatedAnswers)
-
-    console.log("Updated answers:", updatedAnswers) // Debugging
   }
 
   const submitTest = () => {
@@ -88,8 +103,10 @@ const TestPageContainer = ({
       {
         loading: "Submitting test...",
         success: () => {
-          localStorage.removeItem(`test_${testId}_remainingTime`)
-          router.push(`/tests/${testId}/attempt/${attemptId}/result`) // Navigate to result page
+          localStorage.removeItem(`test_${testId}_remainingTime`);
+          localStorage.removeItem(`test_${testId}_answers`);
+          localStorage.removeItem(`test_${testId}_currentQuestion`);
+          router.push(`/tests/${testId}/attempt/${attemptId}/result`)
           return "Test submitted successfully!"
         },
         error: (error) => `Error: ${error.message}`,
@@ -102,8 +119,7 @@ const TestPageContainer = ({
   }
 
   const navigateToQuestion = (number: number) => {
-    if (number < 1 || number > sectionQuestions.length) return // Ensure valid question number
-    localStorage.setItem(`test_${testId}_section_${sectionId}_remainingTime`, remainingTime?.toString() || "")
+    if (number < 1 || number > sectionQuestions.length) return
     setCurrentQuestion(number)
     router.push(`/tests/${testId}/${attemptId}?sectionId=${sectionId}&questionNumber=${number}`)
   }
@@ -256,7 +272,7 @@ const TestPageContainer = ({
                       }
 
 
-                      
+
 
                       return (
                         <Button
@@ -305,7 +321,7 @@ const TestPageContainer = ({
                   <div className="space-y-4">
                     {hasUnansweredQuestions() ? (
                       <DialogDescription>
-                        You have unanswered questions. Are you sure you want to submit the test?
+                        Are you sure you want to submit the test?
                       </DialogDescription>
                     ) : (
                       <DialogDescription>

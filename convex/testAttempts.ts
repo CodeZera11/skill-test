@@ -97,10 +97,6 @@ export const submitTestAttempt = mutation({
         throw new Error("Test not found");
       }
 
-      let correctAnswers = 0;
-      let incorrectAnswers = 0;
-      let score = 0;
-
       const questions = await ctx.db
         .query("questions")
         .filter((q) => q.eq(q.field("testId"), testAttempt.testId))
@@ -110,11 +106,15 @@ export const submitTestAttempt = mutation({
         throw new Error("No questions found for this test");
       }
 
+      let correctAnswers = 0;
+      let incorrectAnswers = 0;
+      let score = 0;
+
       const detailedAnswers = questions.map((question) => {
         const userAnswer = answers[question._id];
         const isCorrect = userAnswer === question.correctAnswer;
 
-        if (userAnswer !== undefined) {
+        if (userAnswer !== undefined && userAnswer !== null) {
           if (isCorrect) {
             correctAnswers++;
             score += question.marks || 1; // Default to 1 mark if not specified
@@ -126,8 +126,9 @@ export const submitTestAttempt = mutation({
 
         return {
           questionId: question._id,
-          selectedOption: userAnswer || undefined,
-          isCorrect,
+          selectedOption: userAnswer ?? null,
+          isCorrect:
+            userAnswer !== undefined && userAnswer !== null ? isCorrect : false,
         };
       });
 
@@ -141,7 +142,11 @@ export const submitTestAttempt = mutation({
         score,
         timeTakenInSeconds: timeTaken,
         updatedAt: endTime,
-        answers: detailedAnswers,
+        answers: detailedAnswers.map((answer) => ({
+          ...answer,
+          selectedOption:
+            answer.selectedOption !== null ? answer.selectedOption : undefined,
+        })),
       });
 
       return {
