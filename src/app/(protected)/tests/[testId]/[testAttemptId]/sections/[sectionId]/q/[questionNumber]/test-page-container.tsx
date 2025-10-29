@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -11,7 +11,6 @@ import { useMutation, useQuery } from "convex/react"
 import { api } from "~/convex/_generated/api"
 import { Id } from "~/convex/_generated/dataModel"
 import { toast } from "sonner"
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 const TestPageContainer = ({
@@ -161,6 +160,35 @@ const TestPageContainer = ({
   const sectionQuestions = attempt?.questions?.filter((q) => q.sectionId === sectionId)
   if (sectionQuestions.length === 0) {
     console.error("No questions found for the current section.")
+
+    return (
+      <div className="container mx-auto py-10 px-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>No Questions found</CardTitle>
+            <CardDescription>
+              Sorry for the inconvenience the selection section does not have any questions. We are working to add questions as soon as possible.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-2 overflow-scroll max-w-[600px] pb-4">
+              {attempt.sections.map((section) => (
+                <Button
+                  key={section._id}
+                  onClick={() => handleSectionChange(section._id)}
+                  className={`px-4 py-2 rounded-md font-medium ${sectionId === section._id
+                    ? "bg-black text-white"
+                    : "bg-gray-200 text-black hover:bg-gray-300"
+                    }`}
+                >
+                  {section.name}
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   if (!remainingTime) return <div>Loading...</div>
@@ -174,9 +202,10 @@ const TestPageContainer = ({
         <div className="md:col-span-2">
           <Card className="mb-6">
             <CardHeader className="flex flex-col items-start gap-4 md:gap-0 md:flex-row md:items-center">
-              <CardTitle className="md:text-nowrap flex items-center gap-2">
-                Section:{" "}
-                <Select
+              <div className="flex flex-col gap-2">
+                <CardTitle className="text-lg">
+                  Sections
+                  {/* <Select
                   onValueChange={handleSectionChange}
                   value={sectionId}
                 >
@@ -192,8 +221,8 @@ const TestPageContainer = ({
                       </SelectItem>
                     ))}
                   </SelectContent>
-                </Select>
-                {/* <select
+                </Select> */}
+                  {/* <select
                   value={sectionId}
                   onChange={(e) => handleSectionChange(e.target.value as Id<"sections">)}
                   className="border rounded-md p-1"
@@ -204,7 +233,22 @@ const TestPageContainer = ({
                     </option>
                   ))}
                 </select> */}
-              </CardTitle>
+                </CardTitle>
+                <div className="flex gap-2 overflow-scroll max-w-[600px] pb-4">
+                  {attempt.sections.map((section) => (
+                    <Button
+                      key={section._id}
+                      onClick={() => handleSectionChange(section._id)}
+                      className={`px-4 py-2 rounded-md font-medium ${sectionId === section._id
+                        ? "bg-black text-white"
+                        : "bg-gray-200 text-black hover:bg-gray-300"
+                        }`}
+                    >
+                      {section.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
               <div className="flex items-center gap-2 flex-row-reverse md:flex-row justify-between w-full md:justify-end">
                 <TestTimer
                   remainingTime={remainingTime}
