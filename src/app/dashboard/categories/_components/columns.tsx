@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { deleteCategory, toggleCategoryPublishStatus } from "@/actions/categories";
 import { Badge } from "@/components/ui/badge";
 import EditCategoryDialog from "./edit-category-dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export type CategoryWithCount = Doc<"categories"> & { _subcategoriesCount: number, topic: Topic | null };
 
@@ -123,13 +124,49 @@ export const columns: ColumnDef<CategoryWithCount>[] = [
             {category.isPublished ? "Unpublish" : "Publish"}
           </Button>
 
-          <Button onClick={() => toast.promise(deleteCategory(category._id), {
+          {/* <Button onClick={() => toast.promise(deleteCategory(category._id), {
             loading: "Deleting category...",
             success: "Category deleted successfully",
             error: (err) => `Error deleting category: ${err}`,
           })} variant="destructive" size="icon">
             <Trash />
-          </Button>
+          </Button> */}
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="destructive" size="icon">
+                <Trash />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {`Are you sure you want to delete the category "${category.name}"?`}
+                </DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone. All associated sub-categories will also be deleted.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogClose asChild>
+                <Button variant="outline">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button
+                  onClick={() => toast.promise(deleteCategory(category._id), {
+                    loading: "Deleting category...",
+                    success: "Category deleted successfully",
+                    error: (err) => `Error deleting category: ${err}`,
+                  })}
+                  variant="destructive"
+                  className="ml-2"
+                >
+                  Delete
+                </Button>
+              </DialogClose>
+            </DialogContent>
+          </Dialog>
         </div>
       )
     }

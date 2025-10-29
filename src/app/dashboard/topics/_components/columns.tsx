@@ -10,6 +10,7 @@ import { deleteTopic, toggleTopicPublishStatus } from "@/actions/topics";
 import { Trash } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import EditTopicDialog from "./edit-topic-dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const columns: ColumnDef<TopicWithCategory>[] = [
   {
@@ -104,13 +105,41 @@ export const columns: ColumnDef<TopicWithCategory>[] = [
             {topic.isPublished ? "Unpublish" : "Publish"}
           </Button>
 
-          <Button onClick={() => toast.promise(deleteTopic(topic._id), {
-            loading: "Deleting topic...",
-            success: "Topic deleted successfully",
-            error: (err) => `Error deleting Topic: ${err}`,
-          })} variant="destructive" size="icon">
-            <Trash />
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="destructive" size="icon">
+                <Trash />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {`Are you sure you want to delete the topic "${topic.name}"?`}
+                </DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone. All associated categories will also be deleted.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogClose asChild>
+                <Button variant="outline">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button
+                  onClick={() => toast.promise(deleteTopic(topic._id), {
+                    loading: "Deleting topic...",
+                    success: "Topic deleted successfully",
+                    error: (err) => `Error deleting Topic: ${err}`,
+                  })}
+                  variant="destructive"
+                  className="ml-2"
+                >
+                  Delete
+                </Button>
+              </DialogClose>
+            </DialogContent>
+          </Dialog>
         </div>
       )
     }

@@ -10,6 +10,7 @@ import { Trash } from "lucide-react";
 import { toast } from "sonner";
 import { deleteSubCategory, toggleSubCategoryPublishStatus } from "@/actions/sub-categories";
 import EditSubCategoryDialog from "./edit-subcategory-dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const columns: ColumnDef<SubCategoryWithTests>[] = [
   {
@@ -117,13 +118,39 @@ export const columns: ColumnDef<SubCategoryWithTests>[] = [
           }}>
             {subCategory.isPublished ? "Unpublish" : "Publish"}
           </Button>
-          <Button onClick={() => toast.promise(deleteSubCategory(subCategory._id), {
-            loading: "Deleting SubCategory...",
-            success: "SubCategory deleted successfully",
-            error: (err) => `Error deleting SubCategory: ${err}`,
-          })} variant="destructive" size="icon">
-            <Trash />
-          </Button>
+
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="destructive" size="icon">
+                <Trash />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {`Are you sure you want to delete the subcategory "${subCategory.name}"?`}
+                </DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone. All associated tests will also be deleted.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogClose asChild>
+                <Button variant="outline">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button onClick={() => toast.promise(deleteSubCategory(subCategory._id), {
+                  loading: "Deleting SubCategory...",
+                  success: "SubCategory deleted successfully",
+                  error: (err) => `Error deleting SubCategory: ${err}`,
+                })} variant="destructive">
+                  Delete
+                </Button>
+              </DialogClose>
+            </DialogContent>
+          </Dialog>
         </div>
       )
     }

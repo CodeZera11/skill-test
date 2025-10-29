@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from 'convex/react';
 import { columns } from './columns'
 import { DataTable } from '@/components/data-table'
-import { api } from '../../../../../convex/_generated/api';
+import { api } from '~/convex/_generated/api';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search } from 'lucide-react';
