@@ -15,6 +15,10 @@ import { TSortOrder } from "@/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { formatSeconds } from "@/lib/utils";
+import { Test } from "~/convex/tests";
+import { Id } from "~/convex/_generated/dataModel";
+
+type TTest = Test & { isPublished: boolean, durationInSeconds?: number, subCategory: { _id: Id<'subCategories'>, name: string }, totalMarks?: number };
 
 export default function TestsPage() {
   const [inputValue, setInputValue] = useState("")
@@ -42,6 +46,16 @@ export default function TestsPage() {
   });
   const deleteTest = useMutation(api.tests.remove)
   const toggleTestPublishStatus = useMutation(api.tests.togglePublishStatus)
+
+  // Group tests by category
+  const groupedTests = tests?.reduce((acc: Record<string, TTest[]>, test) => {
+    const category = test.subCategory.name || "Uncategorized";
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push({ ...test, totalQuestions: test.totalQuestions || 0 });
+    return acc;
+  }, {});
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -133,66 +147,70 @@ export default function TestsPage() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tests?.map((test) => (
-            <Card key={test._id} className="flex flex-col">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="line-clamp-1">{test.name}</CardTitle>
-                    <CardDescription className="line-clamp-2 mt-1">
-                      {test.description || "No description provided"}
-                    </CardDescription>
-                  </div>
-                  <Button
-                    variant={test.isPublished ? "outline" : "default"}
-                    size="sm"
-                    onClick={() => toggleTestPublishStatus({ id: test._id, publishStatus: !test.isPublished })}
-                  >
-                    {test.isPublished ? "Unpublish" : "Publish"}
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="flex-1">
-                <div className="flex items-center justify-between gap-2 text-sm">
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="h-3.5 w-3.5 text-emerald-500" />
-                    <p>{test.durationInSeconds ? `${formatSeconds(test?.durationInSeconds)} min` : "No time limit"}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <CircleCheck className="h-3.5 w-3.5 text-orange-500" />
-                    <span className="font-medium">{test.totalMarks}</span>
-                    <span className="text-muted-foreground">marks</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 justify-end">
-                    <CircleHelp className="h-3.5 w-3.5 text-blue-500" />
-                    <span className="font-medium">{test.totalQuestions}</span>
-                    <span className="text-muted-foreground">questions</span>
-                  </div>
-
-                </div>
-                <div className="mt-4 flex items-center gap-1.5">
-                  {/* <span className="text-sm text-muted-foreground">Sub-Category:</span> */}
-                  <Badge variant="secondary" className="text-sm font-medium">{test.subCategory.name}</Badge>
-                </div>
-              </CardContent>
-              <CardFooter className="flex flex-col items-start pt-2 border-t">
-                <div className="flex justify-between w-full text-xs text-muted-foreground">
-                  <p>Updated: <span className="text-foreground">{format(test.updatedAt, "dd MMMM yy, hh:mm a")}</span></p>
-                  <p>Created: <span className="text-foreground">{format(test.createdAt, "dd MMMM yy, hh:mm a")}</span></p>
-                </div>
-                <div className="flex justify-between w-full mt-4">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/dashboard/tests/edit/${test._id}`}>Edit</Link>
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => deleteTest({ id: test._id })}>
-                    Delete
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+        Object.entries(groupedTests || {}).map(([category, tests]) => (
+          <div key={category} className="space-y-4">
+            <h2 className="text-xl font-bold">{category}</h2>
+            <Separator />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {tests.map((test) => (
+                <Card key={test._id} className="flex flex-col">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle className="line-clamp-1">{test.name}</CardTitle>
+                        <CardDescription className="line-clamp-2 mt-1">
+                          {test.description || "No description provided"}
+                        </CardDescription>
+                      </div>
+                      <Button
+                        variant={test.isPublished ? "outline" : "default"}
+                        size="sm"
+                        onClick={() => toggleTestPublishStatus({ id: test._id, publishStatus: !test.isPublished })}
+                      >
+                        {test.isPublished ? "Unpublish" : "Publish"}
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-1">
+                    <div className="flex items-center justify-between gap-2 text-sm">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="h-3.5 w-3.5 text-emerald-500" />
+                        <p>{test.durationInSeconds ? `${formatSeconds(test?.durationInSeconds)} min` : "No time limit"}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <CircleCheck className="h-3.5 w-3.5 text-orange-500" />
+                        <span className="font-medium">{test.totalMarks}</span>
+                        <span className="text-muted-foreground">marks</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 justify-end">
+                        <CircleHelp className="h-3.5 w-3.5 text-blue-500" />
+                        <span className="font-medium">{test.totalQuestions}</span>
+                        <span className="text-muted-foreground">questions</span>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex items-center gap-1.5">
+                      <Badge variant="secondary" className="text-sm font-medium">{test.subCategory.name}</Badge>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex flex-col items-start pt-2 border-t">
+                    <div className="flex justify-between w-full text-xs text-muted-foreground">
+                      <p>Updated: <span className="text-foreground">{format(test.updatedAt, "dd MMMM yy, hh:mm a")}</span></p>
+                      <p>Created: <span className="text-foreground">{format(test.createdAt, "dd MMMM yy, hh:mm a")}</span></p>
+                    </div>
+                    <div className="flex justify-between w-full mt-4">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link href={`/dashboard/tests/edit/${test._id}`}>Edit</Link>
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => deleteTest({ id: test._id })}>
+                        Delete
+                      </Button>
+                    </div>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </div>
+        ))
       )}
     </div>
   )
