@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { CircleCheck, CircleHelp, Clock, Plus, Search, SortAsc } from "lucide-react"
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "~/convex/_generated/api";
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { formatSeconds } from "@/lib/utils";
 import { Test } from "~/convex/tests";
 import { Id } from "~/convex/_generated/dataModel";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 type TTest = Test & { isPublished: boolean, durationInSeconds?: number, subCategory: { _id: Id<'subCategories'>, name: string }, totalMarks?: number };
 
@@ -201,9 +203,38 @@ export default function TestsPage() {
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/dashboard/tests/edit/${test._id}`}>Edit</Link>
                       </Button>
-                      <Button size="sm" variant="destructive" onClick={() => deleteTest({ id: test._id })}>
-                        Delete
-                      </Button>
+
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button size="sm" variant="destructive">
+                            Delete
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>
+                              {`Are you sure you want to delete the test "${test.name}"?`}
+                            </DialogTitle>
+                            <DialogDescription>
+                              This action cannot be undone.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <DialogClose asChild>
+                            <Button variant="outline">
+                              Cancel
+                            </Button>
+                          </DialogClose>
+                          <DialogClose asChild>
+                            <Button onClick={() => toast.promise(deleteTest({ id: test._id }), {
+                              loading: "Deleting Test...",
+                              success: "Test deleted successfully",
+                              error: (err) => `Error deleting Test: ${err}`,
+                            })} variant="destructive">
+                              Delete
+                            </Button>
+                          </DialogClose>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </CardFooter>
                 </Card>
