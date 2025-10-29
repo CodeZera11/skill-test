@@ -341,7 +341,7 @@ export const getTestAttemptsByUser = query({
         testAttempts.map(async (testAttempt) => {
           const test = await ctx.db.get(testAttempt.testId);
           if (!test) {
-            throw new Error("Test not found");
+            return null
           }
 
           return {
@@ -351,7 +351,9 @@ export const getTestAttemptsByUser = query({
         })
       );
 
-      return testWithDetails;
+      const fitlerTestWithDetails = testWithDetails.filter(attempt => attempt !== null);
+
+      return fitlerTestWithDetails;
     } catch (error) {
       console.log("Error fetching test attempts:", error);
       return null;
