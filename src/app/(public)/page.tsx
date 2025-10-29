@@ -6,6 +6,7 @@ import CategoriesSection from "@/components/landing/categories-section"
 import TopicsSection from "@/components/landing/topics-section"
 import { Separator } from "@/components/ui/separator"
 import NewsSection from "@/components/landing/news-section"
+import NewsTape from "@/components/landing/news-tape"
 
 const LandingPage = async () => {
   return (
@@ -13,6 +14,9 @@ const LandingPage = async () => {
       <main>
         {/* Hero Section */}
         <HeroSection />
+
+        {/* News Tape */}
+        <NewsTape />
 
         {/* Topics Section */}
         <TopicsSection />

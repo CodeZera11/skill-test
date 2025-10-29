@@ -65,7 +65,7 @@ const AddNewsForm: React.FC<AddNewsFormProps> = ({ afterSubmit }) => {
         />
         <InputElement
           name="externalLink"
-          label="External Link"
+          label="External Link (optional)"
           placeholder="Enter a valid URL"
           description="This link will be used to redirect users to the full news article."
         />

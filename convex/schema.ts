@@ -15,7 +15,7 @@ export default defineSchema({
   news: defineTable({
     title: v.string(),
     description: v.string(), // less than 200 words
-    externalLink: v.string(),
+    externalLink: v.optional(v.string()),
     isPublished: v.boolean(),
     publishedAt: v.optional(v.number()),
     createdAt: v.number(),

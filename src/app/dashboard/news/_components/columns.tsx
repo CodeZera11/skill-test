@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { News } from "~/convex/news";
 import { removeNews, toggleNewsPublishStatus } from "@/actions/news";
 import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const columns: ColumnDef<News>[] = [
   {
@@ -114,13 +115,41 @@ export const columns: ColumnDef<News>[] = [
             )
           }} />
 
-          <Button onClick={() => toast.promise(removeNews(news._id), {
-            loading: "Deleting topic...",
-            success: "Topic deleted successfully",
-            error: (err) => `Error deleting Topic: ${err}`,
-          })} variant="destructive" size="icon">
-            <Trash />
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="destructive" size="icon">
+                <Trash />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {`Are you sure you want to delete the news "${news.title}"?`}
+                </DialogTitle>
+                <DialogDescription>
+                  This action cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogClose asChild>
+                <Button variant="outline">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button
+                  onClick={() => toast.promise(removeNews(news._id), {
+                    loading: "Deleting news...",
+                    success: "News deleted successfully",
+                    error: (err) => `Error deleting Topic: ${err}`,
+                  })}
+                  variant="destructive"
+                  className="ml-2"
+                >
+                  Delete
+                </Button>
+              </DialogClose>
+            </DialogContent>
+          </Dialog>
         </div>
       )
     }

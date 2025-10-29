@@ -72,7 +72,7 @@ export const createNews = mutation({
   args: {
     title: v.string(),
     description: v.string(),
-    externalLink: v.string(),
+    externalLink: v.optional(v.string()),
     isPublished: v.boolean(),
   },
   handler: async (ctx, args) => {
@@ -171,7 +171,7 @@ export type News = {
   _id: Id<"news">;
   title: string;
   description: string;
-  externalLink: string;
+  externalLink?: string;
   isPublished: boolean;
   publishedAt?: number;
   createdAt: number;

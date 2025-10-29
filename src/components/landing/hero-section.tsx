@@ -11,8 +11,6 @@ import { fadeIn } from "@/constants/animations"
 
 const HeroSection = () => {
 
-
-
   return (
     <section className="py-20 md:py-32 bg-gradient-to-b from-theme/15 to-white dark:from-theme/30 dark:to-background">
       <div className="container mx-auto px-4">
