@@ -46,7 +46,9 @@ const TestimonialsSection = () => {
       <div className="">
         <div className="flex items-center justify-center mb-4">
           {/* <Newspaper className="h-8 w-8 text-theme mr-3" /> */}
-          <h2 className="text-3xl md:text-4xl font-bold">Acheiver’s gallery</h2>
+          <h2 className="text-3xl md:text-4xl font-bold">
+            Achiever’s gallery
+          </h2>
         </div>
         <AnimatedTestimonials testimonials={testimonials} />
       </div>
