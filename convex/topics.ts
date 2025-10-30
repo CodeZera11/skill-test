@@ -10,11 +10,15 @@ export type Topic = {
   description?: string;
   createdAt: number;
   updatedAt: number;
-  topicLogoId: Id<"_storage">;
+  topicLogoId?: Id<"_storage">;
 };
 
 export type TopicWithCategory = Topic & {
   categories: Category[];
+};
+
+export type TopicWithCategoriesAndLogos = Topic & {
+  topicUrl?: string;
 };
 
 export const list = query({
@@ -24,7 +28,7 @@ export const list = query({
     onlyPublished: v.optional(v.boolean()),
     take: v.optional(v.number()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<TopicWithCategoriesAndLogos[]> => {
     const { searchQuery, sortOrder } = args;
     const query = ctx.db
       .query("topics")
@@ -48,8 +52,20 @@ export const list = query({
         )
         .collect();
 
-      return await Promise.all(
+      const searchDataWithLogo = await Promise.all(
         searchData.map(async (topic) => {
+          if (!topic.topicLogoId) {
+            return topic;
+          }
+          return {
+            ...topic,
+            topicUrl: (await ctx.storage.getUrl(topic.topicLogoId)) || "",
+          };
+        })
+      );
+
+      return await Promise.all(
+        searchDataWithLogo.map(async (topic) => {
           const categories = await ctx.db
             .query("categories")
             .filter((q) =>
@@ -92,7 +108,20 @@ export const list = query({
       })
     );
 
-    return topicsWithCategories;
+    const topicsWithLogos = await Promise.all(
+      topicsWithCategories.map(async (topic) => {
+        if (!topic.topicLogoId) {
+          return topic;
+        }
+        const topicUrl = await ctx.storage.getUrl(topic.topicLogoId) || "";
+        return {
+          ...topic,
+          topicUrl,
+        };
+      })
+    );
+
+    return topicsWithLogos;
   },
 });
 

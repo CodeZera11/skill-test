@@ -86,7 +86,6 @@ export default function TopicDetailsPageContainer({ id }: TopicDetailsPageContai
           <div>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl md:text-3xl font-semibold mb-8">Categories in {name}</h2>
-
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {categories.map((category) => (
