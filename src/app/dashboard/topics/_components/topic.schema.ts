@@ -9,6 +9,7 @@ export const AddTopicSchema = z.object({
     .string()
     .max(500, { message: "Description must be less than 500 characters" })
     .optional(),
+  topicLogoId: z.string().min(1, { message: "Logo is required" }),
 });
 
 export const EditTopicSchema = AddTopicSchema.extend({

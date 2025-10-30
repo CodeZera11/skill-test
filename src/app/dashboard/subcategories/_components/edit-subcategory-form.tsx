@@ -15,7 +15,7 @@ import { Id } from "~/convex/_generated/dataModel"
 import { toast } from "sonner"
 import TextAreaElement from "@/components/form-elements/textarea-element"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { SubCategoryWithTests } from "~/convex/subCategories"
 
 interface EditSubCategoryFormProps {
@@ -35,6 +35,7 @@ const EditSubCategoryForm: React.FC<EditSubCategoryFormProps> = ({ subCategory, 
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const [imageUrl, setImageUrl] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
+  const getUrl = useMutation(api.files.getUrl);
 
   const form = useForm<EditSubCategoryRequest>({
     resolver: zodResolver(EditSubCategorySchema),
@@ -46,6 +47,16 @@ const EditSubCategoryForm: React.FC<EditSubCategoryFormProps> = ({ subCategory, 
       imageStorageId: subCategory.imageStorageId
     }
   })
+
+  useEffect(() => {
+    const fetchImageUrl = async () => {
+      if (subCategory.imageStorageId) {
+        const url = await getUrl({ storageId: subCategory.imageStorageId });
+        setImageUrl(url || "");
+      }
+    };
+    fetchImageUrl();
+  }, [])
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -118,7 +129,7 @@ const EditSubCategoryForm: React.FC<EditSubCategoryFormProps> = ({ subCategory, 
                 disabled={isUploading}
                 onClick={() => document.getElementById("logo-upload")?.click()}
               >
-                {isUploading ? "Uploading..." : "Add Logo"}
+                {isUploading ? "Uploading..." : "Change Logo"}
               </Button>
               <input
                 id="logo-upload"

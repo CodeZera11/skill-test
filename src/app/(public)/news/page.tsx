@@ -178,24 +178,26 @@ export default function NewsPage() {
                     <p className="text-muted-foreground mb-4 line-clamp-3 text-sm">{article.description}</p>
 
                   </CardContent>
-                  <CardFooter className="mt-auto">
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="sm"
-                      className="w-full group-hover:bg-emerald-50 group-hover:border-emerald-200 dark:group-hover:bg-emerald-950 dark:group-hover:border-emerald-800 bg-transparent"
-                    >
-                      <a
-                        href={article.externalLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center"
+                  {article.externalLink && (
+                    <CardFooter className="mt-auto">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="w-full group-hover:bg-emerald-50 group-hover:border-emerald-200 dark:group-hover:bg-emerald-950 dark:group-hover:border-emerald-800 bg-transparent"
                       >
-                        Read Full Article
-                        <ExternalLink className="h-4 w-4 ml-2" />
-                      </a>
-                    </Button>
-                  </CardFooter>
+                        <a
+                          href={article.externalLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-center"
+                        >
+                          Read Full Article
+                          <ExternalLink className="h-4 w-4 ml-2" />
+                        </a>
+                      </Button>
+                    </CardFooter>
+                  )}
                 </Card>
               </motion.div>
             ))}

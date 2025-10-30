@@ -80,6 +80,8 @@ const TopicsSection = () => {
 
   if (topics === null) return null
 
+  console.log("Topics:", topics)
+
   return (
     <section id="topics" className="py-20">
       <div className="container mx-auto px-4">
@@ -100,14 +102,14 @@ const TopicsSection = () => {
         </motion.div>
 
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          className="grid grid-cols-1 md:grid-cols-4 gap-8"
           variants={staggerContainer}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
         >
-          {topics.map((topic, index) => (
-            <motion.div key={index} variants={fadeIn}>
+          {topics.map((topic) => (
+            <motion.div key={topic._id}>
               <Card className="h-full hover:shadow-lg transition-shadow dark:bg-slate-900">
                 <CardContent className="p-6">
                   <div className="flex items-center mb-4">
@@ -117,15 +119,15 @@ const TopicsSection = () => {
                     <h3 className="text-xl font-bold">{topic.name}</h3>
                   </div>
 
-                  <ul className="space-y-2 mb-6">
-                    {topic?.categories?.slice(0, 2).map((category, idx) => (
+                  <ul className="space-y-2 mb-0">
+                    {topic?.categories?.slice(0, 2).map((category) => (
                       <motion.li
-                        key={idx}
+                        key={category._id}
                         className="flex items-center"
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 * idx }}
-                        viewport={{ once: true }}
+                        // initial={{ opacity: 0, x: -10 }}
+                        // whileInView={{ opacity: 1, x: 0 }}
+                        // transition={{ delay: 0.1 * idx }}
+                        // viewport={{ once: true }}
                       >
                         <Dot className="h-8 w-8 text-theme" />
                         <span>{category.name}</span>

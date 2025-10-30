@@ -142,7 +142,7 @@ const NewsSection = () => {
                     {article.description}
                   </p>
                 </CardContent>
-                <CardFooter className="mt-auto">
+                {article.externalLink && <CardFooter className="mt-auto">
                   <Button
                     asChild
                     variant="outline"
@@ -159,7 +159,7 @@ const NewsSection = () => {
                       <ExternalLink className="h-4 w-4 ml-2" />
                     </a>
                   </Button>
-                </CardFooter>
+                </CardFooter>}
               </Card>
             </div>
           ))}

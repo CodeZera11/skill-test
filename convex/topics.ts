@@ -10,6 +10,7 @@ export type Topic = {
   description?: string;
   createdAt: number;
   updatedAt: number;
+  topicLogoId: Id<"_storage">;
 };
 
 export type TopicWithCategory = Topic & {
@@ -106,6 +107,7 @@ export const create = mutation({
   args: {
     name: v.string(),
     description: v.optional(v.string()),
+    topicLogoId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
     const timestamp = Date.now();
@@ -116,6 +118,7 @@ export const create = mutation({
       createdAt: timestamp,
       updatedAt: timestamp,
       isPublished: false,
+      topicLogoId: args.topicLogoId,
     });
   },
 });
@@ -125,6 +128,7 @@ export const update = mutation({
     id: v.id("topics"),
     name: v.string(),
     description: v.optional(v.string()),
+    topicLogoId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
     const { id, ...data } = args;

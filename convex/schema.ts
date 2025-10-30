@@ -30,6 +30,7 @@ export default defineSchema({
     name: v.string(),
     description: v.optional(v.string()),
     isPublished: v.boolean(),
+    topicLogoId: v.optional(v.id("_storage")),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).searchIndex("search_name", {
