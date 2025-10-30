@@ -73,6 +73,11 @@ const Footer = () => {
             <h4 className="text-sm font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-neutral-500 dark:text-gray-200">
               <li>
+                <Link href="/about" className="text-sm">
+                  About Us
+                </Link>
+              </li>
+              <li>
                 <Link href="/terms" className="text-sm">
                   Terms of Service
                 </Link>
