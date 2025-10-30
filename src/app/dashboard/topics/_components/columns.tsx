@@ -3,7 +3,7 @@
 import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table"
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header"
-import { TopicWithCategory } from "~/convex/topics";
+import { TopicWithCategoriesAndLogos } from "~/convex/topics";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { deleteTopic, toggleTopicPublishStatus } from "@/actions/topics";
@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import EditTopicDialog from "./edit-topic-dialog";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-export const columns: ColumnDef<TopicWithCategory>[] = [
+export const columns: ColumnDef<TopicWithCategoriesAndLogos>[] = [
   {
     accessorKey: "id",
     header: ({ column }) => (

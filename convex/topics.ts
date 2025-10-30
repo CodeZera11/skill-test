@@ -17,7 +17,7 @@ export type TopicWithCategory = Topic & {
   categories: Category[];
 };
 
-export type TopicWithCategoriesAndLogos = Topic & {
+export type TopicWithCategoriesAndLogos = TopicWithCategory & {
   topicUrl?: string;
 };
 
