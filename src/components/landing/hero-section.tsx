@@ -23,7 +23,7 @@ const HeroSection = () => {
             variants={fadeIn}
           >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-              Master Any Exam With <span className="text-theme">Confidence</span>
+              Master Your Exam With <span className="text-theme">Confidence</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-lg">
               Practice thousands of MCQs across various competitive exams and track your progress with our

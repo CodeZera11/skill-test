@@ -43,7 +43,13 @@ const TestimonialsSection = () => {
 
   return (
     <section id="testimonials" className="py-20 bg-gradient-to-b from-white to-theme/20 dark:from-background dark:to-theme/30 h-fit flex items-center justify-center">
-      <AnimatedTestimonials testimonials={testimonials} />
+      <div className="">
+        <div className="flex items-center justify-center mb-4">
+          {/* <Newspaper className="h-8 w-8 text-theme mr-3" /> */}
+          <h2 className="text-3xl md:text-4xl font-bold">Acheiver’s gallery</h2>
+        </div>
+        <AnimatedTestimonials testimonials={testimonials} />
+      </div>
     </section>
   )
 

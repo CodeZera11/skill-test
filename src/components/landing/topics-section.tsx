@@ -10,6 +10,7 @@ import { Skeleton } from "../ui/skeleton"
 import Image from "next/image"
 import Link from "next/link"
 import { PageRoutes } from "@/constants/page-routes"
+import { Button } from "../ui/button"
 
 const TopicsSection = () => {
   const topics = useQuery(api.topics.list, {
@@ -61,9 +62,6 @@ const TopicsSection = () => {
 
   if (topics === null) return null
 
-
-  console.log(topics)
-
   return (
     <section id="topics" className="py-20">
       <div className="container mx-auto px-4">
@@ -107,7 +105,16 @@ const TopicsSection = () => {
             </Link>
           ))}
         </motion.div>
+
+        <div className="flex items-center justify-center mt-10">
+          <Link href={PageRoutes.TOPICS}>
+            <Button>
+              View All Topics
+            </Button>
+          </Link>
+        </div>
       </div>
+
     </section>
   )
 }

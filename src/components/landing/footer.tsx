@@ -23,7 +23,7 @@ const Footer = () => {
               </p>
               <div className='space-y-1 text-neutral-500 dark:text-gray-200 mb-4'>
                 <p className="text-sm">
-                  Talwandi
+                  Contact Us
                 </p>
                 <p className="text-sm">
                   Kota, Rajasthan

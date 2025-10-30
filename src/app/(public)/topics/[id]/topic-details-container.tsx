@@ -54,7 +54,7 @@ export default function TopicDetailsPageContainer({ id }: TopicDetailsPageContai
   return (
     <div className="bg-gradient-to-b from-theme/15 to-white dark:from-theme/30 dark:to-background">
       <div className="container mx-auto px-4 py-12">
-        <section className=" mb-7">
+        <section className="mb-7">
           <div className="container mx-auto">
             <motion.div initial="hidden" animate="visible" variants={fadeIn}>
               <div className="flex flex-wrap items-center text-sm text-muted-foreground mb-4 gap-2">
