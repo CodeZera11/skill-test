@@ -9,6 +9,8 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
 import Link from "next/link"
+import DOMPurify from "isomorphic-dompurify"
+import { PageRoutes } from "@/constants/page-routes"
 
 const formatDate = (timestamp: number) => {
   return new Date(timestamp).toLocaleDateString("en-US", {
@@ -20,6 +22,22 @@ const formatDate = (timestamp: number) => {
 
 const NewsSection = () => {
   const latestNews = useQuery(api.news.getLatestNews, { limit: 6 })
+
+  const sanitize = (html?: string) => {
+    if (!html) return ""
+    const clean = DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: [
+        "p", "strong", "b", "em", "i", "u", "ul", "ol", "li", "br", "a", "span", "blockquote"
+      ],
+      ALLOWED_ATTR: ["href", "target", "rel", "class", "style"],
+    })
+    // Ensure links open safely in a new tab
+    return clean.replace(
+      /<a\s/gi,
+      '<a target="_blank" rel="noopener noreferrer" '
+    )
+  }
+
 
   if (latestNews === undefined) {
     // Loading state
@@ -137,29 +155,33 @@ const NewsSection = () => {
                     {formatDate(article.publishedAt || article.createdAt)}
                   </div>
                 </CardHeader>
-                <CardContent className="pt-0">
+                {/* <CardContent className="pt-0">
                   <p className={`text-muted-foreground mb-4 ${index === 0 ? "line-clamp-4" : "line-clamp-3"}`}>
                     {article.description}
                   </p>
+                </CardContent> */}
+
+                <CardContent className="pt-0 line-clamp-5">
+                  <div
+                    className={`prose prose-sm dark:prose-invert text-muted-foreground mb-4 ${index === 0 ? "" : ""
+                      }`}
+                    // Renders proper HTML (bold, lists, line breaks, links)
+                    dangerouslySetInnerHTML={{ __html: sanitize(article.description) }}
+                  />
                 </CardContent>
-                {article.externalLink && <CardFooter className="mt-auto">
+                <CardFooter className="mt-auto">
                   <Button
                     asChild
                     variant="outline"
                     size="sm"
                     className="w-full group-hover:bg-emerald-50 group-hover:border-emerald-200 dark:group-hover:bg-emerald-950 dark:group-hover:border-emerald-800 bg-transparent"
                   >
-                    <a
-                      href={article.externalLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-center"
-                    >
+                    <Link href={PageRoutes.NEWS + "/" + article._id}>
                       Read More
                       <ExternalLink className="h-4 w-4 ml-2" />
-                    </a>
+                    </Link>
                   </Button>
-                </CardFooter>}
+                </CardFooter>
               </Card>
             </div>
           ))}

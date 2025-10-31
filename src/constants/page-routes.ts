@@ -3,6 +3,7 @@ export const PageRoutes = {
   MY_ATTEMPTS: "/my-attempts",
   SIGN_IN: "/sign-in",
   SIGN_UP: "/sign-up",
+  NEWS: "/news",
   CATEGORIES: "/categories",
   SUB_CATEGORIES: "/sub-categories",
   TESTS: "/tests",

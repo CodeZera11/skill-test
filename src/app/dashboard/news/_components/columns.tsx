@@ -46,7 +46,7 @@ export const columns: ColumnDef<News>[] = [
       const description = row.original.description;
       return (
         <span>{
-          description.length > 100 ? `${description.slice(0, 100)}...` : description
+          description.length > 20 ? `${description.slice(0, 20)}...` : description
         }</span>
       )
     },
