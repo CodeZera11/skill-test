@@ -63,8 +63,8 @@ const TopicsSection = () => {
   if (topics === null) return null
 
   return (
-    <section id="topics" className="py-20">
-      <div className="container mx-auto px-4">
+    <section id="topics" className="py-20 bg-gradient-to-t from-theme/15 to-white dark:from-theme/30 dark:to-background">
+      <div className="container mx-auto px-4 ">
 
         <motion.div
           className="text-center mb-16"

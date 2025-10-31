@@ -102,7 +102,7 @@ const NewsSection = () => {
   }
 
   return (
-    <section id="news" className="py-20 bg-slate-50 dark:bg-slate-900/50 border-t">
+    <section id="news" className="py-20  border-t bg-gradient-to-t from-theme/15 to-white dark:from-theme/30 dark:to-background">
       <div className="container mx-auto px-4">
         <motion.div
           className="text-center mb-16"

@@ -7,7 +7,6 @@ import DOMPurify from "isomorphic-dompurify"
 import Link from "next/link"
 import { Calendar, ExternalLink } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { format } from "date-fns"
 import { PageRoutes } from "@/constants/page-routes"
@@ -59,10 +58,9 @@ const NewsContainer = ({ newsId }: { newsId: Id<"news"> }) => {
   const date = format(new Date(article.publishedAt || ""), "MMMM dd, yyyy")
 
   return (
-    <section className="py-10">
+    <section className="py-10 mb-10">
 
       <div className="container mx-auto px-4">
-
         <Button variant="outline" className="mb-6" asChild>
           <Link href={PageRoutes.NEWS}>← Back to News Page</Link>
         </Button>

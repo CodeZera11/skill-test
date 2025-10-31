@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useQuery } from "convex/react"
 import { api } from "~/convex/_generated/api"
+import DOMPurify from "isomorphic-dompurify"
+import { PageRoutes } from "@/constants/page-routes"
 
 export default function NewsPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -59,6 +61,21 @@ export default function NewsPage() {
     return `${Math.floor(days / 30)} months ago`
   }
 
+  const sanitize = (html?: string) => {
+    if (!html) return ""
+    const clean = DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: [
+        "p", "strong", "b", "em", "i", "u", "ul", "ol", "li", "br", "a", "span", "blockquote"
+      ],
+      ALLOWED_ATTR: ["href", "target", "rel", "class", "style"],
+    })
+    // Ensure links open safely in a new tab
+    return clean.replace(
+      /<a\s/gi,
+      '<a target="_blank" rel="noopener noreferrer" '
+    )
+  }
+
   return (
     <div className="bg-background">
       {/* Header */}
@@ -73,7 +90,7 @@ export default function NewsPage() {
                 </Link>
               </Button>
               <div className="flex items-center space-x-2">
-                <Newspaper className="h-6 w-6 text-emerald-500" />
+                <Newspaper className="h-6 w-6 text-theme" />
                 <h1 className="text-2xl font-bold">News & Updates</h1>
               </div>
             </div>
@@ -154,13 +171,13 @@ export default function NewsPage() {
                 <Card className="h-full hover:shadow-lg transition-all duration-300 ">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <CardTitle className="line-clamp-2 group-hover:text-emerald-600 transition-colors text-base">
+                      <CardTitle className="line-clamp-2 group-hover:text-theme transition-colors text-base">
                         {article.title}
                       </CardTitle>
                       {index < 3 && (
                         <Badge
                           variant="secondary"
-                          className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 flex-shrink-0 text-xs"
+                          className="bg-theme/20 text-theme dark:bg-theme/20 dark:text-theme flex-shrink-0 text-xs"
                         >
                           New
                         </Badge>
@@ -174,30 +191,27 @@ export default function NewsPage() {
                       <span className="text-xs">{getTimeAgo(article.publishedAt || article.createdAt)}</span>
                     </div>
                   </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-muted-foreground mb-4 line-clamp-3 text-sm">{article.description}</p>
-
+                  <CardContent className="pt-0 line-clamp-5">
+                    <div
+                      className={`prose prose-sm dark:prose-invert text-muted-foreground mb-4 ${index === 0 ? "" : ""
+                        }`}
+                      // Renders proper HTML (bold, lists, line breaks, links)
+                      dangerouslySetInnerHTML={{ __html: sanitize(article.description) }}
+                    />
                   </CardContent>
-                  {article.externalLink && (
-                    <CardFooter className="mt-auto">
-                      <Button
-                        asChild
-                        variant="outline"
-                        size="sm"
-                        className="w-full group-hover:bg-emerald-50 group-hover:border-emerald-200 dark:group-hover:bg-emerald-950 dark:group-hover:border-emerald-800 bg-transparent"
-                      >
-                        <a
-                          href={article.externalLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center justify-center"
-                        >
-                          Read Full Article
-                          <ExternalLink className="h-4 w-4 ml-2" />
-                        </a>
-                      </Button>
-                    </CardFooter>
-                  )}
+                  <CardFooter className="mt-auto">
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      className="w-full group-hover:bg-emerald-50 group-hover:border-emerald-200 dark:group-hover:bg-emerald-950 dark:group-hover:border-emerald-800 bg-transparent"
+                    >
+                      <Link href={PageRoutes.NEWS + "/" + article._id}>
+                        Read More
+                        <ExternalLink className="h-4 w-4 ml-2" />
+                      </Link>
+                    </Button>
+                  </CardFooter>
                 </Card>
               </motion.div>
             ))}
