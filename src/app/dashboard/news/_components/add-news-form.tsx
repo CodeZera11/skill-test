@@ -6,11 +6,11 @@ import { Form } from "@/components/ui/form"
 import InputElement from "@/components/form-elements/input-element"
 import { Button } from "@/components/ui/button"
 import { useMutation } from "convex/react"
-import { api } from "../../../../../convex/_generated/api"
+import { api } from "~/convex/_generated/api"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import TextAreaElement from "@/components/form-elements/textarea-element"
 import { AddNewsRequest, AddNewsSchema } from "./add-news.schema"
+import TextEditorElement from "@/components/form-elements/text-editor-element"
 
 interface AddNewsFormProps {
   afterSubmit?: () => void
@@ -53,22 +53,24 @@ const AddNewsForm: React.FC<AddNewsFormProps> = ({ afterSubmit }) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <InputElement
-          name="title"
-          label="Title"
-          placeholder="Enter news title"
-        />
-        <TextAreaElement
-          name="description"
-          label="Description"
-          placeholder="Enter topic description"
-        />
-        <InputElement
-          name="externalLink"
-          label="External Link (optional)"
-          placeholder="Enter a valid URL"
-          description="This link will be used to redirect users to the full news article."
-        />
+        <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-4">
+          <InputElement
+            name="title"
+            label="Title"
+            placeholder="Enter news title"
+          />
+          <TextEditorElement
+            name="description"
+            label="Description"
+            placeholder="Enter topic description"
+          />
+          <InputElement
+            name="externalLink"
+            label="External Link (optional)"
+            placeholder="Enter a valid URL"
+            description="This link will be used to redirect users to the full news article."
+          />
+        </div>
         <Button type="submit" className="w-full">
           Add News
         </Button>

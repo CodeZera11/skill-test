@@ -143,3 +143,12 @@
     @apply bg-background text-foreground scroll-smooth;
   }
 }
+
+.prose a {
+  text-decoration: underline;
+  color: blue; /* Tailwind blue-600 */
+}
+.prose a:hover {
+  color: #1d4ed8;
+  cursor: pointer;
+}
