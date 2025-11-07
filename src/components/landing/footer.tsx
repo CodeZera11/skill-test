@@ -1,12 +1,9 @@
 "use client"
 
+import Image from 'next/image'
 import Link from 'next/link'
-// import { useQuery } from 'convex/react'
-// import { api } from '~/convex/_generated/api'
 
 const Footer = () => {
-  // const topics = useQuery(api.topics.list, { onlyPublished: true, take: 5 })
-  // const categories = useQuery(api.categories.list, { onlyPublished: true, take: 5 })
 
   return (
     <footer className="border-t mt-auto">
@@ -15,11 +12,11 @@ const Footer = () => {
           {/* Company Information */}
           <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-semibold mb-4">
-                Skill Test logo here
-              </h3>
-              <p className="text-sm mb-4">
-                Skilltest educations
+              <Link href="/" className="">
+                <Image src="/logo.png" alt='main-logo' className='object-fill -ml-4' width={75} height={75} />
+              </Link>
+              <p className="text-sm font-bold mb-4">
+                Skilltest Educations
               </p>
               <div className='space-y-1 text-neutral-500 dark:text-gray-200 mb-4'>
                 <p className="text-sm">

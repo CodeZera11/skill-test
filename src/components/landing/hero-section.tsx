@@ -50,7 +50,7 @@ const HeroSection = () => {
             viewport={{ once: true }}
           >
             <Image
-              src="/hero-main.png"
+              src="/hero-section.png"
               width={600}
               height={500}
               alt="Student studying"
