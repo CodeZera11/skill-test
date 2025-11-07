@@ -234,6 +234,7 @@ const TestPageContainer = ({
                   ))}
                 </select> */}
                 </CardTitle>
+
                 <div className="flex gap-2 overflow-scroll max-w-[600px] pb-4">
                   {attempt.sections.map((section) => (
                     <Button
@@ -258,7 +259,13 @@ const TestPageContainer = ({
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="text-lg font-medium">{currentQuestionData?.question}</div>
+              {/* lets show question number here */}
+              <div className="space-y-2">
+                <div className="text-sm">
+                  Question {currentQuestion} of {sectionQuestions.length}
+                </div>
+                <div className="text-lg font-medium">{currentQuestionData?.question}</div>
+              </div>
               <RadioGroup
                 value={answers[currentQuestionData._id]?.toString() || ""}
                 onValueChange={handleAnswerChange}

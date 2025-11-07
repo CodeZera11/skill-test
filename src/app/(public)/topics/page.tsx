@@ -9,6 +9,7 @@ import { Search, Layers3, ChevronRight } from "lucide-react"
 import { useState, useMemo } from "react"
 import TopicsPageLoading from "./loading"
 import { api } from "~/convex/_generated/api"
+import Image from "next/image"
 
 export default function TopicsPage() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -64,13 +65,22 @@ export default function TopicsPage() {
                 key={topic._id}
                 className="flex flex-col hover:shadow-xl transition-shadow duration-300 ease-in-out dark:bg-slate-800/50"
               >
-                <CardHeader className="pb-4">
-                  <div className="flex items-center space-x-4 mb-3">
-                    <CardTitle className="text-2xl font-semibold">{topic.name}</CardTitle>
+                <CardHeader className="flex items-start space-x-2">
+                  {topic.topicUrl && (
+                    <Image
+                      src={topic.topicUrl}
+                      alt={topic.name}
+                      width={400}
+                      height={200}
+                      className="h-8 w-8 rounded-full"
+                    />
+                  )}
+                  <div className="">
+                    <CardTitle className="text-2xl leading-none font-semibold">{topic.name}</CardTitle>
+                    <CardDescription className="text-sm text-muted-foreground h-12 overflow-hidden">
+                      {topic.description || "Explore various categories and tests under this topic."}
+                    </CardDescription>
                   </div>
-                  <CardDescription className="text-sm text-muted-foreground h-12 overflow-hidden">
-                    {topic.description || "Explore various categories and tests under this topic."}
-                  </CardDescription>
                 </CardHeader>
                 <CardContent className="flex-grow flex flex-col justify-end">
                   <Button asChild className="w-full mt-auto bg-theme hover:bg-theme/90 text-white">
