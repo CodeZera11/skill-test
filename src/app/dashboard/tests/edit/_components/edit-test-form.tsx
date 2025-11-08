@@ -3,8 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useFieldArray, useForm } from "react-hook-form"
 import { useQuery, useMutation } from "convex/react"
-import { api } from "../../../../../../convex/_generated/api"
-import { Id } from "../../../../../../convex/_generated/dataModel"
+import { api } from "~/convex/_generated/api"
+import { Id } from "~/convex/_generated/dataModel"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { AddTestRequest, AddTestSchema } from "../../add/_components/add-test.schema"
 import { Form } from "@/components/ui/form"
@@ -24,7 +24,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Input } from "@/components/ui/input"
-import { TestWithDetails } from "../../../../../../convex/tests"
+import { TestWithDetails } from "~/convex/tests"
 import ImportQuestionsDialog from "../../add/_components/import-questions-dialog"
 
 interface FormStep {
@@ -125,7 +125,15 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
         form.setValue(key as FieldName, parsedData[key]);
       })
     })
-  }, [currentStep, form])
+  }, [])
+
+  useEffect(() => {
+    if (test) {
+      steps.forEach((step) => {
+        localStorage.removeItem(step.key)
+      })
+    }
+  }, [test])
 
 
   const handleSubmit = async () => {
@@ -219,6 +227,10 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
     acc[key].push({ question, index });
     return acc;
   }, {} as Record<string, { question: { question: string, options: (string | number)[], correctAnswer: number, sectionKey: string, explanation?: string, marks?: string, negativeMarks?: string }; index: number }[]>);
+
+  if (currentStep === 0 && subCategories === undefined) {
+    return <div className="h-[calc(100vh-120px)] flex items-center justify-center">Loading...</div>
+  }
 
   return (
     <Card className="max-w-7xl mx-auto">
