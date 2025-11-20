@@ -13,6 +13,15 @@ import { Id } from "~/convex/_generated/dataModel"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
+const STATUS = {
+  NOT_VISITED: "not_visited",
+  NOT_ANSWERED: "not_answered",
+  ANSWERED: "answered",
+  MARKED_FOR_REVIEW: "marked_for_review",
+  ANSWERED_AND_MARKED: "answered_and_marked",
+  CURRENT: "current",
+}
+
 const TestPageContainer = ({
   testId,
   attemptId
@@ -34,6 +43,10 @@ const TestPageContainer = ({
   const [currentQuestion, setCurrentQuestion] = useState<number>(questionNumber)
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // New states for review and visited
+  const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>({})
+  const [visited, setVisited] = useState<Record<string, boolean>>({})
+
   const submitTestMutation = useMutation(api.testAttempts.submitTestAttempt)
 
   const totalTestDurationInSeconds = attempt?.sections.reduce(
@@ -44,13 +57,13 @@ const TestPageContainer = ({
   useEffect(() => {
     const savedAnswers = localStorage.getItem(`test_${testId}_answers`);
     const savedCurrentQuestion = localStorage.getItem(`test_${testId}_currentQuestion`);
+    const savedMarkedForReview = localStorage.getItem(`test_${testId}_markedForReview`);
+    const savedVisited = localStorage.getItem(`test_${testId}_visited`);
 
-    if (savedAnswers) {
-      setAnswers(JSON.parse(savedAnswers));
-    }
-    if (savedCurrentQuestion) {
-      setCurrentQuestion(Number(savedCurrentQuestion));
-    }
+    if (savedAnswers) setAnswers(JSON.parse(savedAnswers));
+    if (savedCurrentQuestion) setCurrentQuestion(Number(savedCurrentQuestion));
+    if (savedMarkedForReview) setMarkedForReview(JSON.parse(savedMarkedForReview));
+    if (savedVisited) setVisited(JSON.parse(savedVisited));
   }, [testId]);
 
   useEffect(() => {
@@ -60,6 +73,14 @@ const TestPageContainer = ({
   useEffect(() => {
     localStorage.setItem(`test_${testId}_currentQuestion`, currentQuestion.toString());
   }, [currentQuestion, testId]);
+
+  useEffect(() => {
+    localStorage.setItem(`test_${testId}_markedForReview`, JSON.stringify(markedForReview));
+  }, [markedForReview, testId]);
+
+  useEffect(() => {
+    localStorage.setItem(`test_${testId}_visited`, JSON.stringify(visited));
+  }, [visited, testId]);
 
   useEffect(() => {
     if (totalTestDurationInSeconds) {
@@ -78,7 +99,6 @@ const TestPageContainer = ({
   }
 
   const handleTimeUp = () => {
-    console.log("Time is up, submitting test...")
     submitTest()
   }
 
@@ -88,9 +108,25 @@ const TestPageContainer = ({
       console.error("Question ID is undefined.")
       return
     }
+    setAnswers(prev => ({ ...prev, [questionId]: Number(value) }))
+  }
 
-    const updatedAnswers = { ...answers, [questionId]: Number(value) }
-    setAnswers(updatedAnswers)
+  const handleMarkForReview = () => {
+    const questionId = currentQuestionData?._id
+    if (!questionId) return
+    setMarkedForReview(prev => ({
+      ...prev,
+      [questionId]: !prev[questionId]
+    }))
+  }
+
+  const handleClearResponse = () => {
+    const questionId = currentQuestionData?._id
+    if (!questionId) return
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: null
+    }))
   }
 
   const submitTest = () => {
@@ -98,6 +134,7 @@ const TestPageContainer = ({
       submitTestMutation({
         testAttemptId: attemptId,
         answers,
+        // markedForReview,
       }),
       {
         loading: "Submitting test...",
@@ -105,6 +142,8 @@ const TestPageContainer = ({
           localStorage.removeItem(`test_${testId}_remainingTime`);
           localStorage.removeItem(`test_${testId}_answers`);
           localStorage.removeItem(`test_${testId}_currentQuestion`);
+          localStorage.removeItem(`test_${testId}_markedForReview`);
+          localStorage.removeItem(`test_${testId}_visited`);
           router.push(`/tests/${testId}/attempt/${attemptId}/result`)
           return "Test submitted successfully!"
         },
@@ -114,12 +153,20 @@ const TestPageContainer = ({
   }
 
   const handleSectionChange = (newSectionId: Id<"sections">) => {
-    router.push(`/tests/${testId}/${attemptId}?sectionId=${newSectionId}&questionNumber=0`)
+    router.push(`/tests/${testId}/${attemptId}?sectionId=${newSectionId}&questionNumber=1`)
   }
 
   const navigateToQuestion = (number: number) => {
     if (number < 1 || number > sectionQuestions.length) return
     setCurrentQuestion(number)
+    // Mark as visited
+    const questionId = sectionQuestions[number - 1]?._id
+    if (questionId) {
+      setVisited(prev => ({
+        ...prev,
+        [questionId]: true
+      }))
+    }
     router.push(`/tests/${testId}/${attemptId}?sectionId=${sectionId}&questionNumber=${number}`)
   }
 
@@ -157,10 +204,8 @@ const TestPageContainer = ({
     )
   }
 
-  const sectionQuestions = attempt?.questions?.filter((q) => q.sectionId === sectionId)
+  const sectionQuestions = attempt?.questions?.filter((q) => q.sectionId === sectionId) || []
   if (sectionQuestions.length === 0) {
-    console.error("No questions found for the current section.")
-
     return (
       <div className="container mx-auto py-10 px-2">
         <Card>
@@ -195,6 +240,31 @@ const TestPageContainer = ({
 
   const currentQuestionData = sectionQuestions[currentQuestion - 1]
 
+  // Helper to get status for navigator
+  const getQuestionStatus = (qId: string, qNum: number) => {
+    if (currentQuestion === qNum) return STATUS.CURRENT
+    if (!visited[qId]) return STATUS.NOT_VISITED
+    if (answers[qId] !== undefined && answers[qId] !== null) {
+      if (markedForReview[qId]) return STATUS.ANSWERED_AND_MARKED
+      return STATUS.ANSWERED
+    }
+    if (markedForReview[qId]) return STATUS.MARKED_FOR_REVIEW
+    return STATUS.NOT_ANSWERED
+  }
+
+  // Helper to get color for status
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case STATUS.ANSWERED: return "bg-green-100 text-black dark:bg-green-200 dark:text-black dark:hover:bg-green-300"
+      case STATUS.NOT_ANSWERED: return "bg-red-300 text-black dark:bg-red-400"
+      case STATUS.ANSWERED_AND_MARKED: return "bg-yellow-300 text-black dark:bg-yellow-400"
+      case STATUS.MARKED_FOR_REVIEW: return "bg-purple-300 text-black dark:bg-purple-400"
+      case STATUS.NOT_VISITED: return "bg-gray-300 text-black dark:bg-gray-400"
+      case STATUS.CURRENT: return "bg-black text-white"
+      default: return "bg-muted"
+    }
+  }
+
   return (
     <div className="container mx-auto py-6 px-2">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -205,36 +275,7 @@ const TestPageContainer = ({
               <div className="flex flex-col gap-2">
                 <CardTitle className="text-lg">
                   Sections
-                  {/* <Select
-                  onValueChange={handleSectionChange}
-                  value={sectionId}
-                >
-                  <SelectTrigger>
-                    <span className="truncate text-black">
-                      {attempt.sections.find((s) => s._id === sectionId)?.name || "Select Section"}
-                    </span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {attempt.sections.map((section) => (
-                      <SelectItem key={section._id} value={section._id}>
-                        {section.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select> */}
-                  {/* <select
-                  value={sectionId}
-                  onChange={(e) => handleSectionChange(e.target.value as Id<"sections">)}
-                  className="border rounded-md p-1"
-                >
-                  {attempt.sections.map((section) => (
-                    <option key={section._id} value={section._id}>
-                      {section.name}
-                    </option>
-                  ))}
-                </select> */}
                 </CardTitle>
-
                 <div className="flex gap-2 overflow-scroll max-w-[600px] pb-4">
                   {attempt.sections.map((section) => (
                     <Button
@@ -280,6 +321,21 @@ const TestPageContainer = ({
                   </div>
                 ))}
               </RadioGroup>
+              {/* New buttons below question */}
+              <div className="flex gap-2 mt-4">
+                <Button
+                  variant={markedForReview[currentQuestionData._id] ? "secondary" : "outline"}
+                  onClick={handleMarkForReview}
+                >
+                  {markedForReview[currentQuestionData._id] ? "Unmark Review" : "Mark for Review"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleClearResponse}
+                >
+                  Clear Response
+                </Button>
+              </div>
             </CardContent>
             <CardFooter className="w-full flex items-center justify-between gap-2">
               <Button
@@ -308,7 +364,7 @@ const TestPageContainer = ({
             <CardContent>
               <div className="flex flex-col space-y-4">
                 <div className="text-sm mb-2">
-                  <span className="font-medium">Question {questionNumber}</span> of {sectionQuestions.length}
+                  <span className="font-medium">Question {currentQuestion}</span> of {sectionQuestions.length}
                 </div>
 
                 <div className="flex flex-col space-y-4">
@@ -316,15 +372,8 @@ const TestPageContainer = ({
                     {sectionQuestions.map((_, index) => {
                       const qNum = index + 1
                       const qId = sectionQuestions[index]?._id || `index + test`
-                      let bgColor = "bg-muted"
-
-                      if (answers[qId] !== undefined && answers[qId] !== null) {
-                        bgColor = "bg-green-100 text-black dark:bg-green-200 dark:text-black dark:hover:bg-green-300";
-                      }
-
-
-
-
+                      const status = getQuestionStatus(qId, qNum)
+                      const bgColor = getStatusColor(status)
                       return (
                         <Button
                           key={qNum}
@@ -339,26 +388,36 @@ const TestPageContainer = ({
                   </div>
                 </div>
 
+                {/* Legend */}
                 <div className="mt-2 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-muted rounded"></div>
-                    <span className="text-sm">Not Answered</span>
-                  </div>
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-green-100 rounded"></div>
                     <span className="text-sm">Answered</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-primary rounded"></div>
-                    <span className="text-sm">Current Question</span>
+                    <div className="w-4 h-4 bg-red-300 rounded"></div>
+                    <span className="text-sm">Not Answered</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-yellow-300 rounded"></div>
+                    <span className="text-sm">Answered & Marked for Review</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-purple-300 rounded"></div>
+                    <span className="text-sm">Marked for Review</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-gray-300 rounded"></div>
+                    <span className="text-sm">Not Visited</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-black rounded"></div>
+                    <span className="text-sm text-black">Current Question</span>
                   </div>
                 </div>
               </div>
             </CardContent>
             <CardFooter>
-              {/* <Button className="w-full" onClick={submitTest} disabled={remainingTime === 0}>
-                Submit Test
-              </Button> */}
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="w-full" disabled={remainingTime === 0}>
