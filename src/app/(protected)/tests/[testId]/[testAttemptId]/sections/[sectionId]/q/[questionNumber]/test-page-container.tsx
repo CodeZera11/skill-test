@@ -11,7 +11,7 @@ import { useMutation, useQuery } from "convex/react"
 import { api } from "~/convex/_generated/api"
 import { Id } from "~/convex/_generated/dataModel"
 import { toast } from "sonner"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 const STATUS = {
   NOT_VISITED: "not_visited",
@@ -21,6 +21,8 @@ const STATUS = {
   ANSWERED_AND_MARKED: "answered_and_marked",
   CURRENT: "current",
 }
+
+const DELAY_MS = 1500 // 1.5 seconds delay for timer initialization
 
 const TestPageContainer = ({
   testId,
@@ -39,123 +41,149 @@ const TestPageContainer = ({
 
   const attempt = useQuery(api.testAttempts.getTestAttempt, { id: attemptId })
   const [answers, setAnswers] = useState<Record<string, number | null>>({})
-  const [remainingTime, setRemainingTime] = useState<number | null>(null)
+  const [remainingSectionTime, setRemainingSectionTime] = useState<number | null>(null)
+  const [remainingTotalTime, setRemainingTotalTime] = useState<number | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState<number>(questionNumber)
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  // New states for review and visited
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(0)
+  const [lockedSections, setLockedSections] = useState<Set<Id<"sections">>>(new Set())
   const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>({})
   const [visited, setVisited] = useState<Record<string, boolean>>({})
 
   const submitTestMutation = useMutation(api.testAttempts.submitTestAttempt)
 
-  const totalTestDurationInSeconds = attempt?.sections.reduce(
+  // Get sections and current section index
+  const sections = attempt?.sections || []
+  useEffect(() => {
+    if (sections.length > 0 && sectionId) {
+      const idx = sections.findIndex(s => s._id === sectionId)
+      setCurrentSectionIndex(idx === -1 ? 0 : idx)
+    }
+  }, [sections, sectionId])
+
+  // Section timer logic (defensive: fallback to default if missing/zero)
+  useEffect(() => {
+    if (sections.length > 0 && sectionId) {
+      const section = sections.find(s => s._id === sectionId)
+      if (section) {
+        if (section.durationInSeconds && section.durationInSeconds > 0) {
+          const timeout = setTimeout(() => {
+            setRemainingSectionTime(section.durationInSeconds || null)
+            console.log("Section timer set to", section.durationInSeconds)
+          }, DELAY_MS)
+          return () => clearTimeout(timeout)
+        } else {
+          setRemainingSectionTime(null) // No timer, show warning
+          console.log("Section timer not set, durationInSeconds:", section.durationInSeconds)
+        }
+      }
+    }
+  }, [sectionId, sections])
+
+  // Total timer logic with delay
+  const totalTestDurationInSeconds = sections.reduce(
     (total, section) => total + (section.durationInSeconds || 0),
     0
   )
-
   useEffect(() => {
-    const savedAnswers = localStorage.getItem(`test_${testId}_answers`);
-    const savedCurrentQuestion = localStorage.getItem(`test_${testId}_currentQuestion`);
-    const savedMarkedForReview = localStorage.getItem(`test_${testId}_markedForReview`);
-    const savedVisited = localStorage.getItem(`test_${testId}_visited`);
-
-    if (savedAnswers) setAnswers(JSON.parse(savedAnswers));
-    if (savedCurrentQuestion) setCurrentQuestion(Number(savedCurrentQuestion));
-    if (savedMarkedForReview) setMarkedForReview(JSON.parse(savedMarkedForReview));
-    if (savedVisited) setVisited(JSON.parse(savedVisited));
-  }, [testId]);
-
-  useEffect(() => {
-    localStorage.setItem(`test_${testId}_answers`, JSON.stringify(answers));
-  }, [answers, testId]);
-
-  useEffect(() => {
-    localStorage.setItem(`test_${testId}_currentQuestion`, currentQuestion.toString());
-  }, [currentQuestion, testId]);
-
-  useEffect(() => {
-    localStorage.setItem(`test_${testId}_markedForReview`, JSON.stringify(markedForReview));
-  }, [markedForReview, testId]);
-
-  useEffect(() => {
-    localStorage.setItem(`test_${testId}_visited`, JSON.stringify(visited));
-  }, [visited, testId]);
-
-  useEffect(() => {
-    if (totalTestDurationInSeconds) {
-      const savedTime = localStorage.getItem(`test_${testId}_remainingTime`)
-      if (savedTime) {
-        setRemainingTime(Number(savedTime))
-      } else {
-        setRemainingTime(totalTestDurationInSeconds)
-      }
+    if (sections.length > 0 && totalTestDurationInSeconds > 0) {
+      const timeout = setTimeout(() => {
+        setRemainingTotalTime(totalTestDurationInSeconds)
+        console.log("Total timer set to", totalTestDurationInSeconds)
+      }, DELAY_MS)
+      return () => clearTimeout(timeout)
     }
-  }, [testId, totalTestDurationInSeconds])
+  }, [totalTestDurationInSeconds, sections])
 
-  const updateRemainingTime = (time: number) => {
-    setRemainingTime(time)
-    localStorage.setItem(`test_${testId}_remainingTime`, time.toString())
-  }
-
-  const handleTimeUp = () => {
-    submitTest()
-  }
-
-  const handleAnswerChange = (value: string) => {
-    const questionId = currentQuestionData?._id
-    if (!questionId) {
-      console.error("Question ID is undefined.")
+  // Section timer countdown
+  useEffect(() => {
+    console.log("Section timer countdown effect. remainingSectionTime:", remainingSectionTime)
+    if (remainingSectionTime === null) return
+    if (remainingSectionTime <= 0) {
+      console.log("Section timer reached zero, calling handleSectionTimeUp")
+      handleSectionTimeUp()
       return
     }
-    setAnswers(prev => ({ ...prev, [questionId]: Number(value) }))
+    const interval = setInterval(() => {
+      setRemainingSectionTime(t => (t !== null ? t - 1 : t))
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [remainingSectionTime])
+
+  // Total timer countdown
+  useEffect(() => {
+    console.log("Total timer countdown effect. remainingTotalTime:", remainingTotalTime)
+    if (remainingTotalTime === null) return
+    if (remainingTotalTime <= 0) {
+      console.log("Total timer reached zero, calling handleTotalTimeUp")
+      handleTotalTimeUp()
+      return
+    }
+    const interval = setInterval(() => {
+      setRemainingTotalTime(t => (t !== null ? t - 1 : t))
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [remainingTotalTime])
+
+  // LocalStorage logic (optional, can be removed if not needed)
+  useEffect(() => {
+    const savedAnswers = localStorage.getItem(`test_${testId}_answers`)
+    const savedMarkedForReview = localStorage.getItem(`test_${testId}_markedForReview`)
+    const savedVisited = localStorage.getItem(`test_${testId}_visited`)
+    const savedLockedSections = localStorage.getItem(`test_${testId}_lockedSections`)
+    if (savedAnswers) setAnswers(JSON.parse(savedAnswers))
+    if (savedMarkedForReview) setMarkedForReview(JSON.parse(savedMarkedForReview))
+    if (savedVisited) setVisited(JSON.parse(savedVisited))
+    if (savedLockedSections) setLockedSections(new Set(JSON.parse(savedLockedSections)))
+  }, [testId])
+
+  useEffect(() => {
+    localStorage.setItem(`test_${testId}_answers`, JSON.stringify(answers))
+  }, [answers, testId])
+  useEffect(() => {
+    localStorage.setItem(`test_${testId}_markedForReview`, JSON.stringify(markedForReview))
+  }, [markedForReview, testId])
+  useEffect(() => {
+    localStorage.setItem(`test_${testId}_visited`, JSON.stringify(visited))
+  }, [visited, testId])
+  useEffect(() => {
+    localStorage.setItem(`test_${testId}_lockedSections`, JSON.stringify(Array.from(lockedSections)))
+  }, [lockedSections, testId])
+
+  // Section questions
+  const sectionQuestions = attempt?.questions?.filter((q) => q.sectionId === sectionId) || []
+  const currentQuestionData = sectionQuestions[currentQuestion - 1]
+
+  // Navigator status logic
+  const getQuestionStatus = (qId: string, qNum: number) => {
+    if (currentQuestion === qNum) return STATUS.CURRENT
+    if (!visited[qId]) return STATUS.NOT_VISITED
+    if (answers[qId] !== undefined && answers[qId] !== null) {
+      if (markedForReview[qId]) return STATUS.ANSWERED_AND_MARKED
+      return STATUS.ANSWERED
+    }
+    if (markedForReview[qId]) return STATUS.MARKED_FOR_REVIEW
+    return STATUS.NOT_ANSWERED
+  }
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case STATUS.ANSWERED: return "bg-green-100 text-black dark:bg-green-200 dark:text-black dark:hover:bg-green-300"
+      case STATUS.NOT_ANSWERED: return "bg-red-300 text-black dark:bg-red-400"
+      case STATUS.ANSWERED_AND_MARKED: return "bg-yellow-300 text-black dark:bg-yellow-400"
+      case STATUS.MARKED_FOR_REVIEW: return "bg-purple-300 text-black dark:bg-purple-400"
+      case STATUS.NOT_VISITED: return "bg-gray-300 text-black dark:bg-gray-400"
+      case STATUS.CURRENT: return "bg-black text-white"
+      default: return "bg-muted"
+    }
   }
 
-  const handleMarkForReview = () => {
-    const questionId = currentQuestionData?._id
-    if (!questionId) return
-    setMarkedForReview(prev => ({
-      ...prev,
-      [questionId]: !prev[questionId]
-    }))
-  }
-
-  const handleClearResponse = () => {
-    const questionId = currentQuestionData?._id
-    if (!questionId) return
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: null
-    }))
-  }
-
-  const submitTest = () => {
-    toast.promise(
-      submitTestMutation({
-        testAttemptId: attemptId,
-        answers,
-        // markedForReview,
-      }),
-      {
-        loading: "Submitting test...",
-        success: () => {
-          localStorage.removeItem(`test_${testId}_remainingTime`);
-          localStorage.removeItem(`test_${testId}_answers`);
-          localStorage.removeItem(`test_${testId}_currentQuestion`);
-          localStorage.removeItem(`test_${testId}_markedForReview`);
-          localStorage.removeItem(`test_${testId}_visited`);
-          router.push(`/tests/${testId}/attempt/${attemptId}/result`)
-          return "Test submitted successfully!"
-        },
-        error: (error) => `Error: ${error.message}`,
-      }
-    )
-  }
-
+  // Section navigation is locked except for current
   const handleSectionChange = (newSectionId: Id<"sections">) => {
+    if (lockedSections.has(newSectionId) || newSectionId !== sections[currentSectionIndex]._id) return
     router.push(`/tests/${testId}/${attemptId}?sectionId=${newSectionId}&questionNumber=1`)
   }
 
+  // Question navigation
   const navigateToQuestion = (number: number) => {
     if (number < 1 || number > sectionQuestions.length) return
     setCurrentQuestion(number)
@@ -170,9 +198,78 @@ const TestPageContainer = ({
     router.push(`/tests/${testId}/${attemptId}?sectionId=${sectionId}&questionNumber=${number}`)
   }
 
-  const hasUnansweredQuestions = () => {
-    return sectionQuestions.some((q) => answers[q._id] === undefined || answers[q._id] === null);
-  };
+  // Mark for review
+  const handleMarkForReview = () => {
+    const questionId = currentQuestionData?._id
+    if (!questionId) return
+    setMarkedForReview(prev => ({
+      ...prev,
+      [questionId]: !prev[questionId]
+    }))
+  }
+
+  // Clear response
+  const handleClearResponse = () => {
+    const questionId = currentQuestionData?._id
+    if (!questionId) return
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: null
+    }))
+  }
+
+  // Section submit logic
+  const handleSubmitSection = () => {
+    setIsDialogOpen(true)
+  }
+  const confirmSubmitSection = async () => {
+    setLockedSections(prev => new Set(prev).add(sections[currentSectionIndex]._id))
+    setIsDialogOpen(false)
+    if (currentSectionIndex + 1 < sections.length) {
+      const nextSectionId = sections[currentSectionIndex + 1]._id
+      router.push(`/tests/${testId}/${attemptId}?sectionId=${nextSectionId}&questionNumber=1`)
+    } else {
+      handleTotalTimeUp()
+    }
+  }
+
+  // Section timer up
+  const handleSectionTimeUp = () => {
+    console.log("handleSectionTimeUp called")
+    confirmSubmitSection()
+  }
+
+  // Total timer up
+  const handleTotalTimeUp = () => {
+    console.log("handleTotalTimeUp called")
+    toast.promise(
+      submitTestMutation({
+        testAttemptId: attemptId,
+        answers,
+      }),
+      {
+        loading: "Submitting test...",
+        success: () => {
+          localStorage.removeItem(`test_${testId}_answers`)
+          localStorage.removeItem(`test_${testId}_markedForReview`)
+          localStorage.removeItem(`test_${testId}_visited`)
+          localStorage.removeItem(`test_${testId}_lockedSections`)
+          router.push(`/tests/${testId}/attempt/${attemptId}/result`)
+          return "Test submitted successfully!"
+        },
+        error: (error) => `Error: ${error.message}`,
+      }
+    )
+  }
+
+  const handleAnswerChange = (value: string) => {
+    const questionId = currentQuestionData?._id
+    if (!questionId) return
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: Number(value)
+    }))
+  }
 
   if (attempt === undefined) {
     return (
@@ -182,7 +279,7 @@ const TestPageContainer = ({
             <CardTitle>Loading Attempt...</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>Please wait while we prepare your test attempt.</p>
+            Please wait while we prepare your test attempt.
           </CardContent>
         </Card>
       </div>
@@ -197,14 +294,13 @@ const TestPageContainer = ({
             <CardTitle>Attempt not found</CardTitle>
           </CardHeader>
           <CardContent>
-            <p>The test attempt you are looking for does not exist.</p>
+            The test attempt you are looking for does not exist.
           </CardContent>
         </Card>
       </div>
     )
   }
 
-  const sectionQuestions = attempt?.questions?.filter((q) => q.sectionId === sectionId) || []
   if (sectionQuestions.length === 0) {
     return (
       <div className="container mx-auto py-10 px-2">
@@ -212,58 +308,15 @@ const TestPageContainer = ({
           <CardHeader>
             <CardTitle>No Questions found</CardTitle>
             <CardDescription>
-              Sorry for the inconvenience the selection section does not have any questions. We are working to add questions as soon as possible.
+              Sorry for the inconvenience the selected section does not have any questions. We are working to add questions as soon as possible.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex gap-2 overflow-scroll max-w-[600px] pb-4">
-              {attempt.sections.map((section) => (
-                <Button
-                  key={section._id}
-                  onClick={() => handleSectionChange(section._id)}
-                  className={`px-4 py-2 rounded-md font-medium ${sectionId === section._id
-                    ? "bg-black text-white"
-                    : "bg-gray-200 text-black hover:bg-gray-300"
-                    }`}
-                >
-                  {section.name}
-                </Button>
-              ))}
-            </div>
-          </CardContent>
         </Card>
       </div>
     )
   }
 
-  if (!remainingTime) return <div>Loading...</div>
-
-  const currentQuestionData = sectionQuestions[currentQuestion - 1]
-
-  // Helper to get status for navigator
-  const getQuestionStatus = (qId: string, qNum: number) => {
-    if (currentQuestion === qNum) return STATUS.CURRENT
-    if (!visited[qId]) return STATUS.NOT_VISITED
-    if (answers[qId] !== undefined && answers[qId] !== null) {
-      if (markedForReview[qId]) return STATUS.ANSWERED_AND_MARKED
-      return STATUS.ANSWERED
-    }
-    if (markedForReview[qId]) return STATUS.MARKED_FOR_REVIEW
-    return STATUS.NOT_ANSWERED
-  }
-
-  // Helper to get color for status
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case STATUS.ANSWERED: return "bg-green-100 text-black dark:bg-green-200 dark:text-black dark:hover:bg-green-300"
-      case STATUS.NOT_ANSWERED: return "bg-red-300 text-black dark:bg-red-400"
-      case STATUS.ANSWERED_AND_MARKED: return "bg-yellow-300 text-black dark:bg-yellow-400"
-      case STATUS.MARKED_FOR_REVIEW: return "bg-purple-300 text-black dark:bg-purple-400"
-      case STATUS.NOT_VISITED: return "bg-gray-300 text-black dark:bg-gray-400"
-      case STATUS.CURRENT: return "bg-black text-white"
-      default: return "bg-muted"
-    }
-  }
+  if (remainingSectionTime === null || remainingTotalTime === null) return <div className="h-screen flex items-center justify-center">Loading...</div>
 
   return (
     <div className="container mx-auto py-6 px-2">
@@ -277,30 +330,39 @@ const TestPageContainer = ({
                   Sections
                 </CardTitle>
                 <div className="flex gap-2 overflow-scroll max-w-[600px] pb-4">
-                  {attempt.sections.map((section) => (
+                  {sections.map((section, idx) => (
                     <Button
                       key={section._id}
                       onClick={() => handleSectionChange(section._id)}
-                      className={`px-4 py-2 rounded-md font-medium ${sectionId === section._id
-                        ? "bg-black text-white"
-                        : "bg-gray-200 text-black hover:bg-gray-300"
+                      disabled={lockedSections.has(section._id) || idx !== currentSectionIndex}
+                      className={`px-4 py-2 rounded-md font-medium
+                        ${idx === currentSectionIndex
+                          ? "bg-black text-white"
+                          : lockedSections.has(section._id)
+                            ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                            : "bg-gray-200 text-black hover:bg-gray-300"
                         }`}
                     >
                       {section.name}
+                      {/* {lockedSections.has(section._id) && (
+                        <span className="ml-2 text-xs">(Locked)</span>
+                      )} */}
                     </Button>
                   ))}
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-row-reverse md:flex-row justify-between w-full md:justify-end">
+                {/* Section Timer */}
                 <TestTimer
-                  remainingTime={remainingTime}
-                  onTimeUp={handleTimeUp}
-                  updateRemainingTime={updateRemainingTime}
+                  remainingTime={remainingSectionTime}
+                  onTimeUp={handleSectionTimeUp}
+                  updateRemainingTime={setRemainingSectionTime}
+                  label="Section Timer"
                 />
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* lets show question number here */}
+              {/* Question number */}
               <div className="space-y-2">
                 <div className="text-sm">
                   Question {currentQuestion} of {sectionQuestions.length}
@@ -308,7 +370,7 @@ const TestPageContainer = ({
                 <div className="text-lg font-medium">{currentQuestionData?.question}</div>
               </div>
               <RadioGroup
-                value={answers[currentQuestionData._id]?.toString() || ""}
+                value={answers[currentQuestionData?._id]?.toString() || ""}
                 onValueChange={handleAnswerChange}
                 className="space-y-3"
               >
@@ -321,7 +383,7 @@ const TestPageContainer = ({
                   </div>
                 ))}
               </RadioGroup>
-              {/* New buttons below question */}
+              {/* Buttons below question */}
               <div className="flex gap-2 mt-4">
                 <Button
                   variant={markedForReview[currentQuestionData._id] ? "secondary" : "outline"}
@@ -352,10 +414,42 @@ const TestPageContainer = ({
               >
                 Next Question
               </Button>
+              <Button
+                className="ml-auto"
+                onClick={handleSubmitSection}
+                disabled={lockedSections.has(sections[currentSectionIndex]._id)}
+              >
+                {currentSectionIndex === sections.length - 1 ? "Submit Test" : "Submit Section"}
+              </Button>
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>
+                      {currentSectionIndex === sections.length - 1 ? "Submit Test" : "Submit Section"}
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <DialogDescription>
+                      {currentSectionIndex === sections.length - 1
+                        ? "Are you sure you want to submit the test? You cannot undo this action."
+                        : "Are you sure you want to submit this section? You cannot undo this action."}
+                    </DialogDescription>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={confirmSubmitSection}>
+                      {currentSectionIndex === sections.length - 1 ? "Submit Test" : "Submit Section"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </CardFooter>
           </Card>
         </div>
 
+        {/* Question Navigator */}
         <div>
           <Card>
             <CardHeader>
@@ -363,10 +457,18 @@ const TestPageContainer = ({
             </CardHeader>
             <CardContent>
               <div className="flex flex-col space-y-4">
+                {/* Total Timer */}
+                <div className="mb-2">
+                  <TestTimer
+                    remainingTime={remainingTotalTime}
+                    onTimeUp={handleTotalTimeUp}
+                    updateRemainingTime={setRemainingTotalTime}
+                    label="Total Timer"
+                  />
+                </div>
                 <div className="text-sm mb-2">
                   <span className="font-medium">Question {currentQuestion}</span> of {sectionQuestions.length}
                 </div>
-
                 <div className="flex flex-col space-y-4">
                   <div className="flex items-center flex-wrap gap-2 max-h-[300px] overflow-y-auto p-1">
                     {sectionQuestions.map((_, index) => {
@@ -387,7 +489,6 @@ const TestPageContainer = ({
                     })}
                   </div>
                 </div>
-
                 {/* Legend */}
                 <div className="mt-2 space-y-2">
                   <div className="flex items-center gap-2">
@@ -417,37 +518,6 @@ const TestPageContainer = ({
                 </div>
               </div>
             </CardContent>
-            <CardFooter>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="w-full" disabled={remainingTime === 0}>
-                    Submit Test
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Submit Test</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    {hasUnansweredQuestions() ? (
-                      <DialogDescription>
-                        Are you sure you want to submit the test?
-                      </DialogDescription>
-                    ) : (
-                      <DialogDescription>
-                        Are you sure you want to submit the test? Once submitted, you cannot make changes.
-                      </DialogDescription>
-                    )}
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={submitTest}>Submit</Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </CardFooter>
           </Card>
         </div>
       </div>

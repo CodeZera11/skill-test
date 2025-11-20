@@ -8,9 +8,10 @@ interface TestTimerProps {
   remainingTime: number
   onTimeUp: () => void
   updateRemainingTime: (time: number) => void
+  label?: string
 }
 
-export function TestTimer({ remainingTime, onTimeUp, updateRemainingTime }: TestTimerProps) {
+export function TestTimer({ remainingTime, onTimeUp, updateRemainingTime, label }: TestTimerProps) {
   const [timeRemaining, setTimeRemaining] = useState(remainingTime)
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export function TestTimer({ remainingTime, onTimeUp, updateRemainingTime }: Test
     <div className="p-4 space-y-2 border rounded-md">
       <div className="flex items-center gap-2">
         <Clock className="h-5 w-5" />
-        <span className="font-medium">Time Remaining</span>
+        <span className="font-medium">{label || "Time Remaining"}</span>
       </div>
       <div className="text-2xl font-bold text-center">{formatTime(timeRemaining)}</div>
       <Progress value={progressPercentage} className="h-2" />
