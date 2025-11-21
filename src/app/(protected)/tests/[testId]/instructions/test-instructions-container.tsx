@@ -28,7 +28,15 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
       toast.promise(attemptTest({ testId, userId: user._id }), {
         loading: "Starting test...",
         success: (testAttemptId) => {
-          if(!test) return;
+          if (!test) return;
+
+          // clear any old local storage total test time
+          localStorage.removeItem(`test_${testId}_remainingTime`)
+
+          // clear any old local storage section times
+          test.sections.forEach((section) => {
+            localStorage.removeItem(`test_${testId}_section_${section._id}_remainingTime`)
+          })
 
           const firstSectionId = test.sections[0]._id // Get the first section ID
           router.push(`/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`) // Navigate to the test page
