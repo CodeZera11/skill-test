@@ -119,8 +119,7 @@ const TestPageContainer = ({
   }
 
   const handleSectionTimeUp = () => {
-    // Auto-navigate to next section or submit test if last section
-
+    submitSection()
   }
 
   const handleTimeUp = () => {
