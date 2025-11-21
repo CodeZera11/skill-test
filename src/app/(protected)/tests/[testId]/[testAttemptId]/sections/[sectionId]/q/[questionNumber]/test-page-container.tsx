@@ -120,6 +120,7 @@ const TestPageContainer = ({
 
   const handleSectionTimeUp = () => {
     // Auto-navigate to next section or submit test if last section
+
   }
 
   const handleTimeUp = () => {
@@ -155,6 +156,37 @@ const TestPageContainer = ({
       ...prev,
       [questionId]: null
     }))
+  }
+
+  const submitSection = () => {
+    // do 3 things in this function.
+    // 1. check the index number for current section if its last then call submitTest
+    // 2. if not then take the user to next section
+    // 3. close the dialog
+
+
+    const currentSectionIndex = attempt?.sections.findIndex(val => val._id === sectionId);
+
+    if(currentSectionIndex === undefined || currentSectionIndex === -1) {
+      console.error("Current section index is undefined or invalid.");
+      return;
+    }
+
+    // set questionNumber to 1
+    setCurrentQuestion(1)
+
+    setIsDialogOpen(false);
+
+    if (currentSectionIndex === (attempt?.sections.length || 0) - 1) {
+      // Last section, submit the test
+      submitTest();
+    } else {
+      // Not last section, navigate to next section
+      const nextSectionId = attempt?.sections[currentSectionIndex + 1]._id;
+      if (nextSectionId) {
+        router.push(`/tests/${testId}/${attemptId}?sectionId=${nextSectionId}&questionNumber=1`);
+      }
+    }
   }
 
   const submitTest = () => {
@@ -313,6 +345,7 @@ const TestPageContainer = ({
                         ? "bg-black text-white"
                         : "bg-gray-200 text-black hover:bg-gray-300"
                         }`}
+                      disabled={section._id !== sectionId}
                     >
                       {section.name}
                     </Button>
@@ -337,11 +370,11 @@ const TestPageContainer = ({
                 <div className="text-lg font-medium">{currentQuestionData?.question}</div>
               </div>
               <RadioGroup
-                value={answers[currentQuestionData._id]?.toString() || ""}
+                value={answers[currentQuestionData?._id]?.toString() || ""}
                 onValueChange={handleAnswerChange}
                 className="space-y-3"
               >
-                {currentQuestionData.options.map((option, index) => (
+                {currentQuestionData?.options.map((option, index) => (
                   <div key={index} className="flex items-center space-x-2 border p-3 rounded-md hover:bg-muted">
                     <RadioGroupItem value={index.toString()} id={`option-${index}`} />
                     <Label htmlFor={`option-${index}`} className="flex-grow cursor-pointer">
@@ -353,10 +386,10 @@ const TestPageContainer = ({
               {/* New buttons below question */}
               <div className="flex gap-2 mt-4">
                 <Button
-                  variant={markedForReview[currentQuestionData._id] ? "secondary" : "outline"}
+                  variant={markedForReview[currentQuestionData?._id] ? "secondary" : "outline"}
                   onClick={handleMarkForReview}
                 >
-                  {markedForReview[currentQuestionData._id] ? "Unmark Review" : "Mark for Review"}
+                  {markedForReview[currentQuestionData?._id] ? "Unmark Review" : "Mark for Review"}
                 </Button>
                 <Button
                   variant="outline"
@@ -456,21 +489,21 @@ const TestPageContainer = ({
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button className="w-full" disabled={remainingTime === 0}>
-                    Submit Test
+                    Submit Section
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Submit Test</DialogTitle>
+                    <DialogTitle>Submit Section</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     {hasUnansweredQuestions() ? (
                       <DialogDescription>
-                        Are you sure you want to submit the test?
+                        Are you sure you want to submit this section?
                       </DialogDescription>
                     ) : (
                       <DialogDescription>
-                        Are you sure you want to submit the test? Once submitted, you cannot make changes.
+                        Are you sure you want to submit this section? Once submitted, you cannot make changes.
                       </DialogDescription>
                     )}
                   </div>
@@ -478,7 +511,7 @@ const TestPageContainer = ({
                     <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={submitTest}>Submit</Button>
+                    <Button onClick={submitSection}>Submit</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
