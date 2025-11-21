@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Id } from "~/convex/_generated/dataModel"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "~/convex/_generated/api"
@@ -14,7 +13,6 @@ import { toast } from "sonner"
 import { formatSeconds } from "@/lib/utils"
 
 const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
-  const router = useRouter()
   const test = useQuery(api.tests.getByIdWithSections, { id: testId })
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const attemptTest = useMutation(api.testAttempts.startTestAttempt)
@@ -30,16 +28,21 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
         success: (testAttemptId) => {
           if (!test) return;
 
-          // clear any old local storage total test time
-          localStorage.removeItem(`test_${testId}_remainingTime`)
-
-          // clear any old local storage section times
-          test.sections.forEach((section) => {
-            localStorage.removeItem(`test_${testId}_section_${section._id}_remainingTime`)
-          })
+          localStorage.clear() // Clear local storage to remove any previous test data
 
           const firstSectionId = test.sections[0]._id // Get the first section ID
-          router.push(`/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`) // Navigate to the test page
+
+          // router.push(`/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`)
+
+          // navigate to test page on a new window like a real test
+          const win = window.open(`/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`, "examWindow",
+            "popup=yes,width=1200,height=800")
+
+          if (!win) {
+            alert("Popup blocked! Please allow popups to start the test.");
+          }
+
+
           return "Test started successfully"
         },
         error: (err) => `Error starting test: ${err}`,

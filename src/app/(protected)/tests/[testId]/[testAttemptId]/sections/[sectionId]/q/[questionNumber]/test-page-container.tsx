@@ -87,7 +87,7 @@ const TestPageContainer = ({
 
   useEffect(() => {
     if (currentSectionDurationInSeconds) {
-      setSectionTimer(currentSectionDurationInSeconds);
+      // setSectionTimer(currentSectionDurationInSeconds);
       const savedSectionTime = localStorage.getItem(`test_${testId}_section_${sectionId}_remainingTime`);
       if (savedSectionTime) {
         setSectionTimer(Number(savedSectionTime));
@@ -159,31 +159,25 @@ const TestPageContainer = ({
   }
 
   const submitSection = () => {
-    // do 3 things in this function.
-    // 1. check the index number for current section if its last then call submitTest
-    // 2. if not then take the user to next section
-    // 3. close the dialog
-
-
     const currentSectionIndex = attempt?.sections.findIndex(val => val._id === sectionId);
 
-    if(currentSectionIndex === undefined || currentSectionIndex === -1) {
+    if (currentSectionIndex === undefined || currentSectionIndex === -1) {
       console.error("Current section index is undefined or invalid.");
       return;
     }
 
-    // set questionNumber to 1
     setCurrentQuestion(1)
-
     setIsDialogOpen(false);
 
     if (currentSectionIndex === (attempt?.sections.length || 0) - 1) {
-      // Last section, submit the test
       submitTest();
     } else {
-      // Not last section, navigate to next section
       const nextSectionId = attempt?.sections[currentSectionIndex + 1]._id;
+      const nextSectionDuration = attempt?.sections[currentSectionIndex + 1].durationInSeconds || 0;
+
       if (nextSectionId) {
+        localStorage.removeItem(`test_${testId}_section_${nextSectionId}_remainingTime`);
+        setSectionTimer(nextSectionDuration);
         router.push(`/tests/${testId}/${attemptId}?sectionId=${nextSectionId}&questionNumber=1`);
       }
     }
@@ -358,6 +352,7 @@ const TestPageContainer = ({
                   onTimeUp={handleSectionTimeUp}
                   updateRemainingTime={updateSectionTime}
                   label="Section Time Remaining"
+                  totalTime={currentSectionDurationInSeconds}
                 />
               </div>
             </CardHeader>
@@ -426,6 +421,7 @@ const TestPageContainer = ({
                 onTimeUp={handleTimeUp}
                 updateRemainingTime={updateRemainingTime}
                 label="Total Time Remaining"
+                totalTime={totalTestDurationInSeconds || 0}
               />
               <CardTitle>Question Navigator</CardTitle>
             </CardHeader>

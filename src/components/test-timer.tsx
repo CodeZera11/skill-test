@@ -9,10 +9,21 @@ interface TestTimerProps {
   onTimeUp: () => void
   updateRemainingTime: (time: number) => void
   label?: string
+  totalTime: number
 }
 
-export function TestTimer({ remainingTime, onTimeUp, updateRemainingTime, label }: TestTimerProps) {
+export function TestTimer({ remainingTime, onTimeUp, updateRemainingTime, label, totalTime }: TestTimerProps) {
   const [timeRemaining, setTimeRemaining] = useState(remainingTime)
+  const [progressPercentage, setProgressPercentage] = useState(100)
+
+  useEffect(() => {
+    const percentage = (remainingTime / totalTime) * 100
+    setProgressPercentage(percentage)
+  }, [remainingTime, totalTime])
+
+  useEffect(() => {
+    setTimeRemaining(remainingTime)
+  }, [remainingTime])
 
   useEffect(() => {
 
@@ -38,7 +49,7 @@ export function TestTimer({ remainingTime, onTimeUp, updateRemainingTime, label 
     return `${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`
   }
 
-  const progressPercentage = (timeRemaining / remainingTime) * 100
+
 
   return (
     <div className="p-4 space-y-2 border rounded-md">
