@@ -6,14 +6,11 @@ import { ModeToggle } from '../theme-switcher'
 import { motion } from "framer-motion"
 import { Button } from '../ui/button'
 import { Authenticated, Unauthenticated } from 'convex/react'
-import { useCurrentUser } from '@/hooks/use-current-user'
-import { Skeleton } from '../ui/skeleton'
 import ClerkUserButton from '../auth/user-button'
 import Image from 'next/image'
 
 const PublicNav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { isLoading } = useCurrentUser()
 
   return (
     <header className="border-b sticky top-0 bg-white/40 dark:bg-background/40 backdrop-blur-lg z-50">
@@ -66,9 +63,6 @@ const PublicNav = () => {
           <Authenticated>
             <ClerkUserButton />
           </Authenticated>
-          {isLoading && (
-            <Skeleton className='h-[28px] w-[28px] rounded-full' />
-          )}
         </nav>
       </div>
 
@@ -115,9 +109,6 @@ const PublicNav = () => {
             <Authenticated>
               <ClerkUserButton />
             </Authenticated>
-            {isLoading && (
-              <Skeleton className='h-[28px] w-[28px] rounded-full' />
-            )}
           </div>
         </motion.div>
       )}
