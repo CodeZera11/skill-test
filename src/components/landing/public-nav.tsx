@@ -18,8 +18,13 @@ const PublicNav = () => {
   return (
     <header className="border-b sticky top-0 bg-white/40 dark:bg-background/40 backdrop-blur-lg z-50">
       <div className="container mx-auto px-4 py-0 flex justify-between items-center">
-        <Link href="/" className="flex items-center space-x-2">
+        <Link href="/" className="flex items-center space-x-0">
           <Image src="/logo.png" alt='main-logo' className='object-fill' width={75} height={75} />
+          <span
+            className="text-md font-bold -ml-2 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 bg-clip-text text-transparent"
+          >
+            Skill Test
+          </span>
         </Link>
 
         {/* Mobile menu button */}
