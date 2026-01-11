@@ -7,7 +7,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "pleasant-puffin-156.convex.cloud",
-        
+      },
+      {
+        protocol: "https",
+        hostname: "proficient-eel-711.convex.cloud",
       },
     ],
   },
