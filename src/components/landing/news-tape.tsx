@@ -12,7 +12,7 @@ import { News } from "~/convex/news";
 const NewsTape = () => {
   const latestNews = useQuery(api.news.getLatestNews, { limit: 6 });
 
-  const FAST_DURATION = 55; // Fast scrolling speed
+  const FAST_DURATION = 75; // Fast scrolling speed
   const SLOW_DURATION = 75; // Slow scrolling speed
 
   const [duration, setDuration] = useState(FAST_DURATION);
