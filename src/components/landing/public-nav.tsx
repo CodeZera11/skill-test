@@ -20,7 +20,7 @@ const PublicNav = () => {
           <span
             className="text-md font-bold -ml-2 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 bg-clip-text text-transparent"
           >
-            Skill Test
+            SkillTest
           </span>
         </Link>
 
