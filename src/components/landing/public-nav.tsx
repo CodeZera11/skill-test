@@ -18,7 +18,7 @@ const PublicNav = () => {
         <Link href="/" className="flex items-center space-x-0">
           <Image src="/logo.png" alt='main-logo' className='object-fill' width={75} height={75} />
           <span
-            className="text-md font-bold -ml-2 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 bg-clip-text text-transparent"
+            className="text-xl font-bold -ml-2 bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 bg-clip-text text-transparent"
           >
             SkillTest
           </span>
