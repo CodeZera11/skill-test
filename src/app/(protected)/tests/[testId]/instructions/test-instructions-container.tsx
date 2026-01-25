@@ -11,8 +11,10 @@ import { api } from "~/convex/_generated/api"
 import { useCurrentUser } from "@/hooks/use-current-user"
 import { toast } from "sonner"
 import { formatSeconds } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 
 const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
+  const router = useRouter();
   const test = useQuery(api.tests.getByIdWithSections, { id: testId })
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const attemptTest = useMutation(api.testAttempts.startTestAttempt)
@@ -50,39 +52,27 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
 
   const startTest = async () => {
     if (isLoading || !isAuthenticated || !user) return
-    if (!agreedToTerms) return
-
-    // 1. Open window immediately (user gesture)
-    const examWindow = window.open(
-      "about:blank",
-      "examWindow",
-      "popup=yes,width=1200,height=800"
-    )
-
-    if (!examWindow) {
-      alert("Popup blocked! Please allow popups to start the test.")
-      return
-    }
-
-    examWindow.document.write("Starting your test...")
+    if (!agreedToTerms || !test) return
 
     try {
-      const testAttemptId = await attemptTest({ testId, userId: user._id })
-
-      if (!test) return
+      const testAttemptId = await attemptTest({
+        testId,
+        userId: user._id,
+      })
 
       localStorage.clear()
 
       const firstSectionId = test.sections[0]._id
 
-      // 2. Navigate the already-open window
-      examWindow.location.href = `/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`
-
       toast.success("Test started successfully")
+
+      // Navigate in the SAME TAB
+      router.push(
+        `/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`
+      )
     } catch (err) {
       console.error("Error starting test:", err)
-      examWindow.close()
-      toast.error(`Error starting test`)
+      toast.error("Error starting test")
     }
   }
 
