@@ -19,36 +19,73 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
 
   const { user, isLoading, isAuthenticated } = useCurrentUser()
 
-  const startTest = () => {
+  // const startTest = () => {
+  //   if (isLoading || !isAuthenticated || !user) return
+
+  //   if (agreedToTerms) {
+  //     toast.promise(attemptTest({ testId, userId: user._id }), {
+  //       loading: "Starting test...",
+  //       success: (testAttemptId) => {
+  //         if (!test) return;
+
+  //         localStorage.clear() // Clear local storage to remove any previous test data
+
+  //         const firstSectionId = test.sections[0]._id // Get the first section ID
+
+  //         // navigate to test page on a new window like a real test
+  //         const win = window.open(`/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`, "examWindow",
+  //           "popup=yes,width=1200,height=800")
+
+  //         if (!win) {
+  //           alert("Popup blocked! Please allow popups to start the test.");
+  //         }
+
+
+  //         return "Test started successfully"
+  //       },
+  //       error: (err) => `Error starting test: ${err}`,
+  //     })
+  //   }
+  // }
+
+  const startTest = async () => {
     if (isLoading || !isAuthenticated || !user) return
+    if (!agreedToTerms) return
 
-    if (agreedToTerms) {
-      toast.promise(attemptTest({ testId, userId: user._id }), {
-        loading: "Starting test...",
-        success: (testAttemptId) => {
-          if (!test) return;
+    // 1. Open window immediately (user gesture)
+    const examWindow = window.open(
+      "about:blank",
+      "examWindow",
+      "popup=yes,width=1200,height=800"
+    )
 
-          localStorage.clear() // Clear local storage to remove any previous test data
+    if (!examWindow) {
+      alert("Popup blocked! Please allow popups to start the test.")
+      return
+    }
 
-          const firstSectionId = test.sections[0]._id // Get the first section ID
+    examWindow.document.write("Starting your test...")
 
-          // router.push(`/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`)
+    try {
+      const testAttemptId = await attemptTest({ testId, userId: user._id })
 
-          // navigate to test page on a new window like a real test
-          const win = window.open(`/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`, "examWindow",
-            "popup=yes,width=1200,height=800")
+      if (!test) return
 
-          if (!win) {
-            alert("Popup blocked! Please allow popups to start the test.");
-          }
+      localStorage.clear()
 
+      const firstSectionId = test.sections[0]._id
 
-          return "Test started successfully"
-        },
-        error: (err) => `Error starting test: ${err}`,
-      })
+      // 2. Navigate the already-open window
+      examWindow.location.href = `/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`
+
+      toast.success("Test started successfully")
+    } catch (err) {
+      console.error("Error starting test:", err)
+      examWindow.close()
+      toast.error(`Error starting test`)
     }
   }
+
 
   if (test === undefined) {
     return (
