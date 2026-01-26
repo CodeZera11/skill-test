@@ -19,7 +19,7 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const attemptTest = useMutation(api.testAttempts.startTestAttempt)
 
-  const { user, isLoading, isAuthenticated } = useCurrentUser()
+  const { user, isAuthenticated } = useCurrentUser()
 
   // const startTest = () => {
   //   if (isLoading || !isAuthenticated || !user) return
@@ -54,15 +54,9 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
     console.log("🚀 startTest clicked")
 
     console.log("Auth state:", {
-      isLoading,
       isAuthenticated,
       user,
     })
-
-    if (isLoading) {
-      console.log("⛔ Blocked: isLoading is true")
-      return
-    }
 
     if (!isAuthenticated) {
       console.log("⛔ Blocked: not authenticated")
