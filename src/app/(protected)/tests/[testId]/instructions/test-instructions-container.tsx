@@ -11,10 +11,8 @@ import { api } from "~/convex/_generated/api"
 import { useCurrentUser } from "@/hooks/use-current-user"
 import { toast } from "sonner"
 import { formatSeconds } from "@/lib/utils"
-import { useRouter } from "next/navigation"
 
 const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
-  const router = useRouter();
   const test = useQuery(api.tests.getByIdWithSections, { id: testId })
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const attemptTest = useMutation(api.testAttempts.startTestAttempt)
@@ -51,66 +49,63 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
   // }
 
   const startTest = async () => {
-    console.log("🚀 startTest clicked")
-
-    console.log("Auth state:", {
-      isAuthenticated,
-      user,
-    })
-
-    if (!isAuthenticated) {
-      console.log("⛔ Blocked: not authenticated")
-      toast.error("You are not authenticated")
+    if (!isAuthenticated || !user) {
+      toast.error("Please log in to start the test")
       return
     }
 
-    if (!user) {
-      console.log("⛔ Blocked: user is null")
-      toast.error("User not loaded")
+    if (!agreedToTerms || !test) {
       return
     }
 
-    if (!agreedToTerms) {
-      console.log("⛔ Blocked: terms not agreed")
+    // 1️⃣ Open popup immediately (sync user gesture)
+    const popup = window.open(
+      "about:blank",
+      "examWindow",
+      "popup=yes,width=1200,height=800"
+    )
+
+    // 2️⃣ Detect popup blocker
+    if (!popup) {
+      toast.error("Popups are blocked. Please allow popups to start the test.")
       return
     }
-
-    if (!test) {
-      console.log("⛔ Blocked: test not loaded")
-      return
-    }
-
-    console.log("✅ Preconditions passed")
 
     try {
-      console.log("🧪 Starting test attempt mutation…")
+      // Optional placeholder content
+      popup.document.write(`
+        <html>
+          <head>
+            <title>Starting Test...</title>
+          </head>
+          <body style="font-family: sans-serif; display:flex; align-items:center; justify-content:center; height:100vh;">
+            <h2>Starting your test, please wait…</h2>
+          </body>
+        </html>
+      `)
+      popup.document.close()
 
+      // 3️⃣ Create test attempt
       const testAttemptId = await attemptTest({
         testId,
         userId: user._id,
       })
 
-      console.log("✅ Mutation resolved:", testAttemptId)
-
-      console.log("🧹 Clearing localStorage")
       localStorage.clear()
 
       const firstSectionId = test.sections[0]?._id
-      console.log("📌 First section ID:", firstSectionId)
-
       const url = `/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`
-      console.log("➡️ Navigating to:", url)
+
+      // 4️⃣ Navigate already-open popup
+      popup.location.href = url
 
       toast.success("Test started successfully")
-
-      router.push(url)
-
-      console.log("✅ router.push called")
-    } catch (err) {
-      console.error("🔥 Error starting test:", err)
-      toast.error("Error starting test")
+    } catch {
+      popup.close()
+      toast.error("Failed to start test. Please try again.")
     }
   }
+
 
 
   if (test === undefined) {
