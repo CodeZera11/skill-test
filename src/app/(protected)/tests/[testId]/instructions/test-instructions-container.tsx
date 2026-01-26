@@ -21,8 +21,6 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
 
   const { user, isAuthenticated } = useCurrentUser()
 
-  console.log({ user, isAuthenticated })
-
   // const startTest = () => {
   //   if (isLoading || !isAuthenticated || !user) return
 
