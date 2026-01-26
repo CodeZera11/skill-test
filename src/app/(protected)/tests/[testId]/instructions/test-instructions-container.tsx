@@ -51,27 +51,69 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
   // }
 
   const startTest = async () => {
-    if (isLoading || !isAuthenticated || !user) return
-    if (!agreedToTerms || !test) return
+    console.log("🚀 startTest clicked")
+
+    console.log("Auth state:", {
+      isLoading,
+      isAuthenticated,
+      user,
+    })
+
+    if (isLoading) {
+      console.log("⛔ Blocked: isLoading is true")
+      return
+    }
+
+    if (!isAuthenticated) {
+      console.log("⛔ Blocked: not authenticated")
+      toast.error("You are not authenticated")
+      return
+    }
+
+    if (!user) {
+      console.log("⛔ Blocked: user is null")
+      toast.error("User not loaded")
+      return
+    }
+
+    if (!agreedToTerms) {
+      console.log("⛔ Blocked: terms not agreed")
+      return
+    }
+
+    if (!test) {
+      console.log("⛔ Blocked: test not loaded")
+      return
+    }
+
+    console.log("✅ Preconditions passed")
 
     try {
+      console.log("🧪 Starting test attempt mutation…")
+
       const testAttemptId = await attemptTest({
         testId,
         userId: user._id,
       })
 
+      console.log("✅ Mutation resolved:", testAttemptId)
+
+      console.log("🧹 Clearing localStorage")
       localStorage.clear()
 
-      const firstSectionId = test.sections[0]._id
+      const firstSectionId = test.sections[0]?._id
+      console.log("📌 First section ID:", firstSectionId)
+
+      const url = `/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`
+      console.log("➡️ Navigating to:", url)
 
       toast.success("Test started successfully")
 
-      // Navigate in the SAME TAB
-      router.push(
-        `/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`
-      )
+      router.push(url)
+
+      console.log("✅ router.push called")
     } catch (err) {
-      console.error("Error starting test:", err)
+      console.error("🔥 Error starting test:", err)
       toast.error("Error starting test")
     }
   }
