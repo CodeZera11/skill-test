@@ -2,7 +2,6 @@
 
 import { Menu, X } from "lucide-react"
 import Link from "next/link"
-import Image from "next/image"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "../ui/button"
@@ -10,6 +9,7 @@ import { ModeToggle } from "../theme-switcher"
 import { SignedIn, SignedOut } from "@clerk/nextjs"
 import ClerkUserButton from "../auth/user-button"
 import GlobalSearch from "../global-search"
+import LogoWithText from "../logo-with-text"
 
 const PublicNav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -18,23 +18,7 @@ const PublicNav = () => {
     <header className="sticky top-0 z-50 border-b bg-white/40 backdrop-blur-lg dark:bg-background/40">
       <div className="container mx-auto flex items-center gap-6 px-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-0 shrink-0">
-          <Image
-            src="/logo.png"
-            alt="SkillTest logo"
-            width={72}
-            height={72}
-            priority
-          />
-          <div className="flex flex-col -ml-1">
-            <span className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 bg-clip-text text-xl font-bold text-transparent">
-              SkillTest
-            </span>
-            <span className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 bg-clip-text text-xs font-light italic text-transparent -mt-1">
-              Let&apos;s Practice together
-            </span>
-          </div>
-        </Link>
+        <LogoWithText />
 
         {/* Global Search (desktop only for now) */}
         <div className="hidden md:flex flex-1 justify-center">

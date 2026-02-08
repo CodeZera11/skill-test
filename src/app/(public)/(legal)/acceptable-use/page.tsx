@@ -1,3 +1,5 @@
+import Footer from "@/components/landing/footer";
+
 export default function AcceptableUsePolicyPage() {
   return (
     <div className="min-h-screen transition-colors">
@@ -176,12 +178,7 @@ export default function AcceptableUsePolicyPage() {
         </section>
 
         {/* Footer */}
-        <footer className="pt-8 border-t border-gray-200 dark:border-gray-700">
-          <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-            <p>Last updated: {new Date().toLocaleDateString()}</p>
-            <p className="mt-2">For questions about this Acceptable Use Policy, please contact our support team.</p>
-          </div>
-        </footer>
+        <Footer />
       </div>
     </div>
   )

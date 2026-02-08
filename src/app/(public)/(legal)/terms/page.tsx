@@ -1,3 +1,5 @@
+import Footer from "@/components/landing/footer";
+
 export default function TermsPage() {
   return (
     <div className="min-h-screen transition-colors">
@@ -367,14 +369,8 @@ export default function TermsPage() {
         </section>
 
         {/* Footer */}
-        <footer className="pt-8 border-t border-gray-200 dark:border-gray-700">
-          <div className="text-center text-sm text-gray-500 dark:text-gray-400">
-            <p>Last updated: {new Date().toLocaleDateString()}</p>
-            <p className="mt-2">
-              For questions about these Terms and Conditions, please contact our support team at support@skilltest.in
-            </p>
-          </div>
-        </footer>
+        <Footer />
+
       </div>
     </div>
   )

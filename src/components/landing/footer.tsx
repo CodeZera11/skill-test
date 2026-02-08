@@ -1,49 +1,64 @@
 "use client"
 
-import Image from 'next/image'
 import Link from 'next/link'
+import Image from 'next/image'
 
 const Footer = () => {
 
   return (
     <footer className="border-t mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-[96rem] mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Information */}
           <div className="space-y-4">
             <div>
-              <Link href="/" className="">
-                <Image src="/logo.png" alt='main-logo' className='object-fill -ml-4' width={75} height={75} />
+              <Link href="/" className="flex items-center gap-0 -ml-4">
+                <Image
+                  src="/logo.png"
+                  alt="SkillTest logo"
+                  width={72}
+                  height={72}
+                  priority
+                />
+                <div className="flex flex-col -ml-1">
+                  <span className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 bg-clip-text text-xl font-bold text-transparent">
+                    SkillTest
+                  </span>
+                  <span className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 bg-clip-text text-xs font-light italic text-transparent -mt-1">
+                    Let&apos;s Practice together
+                  </span>
+                </div>
               </Link>
-              <p className="text-sm font-bold mb-4">
-                Skilltest Educations
-              </p>
               <div className='space-y-1 text-neutral-500 dark:text-gray-200 mb-4'>
                 <p className="text-sm">
-                  Contact Us
+                  Connect with Us
                 </p>
                 <p className="text-sm">
-                  Kota, Rajasthan
+                  2-M-29, Talwandi, Kota, Rajasthan
                 </p>
                 <p className="text-sm">
                   India - 324005
                 </p>
               </div>
 
+              {/* Address : 
+E mail : support@skilltest.co.in
+Whatsapp : +91- 9414886929 */}
+
               <Link
                 // mailto href
-                href="mailto:support@skilltest.in"
+                href="mailto:support@skilltest.co.in"
                 className="text-sm transition-colors underline"
                 target="_blank"
               >
-                support@skilltest.in
+                support@skilltest.co.in
               </Link>
 
               <p className='text-sm mt-1'>
-                Helpline
+                Whatsapp
               </p>
               <p className='text-sm'>
-                9000012345
+                +91-9414886929
               </p>
             </div>
 

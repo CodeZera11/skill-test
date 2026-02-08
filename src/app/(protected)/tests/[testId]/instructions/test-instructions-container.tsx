@@ -19,35 +19,6 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
 
   const { user, isAuthenticated } = useCurrentUser()
 
-  // const startTest = () => {
-  //   if (isLoading || !isAuthenticated || !user) return
-
-  //   if (agreedToTerms) {
-  //     toast.promise(attemptTest({ testId, userId: user._id }), {
-  //       loading: "Starting test...",
-  //       success: (testAttemptId) => {
-  //         if (!test) return;
-
-  //         localStorage.clear() // Clear local storage to remove any previous test data
-
-  //         const firstSectionId = test.sections[0]._id // Get the first section ID
-
-  //         // navigate to test page on a new window like a real test
-  //         const win = window.open(`/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`, "examWindow",
-  //           "popup=yes,width=1200,height=800")
-
-  //         if (!win) {
-  //           alert("Popup blocked! Please allow popups to start the test.");
-  //         }
-
-
-  //         return "Test started successfully"
-  //       },
-  //       error: (err) => `Error starting test: ${err}`,
-  //     })
-  //   }
-  // }
-
   const startTest = async () => {
     if (!isAuthenticated || !user) {
       toast.error("Please log in to start the test")
@@ -168,6 +139,7 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
               <li>The timer will start as soon as you begin the test.</li>
               <li>Your test will be automatically submitted when the time expires.</li>
               <li>Do not refresh the page during the test as it may result in loss of answers.</li>
+              <li>This test paper is meant solely for practice purpose only and  under no circumstances should be presumed as sample paper.</li>
             </ul>
           </div>
 

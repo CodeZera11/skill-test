@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { ChevronRight, ChevronLeft, CheckCircle, Search, FileText, Clock } from "lucide-react"
+import { ChevronRight, ChevronLeft, Search, FileText, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,6 +14,7 @@ import { useQuery } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 import { fadeIn, staggerContainer } from "@/constants/animations"
 import { format } from "date-fns"
+import Footer from "@/components/landing/footer"
 
 export default function SubCategoriesPage() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -214,19 +215,7 @@ export default function SubCategoriesPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-100 dark:bg-slate-900/50 py-8">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <CheckCircle className="h-5 w-5 text-emerald-500" />
-              <span className="font-medium">Skill Test</span>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              &copy; {new Date().getFullYear()} Skill Test. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
