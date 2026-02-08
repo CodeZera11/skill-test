@@ -18,6 +18,7 @@ import type * as files from "../files.js";
 import type * as http from "../http.js";
 import type * as news from "../news.js";
 import type * as questions from "../questions.js";
+import type * as search from "../search.js";
 import type * as sections from "../sections.js";
 import type * as subCategories from "../subCategories.js";
 import type * as testAttempts from "../testAttempts.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   news: typeof news;
   questions: typeof questions;
+  search: typeof search;
   sections: typeof sections;
   subCategories: typeof subCategories;
   testAttempts: typeof testAttempts;

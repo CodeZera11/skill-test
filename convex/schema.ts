@@ -8,13 +8,15 @@ export default defineSchema({
     firstName: v.optional(v.string()),
     lastName: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
-    role: v.optional(v.string()), // e.g., "admin", "user", "moderator"
+    role: v.optional(v.string()),
   }).index("byClerkUserId", ["clerkUserId"]),
 
-  // News articles
+  // --------------------
+  // News
+  // --------------------
   news: defineTable({
     title: v.string(),
-    description: v.string(), // less than 200 words
+    description: v.string(),
     externalLink: v.optional(v.string()),
     isPublished: v.boolean(),
     publishedAt: v.optional(v.number()),
@@ -25,7 +27,9 @@ export default defineSchema({
     filterFields: ["isPublished", "publishedAt", "createdAt"],
   }),
 
-  // Top level topic eg: "Bank Exams", "Govt Exams"
+  // --------------------
+  // Topics
+  // --------------------
   topics: defineTable({
     name: v.string(),
     description: v.optional(v.string()),
@@ -35,10 +39,12 @@ export default defineSchema({
     updatedAt: v.number(),
   }).searchIndex("search_name", {
     searchField: "name",
-    filterFields: ["createdAt", "updatedAt"],
+    filterFields: ["isPublished", "createdAt", "updatedAt"],
   }),
 
-  // Main categories (e.g., "Clerk Exam")
+  // --------------------
+  // Categories
+  // --------------------
   categories: defineTable({
     name: v.string(),
     description: v.optional(v.string()),
@@ -48,10 +54,12 @@ export default defineSchema({
     updatedAt: v.number(),
   }).searchIndex("search_name", {
     searchField: "name",
-    filterFields: ["createdAt", "updatedAt"],
+    filterFields: ["isPublished", "createdAt", "updatedAt"],
   }),
 
-  // Sub-categories (e.g., "Memory Based Papers", "Practice Papers")
+  // --------------------
+  // Sub-categories
+  // --------------------
   subCategories: defineTable({
     name: v.string(),
     description: v.optional(v.string()),
@@ -60,14 +68,14 @@ export default defineSchema({
     imageStorageId: v.id("_storage"),
     createdAt: v.number(),
     updatedAt: v.number(),
-  })
-    .searchIndex("search_name", {
-      searchField: "name",
-      filterFields: ["createdAt", "updatedAt"],
-    })
-    .index("by_categoryId", ["categoryId"]),
+  }).searchIndex("search_name", {
+    searchField: "name",
+    filterFields: ["isPublished", "createdAt", "updatedAt"],
+  }),
 
-  // Tests (e.g., "Test 1", "Test 2" under Memory Based Papers)
+  // --------------------
+  // Tests
+  // --------------------
   tests: defineTable({
     name: v.string(),
     description: v.optional(v.string()),
@@ -76,15 +84,17 @@ export default defineSchema({
     isPublished: v.boolean(),
     totalMarks: v.optional(v.number()),
     durationInSeconds: v.optional(v.number()),
-    attempts: v.optional(v.number()), // total number of attempts of the test
+    attempts: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
-  })
-    .searchIndex("search_name", {
-      searchField: "name",
-    })
-    .index("by_subCategoryId", ["subCategoryId"]),
-  // Sections within each test (e.g., "General Knowledge", "Mathematics")
+  }).searchIndex("search_name", {
+    searchField: "name",
+    filterFields: ["isPublished", "createdAt", "updatedAt"],
+  }),
+
+  // --------------------
+  // Sections
+  // --------------------
   sections: defineTable({
     name: v.string(),
     description: v.optional(v.string()),
@@ -93,27 +103,30 @@ export default defineSchema({
     totalQuestions: v.number(),
     createdAt: v.number(),
     updatedAt: v.number(),
-  })
-    .searchIndex("search_name", {
-      searchField: "name",
-    })
-    .index("by_testId", ["testId"]),
+  }).searchIndex("search_name", {
+    searchField: "name",
+    filterFields: ["createdAt", "updatedAt"],
+  }),
 
-  // Questions within each section
+  // --------------------
+  // Questions
+  // --------------------
   questions: defineTable({
     question: v.string(),
     options: v.array(v.string()),
-    correctAnswer: v.number(), // Index of the correct option
+    correctAnswer: v.number(),
     sectionId: v.id("sections"),
     testId: v.id("tests"),
     explanation: v.optional(v.string()),
-    marks: v.optional(v.number()), // marks for this question
-    negativeMarks: v.optional(v.number()), // negative marking if any
+    marks: v.optional(v.number()),
+    negativeMarks: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).index("by_section", ["sectionId"]),
 
-  // Test attempts
+  // --------------------
+  // Test Attempts
+  // --------------------
   testAttempts: defineTable({
     userId: v.id("users"),
     testId: v.id("tests"),

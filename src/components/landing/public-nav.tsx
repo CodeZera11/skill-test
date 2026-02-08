@@ -9,15 +9,16 @@ import { Button } from "../ui/button"
 import { ModeToggle } from "../theme-switcher"
 import { SignedIn, SignedOut } from "@clerk/nextjs"
 import ClerkUserButton from "../auth/user-button"
+import GlobalSearch from "../global-search"
 
 const PublicNav = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
     <header className="sticky top-0 z-50 border-b bg-white/40 backdrop-blur-lg dark:bg-background/40">
-      <div className="container mx-auto flex items-center justify-between px-4">
+      <div className="container mx-auto flex items-center gap-6 px-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-1">
+        <Link href="/" className="flex items-center gap-0 shrink-0">
           <Image
             src="/logo.png"
             alt="SkillTest logo"
@@ -25,38 +26,44 @@ const PublicNav = () => {
             height={72}
             priority
           />
-          <span className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 bg-clip-text text-xl font-bold text-transparent">
-            SkillTest
-          </span>
+          <div className="flex flex-col -ml-1">
+            <span className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 bg-clip-text text-xl font-bold text-transparent">
+              SkillTest
+            </span>
+            <span className="bg-gradient-to-r from-cyan-400 via-sky-400 to-blue-500 bg-clip-text text-xs font-light italic text-transparent -mt-1">
+              Let&apos;s Practice together
+            </span>
+          </div>
         </Link>
+
+        {/* Global Search (desktop only for now) */}
+        <div className="hidden md:flex flex-1 justify-center">
+          <GlobalSearch />
+        </div>
 
         {/* Mobile menu toggle */}
         <button
-          className="md:hidden"
+          className="md:hidden ml-auto"
           onClick={() => setIsMenuOpen((v) => !v)}
           aria-label="Toggle navigation"
         >
           {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-6">
+        {/* Desktop nav right */}
+        <nav className="hidden md:flex items-center gap-6 shrink-0">
           <Link href="/" className="text-sm font-medium hover:text-theme">
             Home
           </Link>
           <Link href="/topics" className="text-sm font-medium hover:text-theme">
             Topics
           </Link>
-          <Link
-            href="/#testimonials"
-            className="text-sm font-medium hover:text-theme"
-          >
+          <Link href="/#testimonials" className="text-sm font-medium hover:text-theme">
             Testimonials
           </Link>
 
           <ModeToggle />
 
-          {/* SIGNED OUT */}
           <SignedOut>
             <div className="flex items-center gap-2">
               <Button asChild variant="outline">
@@ -68,7 +75,6 @@ const PublicNav = () => {
             </div>
           </SignedOut>
 
-          {/* SIGNED IN */}
           <SignedIn>
             <ClerkUserButton />
           </SignedIn>
@@ -85,38 +91,24 @@ const PublicNav = () => {
             className="md:hidden border-t"
           >
             <div className="container mx-auto flex flex-col gap-4 px-4 py-4">
-              <Link
-                href="/"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-sm font-medium"
-              >
+              <Link href="/" onClick={() => setIsMenuOpen(false)}>
                 Home
               </Link>
-              <Link
-                href="/topics"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-sm font-medium"
-              >
+              <Link href="/topics" onClick={() => setIsMenuOpen(false)}>
                 Topics
               </Link>
-              <Link
-                href="/#testimonials"
-                onClick={() => setIsMenuOpen(false)}
-                className="text-sm font-medium"
-              >
+              <Link href="/#testimonials" onClick={() => setIsMenuOpen(false)}>
                 Testimonials
               </Link>
 
               <ModeToggle />
 
-              {/* SIGNED OUT */}
               <SignedOut>
                 <Button asChild onClick={() => setIsMenuOpen(false)}>
                   <Link href="/sign-up">Get Started</Link>
                 </Button>
               </SignedOut>
 
-              {/* SIGNED IN */}
               <SignedIn>
                 <ClerkUserButton />
               </SignedIn>

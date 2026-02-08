@@ -62,6 +62,8 @@ const TopicsSection = () => {
 
   if (topics === null) return null
 
+  console.log("topics", topics)
+
   return (
     <section id="topics" className="py-20 bg-gradient-to-t from-theme/15 to-white dark:from-theme/30 dark:to-background">
       <div className="container mx-auto px-4 ">
