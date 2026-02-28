@@ -89,6 +89,7 @@ export type TestWithDetails = {
     _id: Id<"questions">;
     question: string;
     options: string[];
+    optionType?: "text" | "image";
     optionsMode?: "text" | "image" | "mixed";
     optionItems?: (OptionItemInput & { imageUrl?: string })[];
     correctAnswer: number;
@@ -291,7 +292,12 @@ export const getTestWithDetails = query({
           const rawItems =
             question.optionItems && question.optionItems.length > 0
               ? question.optionItems
-              : question.options.map((text) => ({ type: "text" as const, text }));
+              : question.options.map((text) => ({
+                  type: "text" as const,
+                  text,
+                  imageStorageId: undefined,
+                  imageMeta: undefined,
+                }));
 
           const optionItems = await Promise.all(
             rawItems.map(async (item) => ({
@@ -304,6 +310,9 @@ export const getTestWithDetails = query({
 
           return {
             ...question,
+            optionType:
+              question.optionType ||
+              (question.optionsMode === "image" ? "image" : "text"),
             optionsMode: question.optionsMode || deriveOptionsMode(rawItems),
             optionItems,
             sectionKey: section?.name.toLowerCase().replace(" ", "_"),
@@ -345,6 +354,7 @@ export const create = mutation({
       v.object({
         question: v.string(),
         options: v.array(v.any()),
+        optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
         optionsMode: v.optional(
           v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
         ),
@@ -415,6 +425,9 @@ export const create = mutation({
             return await ctx.db.insert("questions", {
               question: question.question,
               options: normalizedOptions,
+              optionType:
+                question.optionType ||
+                (question.optionsMode === "image" ? "image" : "text"),
               optionsMode: question.optionsMode || optionsMode,
               optionItems: normalizedItems,
               correctAnswer: question.correctAnswer,
@@ -444,6 +457,7 @@ export const update = mutation({
       v.object({
         question: v.string(),
         options: v.array(v.any()),
+        optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
         optionsMode: v.optional(
           v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
         ),
@@ -545,6 +559,9 @@ export const update = mutation({
             return await ctx.db.insert("questions", {
               question: question.question,
               options: normalizedOptions,
+              optionType:
+                question.optionType ||
+                (question.optionsMode === "image" ? "image" : "text"),
               optionsMode: question.optionsMode || optionsMode,
               optionItems: normalizedItems,
               correctAnswer: question.correctAnswer,

@@ -112,7 +112,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
               imageMeta: item.imageMeta,
               imageUrl: item.imageUrl,
             }))
-            : question.options.map((text) => ({ type: "text", text })),
+            : question.options.map((text) => ({ type: "text" as const, text })),
         correctAnswer: question.correctAnswer,
         sectionKey: question.sectionKey,
         explanation: question.explanation,
@@ -163,7 +163,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
         form.setValue(
           `questions.${questionIndex}.optionItems`,
           (question.options || []).map((option) => ({
-            type: "text",
+            type: "text" as const,
             text: String(option || ""),
           }))
         )
@@ -194,7 +194,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
     }
 
     return options.map((value) => ({
-      type: "text",
+      type: "text" as const,
       text: String(value || ""),
     }));
   }
@@ -245,7 +245,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
         ...(next[optionIndex] || {}),
         type: "image",
         text: `Image Option ${optionIndex + 1}`,
-        imageStorageId: storageId,
+        imageStorageId: storageId as Id<"_storage">,
         imageMeta,
         imageUrl: URL.createObjectURL(optimizedBlob),
       }
@@ -271,12 +271,21 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
       ).map((item) => {
         const nextItem = { ...item }
         delete nextItem.imageUrl
+        if (nextItem.imageStorageId) {
+          nextItem.imageStorageId = nextItem.imageStorageId as Id<"_storage">
+        }
         return nextItem
       })
+      const optionItemsForSave = optionItems.map((item) => ({
+        type: item.type,
+        text: item.text,
+        imageStorageId: item.imageStorageId as Id<"_storage"> | undefined,
+        imageMeta: item.imageMeta,
+      }))
 
       return {
         ...question,
-        optionItems,
+        optionItems: optionItemsForSave,
         optionsMode: question.optionType || "text",
       }
     })
@@ -719,15 +728,18 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                             onImport={async (questions) => {
                               try {
                                 questions.forEach((question) => {
+                                  const normalizedOptions = [...(question.options || [])].slice(0, 5)
+                                  while (normalizedOptions.length < 5) normalizedOptions.push("")
+
                                   appendQuestion({
                                     ...question,
                                     question: question.question || "",
+                                    options: normalizedOptions,
                                     marks: question.marks?.toString() || "1",
                                     negativeMarks: question.negativeMarks?.toString() || "0",
                                     optionType: "text",
                                     optionItems:
-                                      question.optionItems ||
-                                      question.options.map((text) => ({ type: "text", text })),
+                                      normalizedOptions.map((text) => ({ type: "text" as const, text })),
                                     sectionKey: sectionKey, // Assign sectionKey to imported questions
                                   });
                                 });
@@ -757,13 +769,14 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                           onClick={() => {
                             appendQuestion({
                               question: "",
-                              options: ["", "", "", ""],
+                              options: ["", "", "", "", ""],
                               optionType: "text",
                               optionItems: [
-                                { type: "text", text: "" },
-                                { type: "text", text: "" },
-                                { type: "text", text: "" },
-                                { type: "text", text: "" },
+                                { type: "text" as const, text: "" },
+                                { type: "text" as const, text: "" },
+                                { type: "text" as const, text: "" },
+                                { type: "text" as const, text: "" },
+                                { type: "text" as const, text: "" },
                               ],
                               correctAnswer: 0,
                               explanation: "",
@@ -869,7 +882,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                           value={radioField.value.toString()}
                                           className="space-y-0"
                                         >
-                                          {[0, 1, 2, 3].map((optionIndex) => (
+                                          {[0, 1, 2, 3, 4].map((optionIndex) => (
                                             <div
                                               key={optionIndex}
                                               className="flex items-center space-x-3 border rounded-md p-3 transition-colors"
@@ -893,7 +906,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                                     />
                                                     {form.watch(`questions.${field.index}.optionItems.${optionIndex}.imageUrl`) && (
                                                       <Image
-                                                        src={form.watch(`questions.${field.index}.optionItems.${optionIndex}.imageUrl`)}
+                                                        src={form.watch(`questions.${field.index}.optionItems.${optionIndex}.imageUrl`) as string}
                                                         alt={`Option ${optionIndex + 1}`}
                                                         width={192}
                                                         height={96}
@@ -916,7 +929,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                                     onChange={(event) => {
                                                       form.setValue(
                                                         `questions.${field.index}.optionItems.${optionIndex}`,
-                                                        { type: "text", text: event.target.value }
+                                                        { type: "text" as const, text: event.target.value }
                                                       )
                                                       form.setValue(
                                                         `questions.${field.index}.options.${optionIndex}`,

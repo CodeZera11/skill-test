@@ -30,6 +30,7 @@ export const create = mutation({
   args: {
     question: v.string(),
     options: v.array(v.string()),
+    optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
     optionsMode: v.optional(
       v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
     ),
@@ -72,6 +73,7 @@ export const update = mutation({
     id: v.id("questions"),
     question: v.string(),
     options: v.array(v.string()),
+    optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
     optionsMode: v.optional(
       v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
     ),
@@ -121,6 +123,7 @@ export const bulkCreate = mutation({
       v.object({
         question: v.string(),
         options: v.array(v.string()),
+        optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
         optionsMode: v.optional(
           v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
         ),

@@ -20,8 +20,8 @@ export async function POST(request: Request) {
 
     const sourceBuffer = Buffer.from(await file.arrayBuffer());
     let quality = 62;
-    let optimized = Buffer.alloc(0);
-    let metadata: sharp.Metadata | undefined;
+    let optimized = Buffer.from([]);
+    let outputInfo: { width?: number; height?: number } | undefined;
 
     while (quality >= 40) {
       const transformer = sharp(sourceBuffer)
@@ -30,8 +30,8 @@ export async function POST(request: Request) {
         .webp({ quality, effort: 4 });
 
       const result = await transformer.toBuffer({ resolveWithObject: true });
-      optimized = result.data;
-      metadata = result.info;
+      optimized = Buffer.from(result.data);
+      outputInfo = result.info;
 
       if (optimized.byteLength <= TARGET_MAX_BYTES) break;
       quality -= 6;
@@ -42,8 +42,8 @@ export async function POST(request: Request) {
       headers: {
         "Content-Type": "image/webp",
         "Content-Length": String(optimized.byteLength),
-        "X-Image-Width": String(metadata?.width || 0),
-        "X-Image-Height": String(metadata?.height || 0),
+        "X-Image-Width": String(outputInfo?.width || 0),
+        "X-Image-Height": String(outputInfo?.height || 0),
         "X-Image-Size": String(optimized.byteLength),
         "X-Image-MimeType": "image/webp",
       },
@@ -60,4 +60,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

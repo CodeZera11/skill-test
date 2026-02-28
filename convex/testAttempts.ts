@@ -219,7 +219,12 @@ export const getTestAttempt = query({
           const rawItems =
             question.optionItems && question.optionItems.length > 0
               ? question.optionItems
-              : question.options.map((text) => ({ type: "text" as const, text }));
+              : question.options.map((text) => ({
+                  type: "text" as const,
+                  text,
+                  imageStorageId: undefined,
+                  imageMeta: undefined,
+                }));
 
           const optionItems = await Promise.all(
             rawItems.map(async (item) => ({
@@ -294,7 +299,12 @@ export const getTestAttemptForResultPage = query({
           const rawItems =
             question.optionItems && question.optionItems.length > 0
               ? question.optionItems
-              : question.options.map((text) => ({ type: "text" as const, text }));
+              : question.options.map((text) => ({
+                  type: "text" as const,
+                  text,
+                  imageStorageId: undefined,
+                  imageMeta: undefined,
+                }));
 
           const optionItems = await Promise.all(
             rawItems.map(async (item) => ({

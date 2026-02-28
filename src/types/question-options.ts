@@ -12,4 +12,3 @@ export type QuestionOptionItem = {
   };
   imageUrl?: string;
 };
-

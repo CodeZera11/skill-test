@@ -114,6 +114,7 @@ export default defineSchema({
   questions: defineTable({
     question: v.string(),
     options: v.array(v.string()),
+    optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
     optionsMode: v.optional(
       v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
     ),

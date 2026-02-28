@@ -52,7 +52,7 @@ export const AddTestSchema = z.object({
         .array(z.union([z.string(), z.number()]))
         .min(2, { message: "At least two options are required" })
         .max(5, { message: "A maximum of five options is allowed" }),
-      optionType: z.enum(["text", "image"]).default("text"),
+      optionType: z.enum(["text", "image"]).optional(),
       optionItems: z
         .array(QuestionOptionItemSchema)
         .min(2, { message: "At least two options are required" })
