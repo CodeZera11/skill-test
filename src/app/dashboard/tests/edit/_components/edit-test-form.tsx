@@ -393,6 +393,17 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
     index: number
   }[]>);
 
+  const getOptionValidationMessage = (questionIndex: number, optionIndex: number) => {
+    const questionErrors = form.formState.errors.questions?.[questionIndex]
+    const optionType = form.watch(`questions.${questionIndex}.optionType`) || "text"
+
+    if (optionType === "image") {
+      return questionErrors?.optionItems?.[optionIndex]?.imageStorageId?.message as string | undefined
+    }
+
+    return questionErrors?.options?.[optionIndex]?.message as string | undefined
+  }
+
   if (currentStep === 0 && subCategories === undefined) {
     return <div className="h-[calc(100vh-120px)] flex items-center justify-center">Loading...</div>
   }
@@ -945,17 +956,17 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                                     className="border-0 focus-visible:ring-0 px-2 shadow-none"
                                                   />
                                                 )}
+                                                {getOptionValidationMessage(field.index, optionIndex) && (
+                                                  <p className="text-xs text-red-500 mt-1">
+                                                    {getOptionValidationMessage(field.index, optionIndex)}
+                                                  </p>
+                                                )}
                                               </div>
                                             </div>
                                           ))}
                                         </RadioGroup>
                                       )}
                                     />
-                                    {form.formState.errors.questions?.[field.index]?.options && (
-                                      <p className="text-sm text-red-500">
-                                        {form.formState.errors.questions[field.index]?.options?.message || "All options are required"}
-                                      </p>
-                                    )}
                                   </div>
 
                                   <div>

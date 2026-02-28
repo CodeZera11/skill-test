@@ -15,6 +15,70 @@ const QuestionOptionItemSchema = z.object({
   imageUrl: z.string().optional(),
 });
 
+const QuestionSchema = z
+  .object({
+    question: z.string().min(1, { message: "Question text is required" }),
+    options: z
+      .array(z.union([z.string(), z.number()]))
+      .length(5, { message: "Exactly 5 options are required" }),
+    optionType: z.enum(["text", "image"]).optional(),
+    optionItems: z
+      .array(QuestionOptionItemSchema)
+      .length(5, { message: "Exactly 5 option items are required" }),
+    correctAnswer: z.number(),
+    sectionKey: z.string().min(1, { message: "Section is required" }),
+    explanation: z
+      .string()
+      .max(500, { message: "Explanation must be less than 500 characters" })
+      .optional(),
+    marks: z
+      .string()
+      .refine((value) => !isNaN(Number(value)), {
+        message: "Marks must be a number",
+      })
+      .optional(),
+    negativeMarks: z
+      .string()
+      .refine((value) => !isNaN(Number(value)), {
+        message: "Negative marks must be a number",
+      })
+      .optional(),
+  })
+  .superRefine((question, ctx) => {
+    const type = question.optionType || "text";
+
+    if (question.correctAnswer < 0 || question.correctAnswer > 4) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["correctAnswer"],
+        message: "Correct answer must be between option 1 and option 5",
+      });
+    }
+
+    if (type === "text") {
+      question.options.forEach((option, index) => {
+        if (!String(option ?? "").trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["options", index],
+            message: `Option ${index + 1} text is required`,
+          });
+        }
+      });
+      return;
+    }
+
+    question.optionItems.forEach((item, index) => {
+      if (!item.imageStorageId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["optionItems", index, "imageStorageId"],
+          message: `Option ${index + 1} image is required`,
+        });
+      }
+    });
+  });
+
 export const AddTestSchema = z.object({
   // Step-1: Basic Information
   name: z
@@ -45,39 +109,7 @@ export const AddTestSchema = z.object({
   ),
 
   // Step-3: Questions Input
-  questions: z.array(
-    z.object({
-      question: z.string().min(1, { message: "Question text is required" }),
-      options: z
-        .array(z.union([z.string(), z.number()]))
-        .min(2, { message: "At least two options are required" })
-        .max(5, { message: "A maximum of five options is allowed" }),
-      optionType: z.enum(["text", "image"]).optional(),
-      optionItems: z
-        .array(QuestionOptionItemSchema)
-        .min(2, { message: "At least two options are required" })
-        .max(5, { message: "A maximum of five options is allowed" }),
-      // Index of the correct option
-      correctAnswer: z.number(),
-      sectionKey: z.string().min(1, { message: "Section is required" }),
-      explanation: z
-        .string()
-        .max(500, { message: "Explanation must be less than 500 characters" })
-        .optional(),
-      marks: z
-        .string()
-        .refine((value) => !isNaN(Number(value)), {
-          message: "Marks must be a number",
-        })
-        .optional(),
-      negativeMarks: z
-        .string()
-        .refine((value) => !isNaN(Number(value)), {
-          message: "Negative marks must be a number",
-        })
-        .optional(),
-    })
-  ),
+  questions: z.array(QuestionSchema),
 
   totalQuestions: z.number().optional(),
   // .min(1, { message: "Total questions must be at least 1" })
