@@ -12,6 +12,7 @@ import { api } from "~/convex/_generated/api"
 import { Id } from "~/convex/_generated/dataModel"
 import { toast } from "sonner"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import Image from "next/image"
 
 const STATUS = {
   NOT_VISITED: "not_visited",
@@ -318,6 +319,11 @@ const TestPageContainer = ({
     }
   }
 
+  const currentOptionItems =
+    currentQuestionData?.optionItems && currentQuestionData.optionItems.length > 0
+      ? currentQuestionData.optionItems
+      : (currentQuestionData?.options || []).map((text) => ({ type: "text" as const, text }))
+
   return (
     <div className="container mx-auto py-6 px-2">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -368,11 +374,21 @@ const TestPageContainer = ({
                 onValueChange={handleAnswerChange}
                 className="space-y-3"
               >
-                {currentQuestionData?.options.map((option, index) => (
+                {currentOptionItems.map((option, index) => (
                   <div key={index} className="flex items-center space-x-2 border p-3 rounded-md hover:bg-muted">
                     <RadioGroupItem value={index.toString()} id={`option-${index}`} />
                     <Label htmlFor={`option-${index}`} className="flex-grow cursor-pointer">
-                      {option}
+                      {option.type === "image" && option.imageUrl ? (
+                        <Image
+                          src={option.imageUrl}
+                          alt={`Option ${index + 1}`}
+                          width={320}
+                          height={128}
+                          className="max-h-32 rounded border object-contain"
+                        />
+                      ) : (
+                        option.text || currentQuestionData?.options?.[index]
+                      )}
                     </Label>
                   </div>
                 ))}

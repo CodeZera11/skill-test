@@ -3,6 +3,64 @@ import { Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
 
+type OptionItemInput = {
+  type: "text" | "image";
+  text?: string;
+  imageStorageId?: Id<"_storage">;
+  imageMeta?: {
+    width: number;
+    height: number;
+    size: number;
+    mimeType: string;
+  };
+};
+
+const optionItemValidator = v.object({
+  type: v.union(v.literal("text"), v.literal("image")),
+  text: v.optional(v.string()),
+  imageStorageId: v.optional(v.id("_storage")),
+  imageMeta: v.optional(
+    v.object({
+      width: v.number(),
+      height: v.number(),
+      size: v.number(),
+      mimeType: v.string(),
+    })
+  ),
+});
+
+const deriveOptionsMode = (items: OptionItemInput[] | undefined) => {
+  if (!items || items.length === 0) return "text" as const;
+  const hasText = items.some((item) => item.type === "text");
+  const hasImage = items.some((item) => item.type === "image");
+  if (hasText && hasImage) return "mixed" as const;
+  return hasImage ? ("image" as const) : ("text" as const);
+};
+
+const normalizeQuestionOptions = ({
+  options,
+  optionItems,
+}: {
+  options: string[];
+  optionItems?: OptionItemInput[];
+}) => {
+  if (!optionItems || optionItems.length === 0) {
+    return {
+      normalizedOptions: options,
+      normalizedItems: options.map((text) => ({ type: "text" as const, text })),
+      optionsMode: "text" as const,
+    };
+  }
+
+  return {
+    normalizedOptions: optionItems.map((item, index) =>
+      item.type === "text" ? item.text || "" : `[Image Option ${index + 1}]`
+    ),
+    normalizedItems: optionItems,
+    optionsMode: deriveOptionsMode(optionItems),
+  };
+};
+
 // Types
 export type TestWithDetails = {
   _id: Id<"tests">;
@@ -31,6 +89,8 @@ export type TestWithDetails = {
     _id: Id<"questions">;
     question: string;
     options: string[];
+    optionsMode?: "text" | "image" | "mixed";
+    optionItems?: (OptionItemInput & { imageUrl?: string })[];
     correctAnswer: number;
     sectionId: Id<"sections">;
     explanation?: string;
@@ -222,15 +282,34 @@ export const getTestWithDetails = query({
         _id: test.subCategoryId,
         name: (await ctx.db.get(test.subCategoryId))?.name || "",
       },
-      questions: questions.map((question) => {
-        const section = sections.find(
-          (s) => s._id.toString() === question.sectionId.toString()
-        );
-        return {
-          ...question,
-          sectionKey: section?.name.toLowerCase().replace(" ", "_"),
-        };
-      }),
+      questions: await Promise.all(
+        questions.map(async (question) => {
+          const section = sections.find(
+            (s) => s._id.toString() === question.sectionId.toString()
+          );
+
+          const rawItems =
+            question.optionItems && question.optionItems.length > 0
+              ? question.optionItems
+              : question.options.map((text) => ({ type: "text" as const, text }));
+
+          const optionItems = await Promise.all(
+            rawItems.map(async (item) => ({
+              ...item,
+              imageUrl: item.imageStorageId
+                ? (await ctx.storage.getUrl(item.imageStorageId)) || undefined
+                : undefined,
+            }))
+          );
+
+          return {
+            ...question,
+            optionsMode: question.optionsMode || deriveOptionsMode(rawItems),
+            optionItems,
+            sectionKey: section?.name.toLowerCase().replace(" ", "_"),
+          };
+        })
+      ),
       sections: sections.map((section) => ({
         ...section,
         questions: questions.filter((q) => q.sectionId === section._id),
@@ -266,6 +345,10 @@ export const create = mutation({
       v.object({
         question: v.string(),
         options: v.array(v.any()),
+        optionsMode: v.optional(
+          v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
+        ),
+        optionItems: v.optional(v.array(optionItemValidator)),
         correctAnswer: v.number(),
         sectionKey: v.string(),
         explanation: v.optional(v.string()),
@@ -323,9 +406,17 @@ export const create = mutation({
 
         await Promise.all(
           questionsBySection.map(async (question) => {
+            const { normalizedOptions, normalizedItems, optionsMode } =
+              normalizeQuestionOptions({
+                options: question.options.map((option) => String(option)),
+                optionItems: question.optionItems,
+              });
+
             return await ctx.db.insert("questions", {
               question: question.question,
-              options: question.options.map((option) => String(option)),
+              options: normalizedOptions,
+              optionsMode: question.optionsMode || optionsMode,
+              optionItems: normalizedItems,
               correctAnswer: question.correctAnswer,
               sectionId,
               explanation: question.explanation || undefined,
@@ -353,6 +444,10 @@ export const update = mutation({
       v.object({
         question: v.string(),
         options: v.array(v.any()),
+        optionsMode: v.optional(
+          v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
+        ),
+        optionItems: v.optional(v.array(optionItemValidator)),
         correctAnswer: v.number(),
         sectionKey: v.string(),
         explanation: v.optional(v.string()),
@@ -441,9 +536,17 @@ export const update = mutation({
 
         await Promise.all(
           questionsBySection.map(async (question) => {
+            const { normalizedOptions, normalizedItems, optionsMode } =
+              normalizeQuestionOptions({
+                options: question.options.map((option) => String(option)),
+                optionItems: question.optionItems,
+              });
+
             return await ctx.db.insert("questions", {
               question: question.question,
-              options: question.options.map((option) => String(option)),
+              options: normalizedOptions,
+              optionsMode: question.optionsMode || optionsMode,
+              optionItems: normalizedItems,
               correctAnswer: question.correctAnswer,
               sectionId,
               explanation: question.explanation || undefined,

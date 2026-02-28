@@ -114,6 +114,26 @@ export default defineSchema({
   questions: defineTable({
     question: v.string(),
     options: v.array(v.string()),
+    optionsMode: v.optional(
+      v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
+    ),
+    optionItems: v.optional(
+      v.array(
+        v.object({
+          type: v.union(v.literal("text"), v.literal("image")),
+          text: v.optional(v.string()),
+          imageStorageId: v.optional(v.id("_storage")),
+          imageMeta: v.optional(
+            v.object({
+              width: v.number(),
+              height: v.number(),
+              size: v.number(),
+              mimeType: v.string(),
+            })
+          ),
+        })
+      )
+    ),
     correctAnswer: v.number(),
     sectionId: v.id("sections"),
     testId: v.id("tests"),

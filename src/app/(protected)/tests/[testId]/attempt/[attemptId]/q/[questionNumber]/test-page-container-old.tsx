@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { useQuery } from "convex/react"
 import { api } from "~/convex/_generated/api"
 import { Id } from "~/convex/_generated/dataModel"
+import Image from "next/image"
 // import { toast } from "sonner"
 
 
@@ -132,6 +133,10 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
   const questions = attempt?.questions;
   // const test = attempt?.test;
   const currentQuestion = questions[questionNumber - 1]
+  const currentOptionItems =
+    currentQuestion?.optionItems && currentQuestion.optionItems.length > 0
+      ? currentQuestion.optionItems
+      : (currentQuestion?.options || []).map((text) => ({ type: "text" as const, text }))
 
   return (
     <div className="container mx-auto py-6 px-2">
@@ -158,11 +163,21 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                 onValueChange={handleAnswerChange}
                 className="space-y-3"
               >
-                {currentQuestion.options.map((option, index) => (
+                {currentOptionItems.map((option, index) => (
                   <div key={index} className="flex items-center space-x-2 border p-3 rounded-md hover:bg-muted">
                     <RadioGroupItem value={index.toString()} id={`option-${index}`} />
                     <Label htmlFor={`option-${index}`} className="flex-grow cursor-pointer">
-                      {option}
+                      {option.type === "image" && option.imageUrl ? (
+                        <Image
+                          src={option.imageUrl}
+                          alt={`Option ${index + 1}`}
+                          width={320}
+                          height={128}
+                          className="max-h-32 rounded border object-contain"
+                        />
+                      ) : (
+                        option.text || currentQuestion.options[index]
+                      )}
                     </Label>
                   </div>
                 ))}

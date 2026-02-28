@@ -21,6 +21,7 @@ import { fadeIn, staggerContainer } from "@/constants/animations"
 import { format } from "date-fns"
 import { formatSeconds } from "@/lib/utils"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import Image from "next/image"
 
 
 const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempts">, testId: Id<"tests"> }) => {
@@ -229,6 +230,10 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
               <div className="space-y-6 max-h-[600px] pr-4">
                 {detailedAnswers?.map((answer, index) => {
                   if (!answer || !answer?.question || answer?.question.correctAnswer === undefined || answer?.question?.negativeMarks === undefined) return null;
+                  const optionItems =
+                    answer.question.optionItems && answer.question.optionItems.length > 0
+                      ? answer.question.optionItems
+                      : answer.question.options.map((text: string) => ({ type: "text" as const, text }));
 
                   const isUnattempted = answer.selectedOption == null;
 
@@ -254,7 +259,7 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
                       </div>
 
                       <div className="space-y-2 mb-3">
-                        {answer?.question?.options.map((option, optionIndex) => {
+                        {optionItems.map((option, optionIndex) => {
                           const isSelected = optionIndex === answer.selectedOption
                           const isCorrectOption = optionIndex === answer?.question?.correctAnswer
                           let optionClass = "border-slate-300 dark:border-slate-700"
@@ -284,7 +289,17 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
                               className={`p-3 border rounded-md flex items-center text-sm transition-colors ${optionClass}`}
                             >
                               <span className="mr-2 font-medium">{String.fromCharCode(65 + optionIndex)}.</span>
-                              <span>{option}</span>
+                              {option.type === "image" && option.imageUrl ? (
+                                <Image
+                                  src={option.imageUrl}
+                                  alt={`Option ${optionIndex + 1}`}
+                                  width={280}
+                                  height={112}
+                                  className="max-h-28 rounded border object-contain"
+                                />
+                              ) : (
+                                <span>{option.text || answer?.question?.options[optionIndex]}</span>
+                              )}
                               {indicatorIcon}
                             </div>
                           )
@@ -295,7 +310,10 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
                         <div className="text-sm p-3 rounded-md bg-emerald-50 dark:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-800">
                           <p className="font-medium text-emerald-700 dark:text-emerald-300">
                             Correct Answer: {String.fromCharCode(65 + answer?.question?.correctAnswer || 0)}.{" "}
-                            {answer?.question?.options[answer.question.correctAnswer]}
+                            {optionItems[answer.question.correctAnswer]?.type === "image"
+                              ? "Image Option"
+                              : optionItems[answer.question.correctAnswer]?.text ||
+                                answer?.question?.options[answer.question.correctAnswer]}
                           </p>
                         </div>
                       )}

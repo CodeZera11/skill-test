@@ -17,6 +17,19 @@ export type Question = {
   sectionId: Id<"sections">;
   question: string;
   options: string[];
+  optionsMode?: "text" | "image" | "mixed";
+  optionItems?: {
+    type: "text" | "image";
+    text?: string;
+    imageStorageId?: Id<"_storage">;
+    imageMeta?: {
+      width: number;
+      height: number;
+      size: number;
+      mimeType: string;
+    };
+    imageUrl?: string;
+  }[];
   correctAnswer: number;
   createdAt: number;
   updatedAt: number;

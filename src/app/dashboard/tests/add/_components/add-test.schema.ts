@@ -1,5 +1,20 @@
 import { z } from "zod";
 
+const QuestionOptionItemSchema = z.object({
+  type: z.enum(["text", "image"]),
+  text: z.string().optional(),
+  imageStorageId: z.string().optional(),
+  imageMeta: z
+    .object({
+      width: z.number(),
+      height: z.number(),
+      size: z.number(),
+      mimeType: z.string(),
+    })
+    .optional(),
+  imageUrl: z.string().optional(),
+});
+
 export const AddTestSchema = z.object({
   // Step-1: Basic Information
   name: z
@@ -35,6 +50,11 @@ export const AddTestSchema = z.object({
       question: z.string().min(1, { message: "Question text is required" }),
       options: z
         .array(z.union([z.string(), z.number()]))
+        .min(2, { message: "At least two options are required" })
+        .max(5, { message: "A maximum of five options is allowed" }),
+      optionType: z.enum(["text", "image"]).default("text"),
+      optionItems: z
+        .array(QuestionOptionItemSchema)
         .min(2, { message: "At least two options are required" })
         .max(5, { message: "A maximum of five options is allowed" }),
       // Index of the correct option

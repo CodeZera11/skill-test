@@ -10,6 +10,12 @@ interface ImportQuestionsDialogProps {
     explanation: string;
     marks: number;
     negativeMarks: number;
+    optionType: "text" | "image";
+    optionItems: {
+      type: "text" | "image";
+      text?: string;
+      imageStorageId?: string;
+    }[];
     options: string[];
     question: string;
   }[]) => void; // Callback to pass imported questions
@@ -53,6 +59,8 @@ export default function ImportQuestionsDialog({ onImport }: ImportQuestionsDialo
         return {
           question: row["Question"] || "",
           options,
+          optionType: "text" as const,
+          optionItems: options.map((text) => ({ type: "text" as const, text })),
           correctAnswer: parseInt(row["correctanswer"]) - 1, // convert to 0-based index
           explanation: row["Explanation"] || "",
           marks: parseFloat(row["Marks"]) || 1,
