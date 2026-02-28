@@ -117,3 +117,40 @@ export const fetchRssNews = async ({
     .sort((a, b) => (b.publishedAt ?? 0) - (a.publishedAt ?? 0))
     .slice(0, limit);
 };
+
+export const fetchRssTickerNews = async ({
+  perFeedLimit = 2,
+  limit,
+}: {
+  perFeedLimit?: number;
+  limit?: number;
+} = {}): Promise<RssNewsItem[]> => {
+  const feedUrls = RSS_FEED_CONFIG.urls.filter(Boolean);
+  if (feedUrls.length === 0) return [];
+
+  const feedResults = await Promise.all(
+    feedUrls.map(async (url) => {
+      try {
+        const response = await fetch(url, {
+          next: { revalidate: RSS_FEED_CONFIG.revalidateSeconds },
+        });
+
+        if (!response.ok) {
+          return [] as RssNewsItem[];
+        }
+
+        const xml = await response.text();
+        return parseRssItems(xml, perFeedLimit);
+      } catch {
+        return [] as RssNewsItem[];
+      }
+    })
+  );
+
+  const merged = feedResults.flat();
+  if (typeof limit === "number" && limit > 0) {
+    return merged.slice(0, limit);
+  }
+
+  return merged;
+};

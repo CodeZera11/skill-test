@@ -1,16 +1,15 @@
 "use client";
 
-import { useQuery } from "convex/react";
 import React, { useEffect, useState } from "react";
-import { api } from "~/convex/_generated/api";
 import { motion, useMotionValue, animate } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 import useMeasure from "react-use-measure";
 import Link from "next/link";
-import { News } from "~/convex/news";
+import { RssNewsItem } from "@/types/rss";
 
 const NewsTape = () => {
-  const latestNews = useQuery(api.news.getLatestNews, { limit: 6 });
+  const [latestNews, setLatestNews] = useState<RssNewsItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const FAST_DURATION = 75; // Fast scrolling speed
   const SLOW_DURATION = 75; // Slow scrolling speed
@@ -20,6 +19,34 @@ const NewsTape = () => {
   const xTranslation = useMotionValue(0); // Motion value for x-axis translation
   const [mustFinish, setMustFinish] = useState(false);
   const [rerender, setRerender] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadTickerNews = async () => {
+      try {
+        const response = await fetch("/api/rss-news?perFeedLimit=2");
+        const data = await response.json();
+        if (isMounted) {
+          setLatestNews(Array.isArray(data?.items) ? data.items : []);
+        }
+      } catch {
+        if (isMounted) {
+          setLatestNews([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    loadTickerNews();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     let controls;
@@ -45,10 +72,10 @@ const NewsTape = () => {
     }
 
     return controls?.stop;
-  }, [rerender, xTranslation, duration, width]);
+  }, [rerender, xTranslation, duration, width, mustFinish]);
 
 
-  if (!latestNews || !latestNews.length) {
+  if (isLoading || !latestNews.length) {
     return null; // Return nothing if news is not loaded yet
   }
 
@@ -56,14 +83,14 @@ const NewsTape = () => {
   const repeatedTapeItems = Array(10)
     .fill(latestNews)
     .flat()
-    .map((newsItem: News, index: number) => (
+    .map((newsItem: RssNewsItem, index: number) => (
       <div
         key={`${newsItem.title}-${index}`}
         className="flex items-center gap-2 whitespace-nowrap px-4"
       >
-        {newsItem.externalLink ? (
+        {newsItem.link ? (
           <Link
-            href={newsItem.externalLink}
+            href={newsItem.link}
             target="_blank"
             rel="noopener noreferrer"
             className="underline flex items-center gap-1"
