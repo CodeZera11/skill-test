@@ -41,9 +41,8 @@ const Footer = () => {
                 </p>
               </div>
 
-              {/* Address : 
-E mail : support@skilltest.co.in
-Whatsapp : +91- 9414886929 */}
+              {/* Address :
+E mail : support@skilltest.co.in */}
 
               <Link
                 // mailto href
@@ -54,12 +53,6 @@ Whatsapp : +91- 9414886929 */}
                 support@skilltest.co.in
               </Link>
 
-              <p className='text-sm mt-1'>
-                Whatsapp
-              </p>
-              <p className='text-sm'>
-                +91-9414886929
-              </p>
             </div>
 
             {/* <div className="space-y-2">

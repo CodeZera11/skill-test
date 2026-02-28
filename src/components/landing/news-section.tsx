@@ -1,16 +1,17 @@
 "use client"
 
+import { RSS_FEED_CONFIG } from "@/constants/rss"
 import { fadeIn, staggerContainer } from "@/constants/animations"
-import { useQuery } from "convex/react"
+import { RssNewsItem } from "@/types/rss"
 import { Calendar, ChevronRight, ExternalLink, Newspaper } from "lucide-react"
 import { motion } from "motion/react"
-import { api } from "~/convex/_generated/api"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
 import Link from "next/link"
 import DOMPurify from "isomorphic-dompurify"
 import { PageRoutes } from "@/constants/page-routes"
+import { useEffect, useState } from "react"
 
 const formatDate = (timestamp: number) => {
   return new Date(timestamp).toLocaleDateString("en-US", {
@@ -21,7 +22,36 @@ const formatDate = (timestamp: number) => {
 }
 
 const NewsSection = () => {
-  const latestNews = useQuery(api.news.getLatestNews, { limit: 6 })
+  const [latestNews, setLatestNews] = useState<RssNewsItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadLatestNews = async () => {
+      try {
+        const response = await fetch(`/api/rss-news?limit=${RSS_FEED_CONFIG.landingLimit}`)
+        const data = await response.json()
+        if (isMounted) {
+          setLatestNews(Array.isArray(data?.items) ? data.items : [])
+        }
+      } catch {
+        if (isMounted) {
+          setLatestNews([])
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadLatestNews()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const sanitize = (html?: string) => {
     if (!html) return ""
@@ -39,7 +69,7 @@ const NewsSection = () => {
   }
 
 
-  if (latestNews === undefined) {
+  if (isLoading) {
     // Loading state
     return (
       <section id="news" className="py-20 bg-slate-50 dark:bg-slate-900/50">
@@ -124,9 +154,9 @@ const NewsSection = () => {
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           variants={staggerContainer}
         >
-          {latestNews.map((article, index) => (
+            {latestNews.map((article, index) => (
             <div
-              key={article._id}
+              key={article.id}
               className={`${index === 0 ? "md:col-span-2 lg:col-span-1" : ""}`}
             >
               <Card
@@ -150,9 +180,9 @@ const NewsSection = () => {
                       </Badge>
                     )}
                   </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
+                    <div className="flex items-center text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4 mr-1" />
-                    {formatDate(article.publishedAt || article.createdAt)}
+                    {article.publishedAt ? formatDate(article.publishedAt) : "Latest"}
                   </div>
                 </CardHeader>
                 {/* <CardContent className="pt-0">
@@ -176,7 +206,7 @@ const NewsSection = () => {
                     size="sm"
                     className="w-full group-hover:bg-emerald-50 group-hover:border-emerald-200 dark:group-hover:bg-emerald-950 dark:group-hover:border-emerald-800 bg-transparent"
                   >
-                    <Link href={PageRoutes.NEWS + "/" + article._id}>
+                    <Link href={article.link} target="_blank" rel="noopener noreferrer">
                       Read More
                       <ExternalLink className="h-4 w-4 ml-2" />
                     </Link>
@@ -188,7 +218,7 @@ const NewsSection = () => {
         </motion.div>
 
         {/* View All News Button */}
-        {latestNews && latestNews.length > 0 && (
+        {latestNews.length > 0 && (
           <motion.div
             className="text-center mt-12"
             initial={{ opacity: 0, y: 20 }}
@@ -197,7 +227,7 @@ const NewsSection = () => {
             viewport={{ once: true }}
           >
             <Button asChild size="lg" variant="outline">
-              <Link href="/news">
+              <Link href={PageRoutes.NEWS}>
                 View All News
                 <ChevronRight className="h-4 w-4 ml-2" />
               </Link>
