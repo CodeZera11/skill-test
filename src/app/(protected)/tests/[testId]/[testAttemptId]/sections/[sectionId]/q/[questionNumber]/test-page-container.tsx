@@ -384,7 +384,7 @@ const TestPageContainer = ({
                           alt={`Option ${index + 1}`}
                           width={320}
                           height={128}
-                          className="max-h-32 rounded border object-contain"
+                          className="max-h-32 w-fit rounded border object-contain"
                         />
                       ) : (
                         option.text || currentQuestionData?.options?.[index]
