@@ -6,10 +6,12 @@ import Link from "next/link"
 import { PageRoutes } from "@/constants/page-routes"
 import Image from "next/image"
 import { fadeIn } from "@/constants/animations"
+import { useCurrentUser } from "@/hooks/use-current-user"
 
 
 
 const HeroSection = () => {
+  console.log(useCurrentUser())
 
   return (
     <section className="py-20 md:py-32 bg-gradient-to-b from-theme/15 to-white dark:from-theme/30 dark:to-background">

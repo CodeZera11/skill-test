@@ -921,7 +921,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                                         alt={`Option ${optionIndex + 1}`}
                                                         width={192}
                                                         height={96}
-                                                        className="h-24 w-auto rounded border"
+                                                        className="h-24 w-fit rounded border"
                                                       />
                                                     )}
                                                     <p className="text-xs text-muted-foreground">

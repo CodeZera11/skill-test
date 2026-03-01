@@ -2,7 +2,7 @@
 export default {
   providers: [
     {
-      domain: "https://clerk.www.skilltest.co.in",
+      domain: process.env.CLERK_JWT_ISSUER_DOMAIN,
       applicationID: "convex",
     },
   ],

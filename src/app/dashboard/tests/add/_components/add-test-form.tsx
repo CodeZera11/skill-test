@@ -697,9 +697,9 @@ const AddTestForm = () => {
                                                       <Image
                                                         src={form.watch(`questions.${field.index}.optionItems.${optionIndex}.imageUrl`) as string}
                                                         alt={`Option ${optionIndex + 1}`}
-                                                        width={192}
+                                                        width={200}
                                                         height={96}
-                                                        className="h-24 w-auto rounded border"
+                                                        className="h-24 w-fit rounded border"
                                                       />
                                                     )}
                                                     <p className="text-xs text-muted-foreground">
