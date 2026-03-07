@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { Calendar, ExternalLink, Search, Newspaper, ArrowLeft } from "lucide-react"
@@ -8,19 +8,53 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { useQuery } from "convex/react"
-import { api } from "~/convex/_generated/api"
 import DOMPurify from "isomorphic-dompurify"
-import { PageRoutes } from "@/constants/page-routes"
+import { RSS_FEED_CONFIG } from "@/constants/rss"
+import { RssNewsItem } from "@/types/rss"
 
 export default function NewsPage() {
   const [searchTerm, setSearchTerm] = useState("")
+  const [allNews, setAllNews] = useState<RssNewsItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Fetch all published news
-  const allNews = useQuery(api.news.getPublishedNews)
-  const searchResults = useQuery(api.news.searchNews, { searchTerm })
+  useEffect(() => {
+    let isMounted = true
 
-  const displayNews = searchTerm ? searchResults : allNews
+    const loadNews = async () => {
+      try {
+        const response = await fetch(`/api/rss-news?limit=${RSS_FEED_CONFIG.newsPageLimit}`)
+        const data = await response.json()
+        if (isMounted) {
+          setAllNews(Array.isArray(data?.items) ? data.items : [])
+        }
+      } catch {
+        if (isMounted) {
+          setAllNews([])
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadNews()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const displayNews = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+    if (!normalizedSearch) return allNews
+
+    return allNews.filter((article) => {
+      const title = article.title.toLowerCase()
+      const description = article.description.toLowerCase()
+      return title.includes(normalizedSearch) || description.includes(normalizedSearch)
+    })
+  }, [allNews, searchTerm])
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
@@ -120,7 +154,7 @@ export default function NewsPage() {
         </motion.div>
 
         {/* News Grid */}
-        {displayNews === undefined ? (
+        {isLoading ? (
           // Loading state
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(9)].map((_, i) => (
@@ -167,7 +201,7 @@ export default function NewsPage() {
             animate="visible"
           >
             {displayNews.map((article, index) => (
-              <motion.div key={article._id} variants={fadeIn}>
+              <motion.div key={article.id} variants={fadeIn}>
                 <Card className="h-full hover:shadow-lg transition-all duration-300 ">
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2 mb-2">
@@ -186,9 +220,11 @@ export default function NewsPage() {
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <div className="flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {formatDate(article.publishedAt || article.createdAt)}
+                        {article.publishedAt ? formatDate(article.publishedAt) : "Latest"}
                       </div>
-                      <span className="text-xs">{getTimeAgo(article.publishedAt || article.createdAt)}</span>
+                      <span className="text-xs">
+                        {article.publishedAt ? getTimeAgo(article.publishedAt) : "Just now"}
+                      </span>
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0 line-clamp-5">
@@ -206,7 +242,7 @@ export default function NewsPage() {
                       size="sm"
                       className="w-full group-hover:bg-emerald-50 group-hover:border-emerald-200 dark:group-hover:bg-emerald-950 dark:group-hover:border-emerald-800 bg-transparent"
                     >
-                      <Link href={PageRoutes.NEWS + "/" + article._id}>
+                      <Link href={article.link} target="_blank" rel="noopener noreferrer">
                         Read More
                         <ExternalLink className="h-4 w-4 ml-2" />
                       </Link>

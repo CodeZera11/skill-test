@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator"
 import NewsSection from "@/components/landing/news-section"
 
 const LandingPage = async () => {
+
   return (
     <div className="min-h-screen flex flex-col">
       <main>

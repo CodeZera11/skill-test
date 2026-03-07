@@ -26,6 +26,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Input } from "@/components/ui/input"
 import { TestWithDetails } from "~/convex/tests"
 import ImportQuestionsDialog from "../../add/_components/import-questions-dialog"
+import { QuestionOptionItem } from "@/types/question-options"
+import Image from "next/image"
 
 interface FormStep {
   id: number
@@ -78,8 +80,10 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
   const searchParams = useSearchParams();
   const [currentStep, setCurrentStep] = useState(0);
   const [openSections, setOpenSections] = useState<number[]>([0])
+  const [uploadingOptionKey, setUploadingOptionKey] = useState<string | null>(null)
 
   const updateTest = useMutation(api.tests.update)
+  const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const subCategories = useQuery(api.subCategories.list)
 
 
@@ -98,6 +102,17 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
       questions: test?.questions.map((question) => ({
         question: question.question,
         options: question.options,
+        optionType: question.optionsMode === "image" ? "image" : "text",
+        optionItems:
+          question.optionItems && question.optionItems.length > 0
+            ? question.optionItems.map((item) => ({
+              type: item.type,
+              text: item.text,
+              imageStorageId: item.imageStorageId,
+              imageMeta: item.imageMeta,
+              imageUrl: item.imageUrl,
+            }))
+            : question.options.map((text) => ({ type: "text" as const, text })),
         correctAnswer: question.correctAnswer,
         sectionKey: question.sectionKey,
         explanation: question.explanation,
@@ -113,7 +128,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
     const stepData = steps.find((val) => val.key === step);
     if (!stepData) return;
     setCurrentStep(stepData.id);
-  }, [searchParams, steps]);
+  }, [searchParams]);
 
   useEffect(() => {
     const keys = steps.map(step => step.key);
@@ -125,7 +140,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
         form.setValue(key as FieldName, parsedData[key]);
       })
     })
-  }, [])
+  }, [form])
 
   useEffect(() => {
     if (test) {
@@ -135,9 +150,146 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
     }
   }, [test])
 
+  const watchedQuestions = form.watch("questions")
+
+  useEffect(() => {
+    const questions = watchedQuestions || []
+    questions.forEach((question, questionIndex) => {
+      if (!question.optionType) {
+        form.setValue(`questions.${questionIndex}.optionType`, "text")
+      }
+
+      if (!question.optionItems || question.optionItems.length === 0) {
+        form.setValue(
+          `questions.${questionIndex}.optionItems`,
+          (question.options || []).map((option) => ({
+            type: "text" as const,
+            text: String(option || ""),
+          }))
+        )
+      }
+    })
+  }, [form, watchedQuestions])
+
+  const toQuestionOptionItems = (
+    optionType: "text" | "image",
+    options: (string | number)[],
+    optionItems?: QuestionOptionItem[]
+  ): QuestionOptionItem[] => {
+    if (optionItems && optionItems.length > 0) {
+      return optionItems.map((item, index) => ({
+        type: item.type,
+        text: item.type === "text" ? item.text || String(options[index] || "") : item.text,
+        imageStorageId: item.imageStorageId,
+        imageMeta: item.imageMeta,
+        imageUrl: item.imageUrl,
+      }));
+    }
+
+    if (optionType === "image") {
+      return options.map((_, index) => ({
+        type: "image",
+        text: `Image Option ${index + 1}`,
+      }));
+    }
+
+    return options.map((value) => ({
+      type: "text" as const,
+      text: String(value || ""),
+    }));
+  }
+
+  const optimizeAndUploadOptionImage = async (
+    questionIndex: number,
+    optionIndex: number,
+    file: File
+  ) => {
+    const key = `${questionIndex}-${optionIndex}`
+    setUploadingOptionKey(key)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const optimizedResponse = await fetch("/api/optimize-option-image", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!optimizedResponse.ok) {
+        throw new Error("Failed to optimize image")
+      }
+
+      const optimizedBlob = await optimizedResponse.blob()
+      const imageMeta = {
+        width: Number(optimizedResponse.headers.get("X-Image-Width") || 0),
+        height: Number(optimizedResponse.headers.get("X-Image-Height") || 0),
+        size: Number(optimizedResponse.headers.get("X-Image-Size") || optimizedBlob.size),
+        mimeType: optimizedResponse.headers.get("X-Image-MimeType") || "image/webp",
+      }
+
+      const uploadUrl = await generateUploadUrl({})
+      const uploadResult = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": optimizedBlob.type || "image/webp" },
+        body: optimizedBlob,
+      })
+
+      if (!uploadResult.ok) {
+        throw new Error("Failed to upload optimized image")
+      }
+
+      const { storageId } = await uploadResult.json()
+      const previous = form.getValues(`questions.${questionIndex}.optionItems`) || []
+      const next = [...previous]
+      next[optionIndex] = {
+        ...(next[optionIndex] || {}),
+        type: "image",
+        text: `Image Option ${optionIndex + 1}`,
+        imageStorageId: storageId as Id<"_storage">,
+        imageMeta,
+        imageUrl: URL.createObjectURL(optimizedBlob),
+      }
+      form.setValue(`questions.${questionIndex}.optionItems`, next, { shouldValidate: true })
+      form.setValue(`questions.${questionIndex}.options.${optionIndex}`, `Image Option ${optionIndex + 1}`)
+      toast.success(`Option ${optionIndex + 1} image uploaded`)
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to upload option image")
+    } finally {
+      setUploadingOptionKey(null)
+    }
+  }
+
 
   const handleSubmit = async () => {
     const values = form.getValues();
+    const normalizedQuestions = values.questions.map((question) => {
+      const optionItems = toQuestionOptionItems(
+        question.optionType || "text",
+        question.options,
+        question.optionItems
+      ).map((item) => {
+        const nextItem = { ...item }
+        delete nextItem.imageUrl
+        if (nextItem.imageStorageId) {
+          nextItem.imageStorageId = nextItem.imageStorageId as Id<"_storage">
+        }
+        return nextItem
+      })
+      const optionItemsForSave = optionItems.map((item) => ({
+        type: item.type,
+        text: item.text,
+        imageStorageId: item.imageStorageId as Id<"_storage"> | undefined,
+        imageMeta: item.imageMeta,
+      }))
+
+      return {
+        ...question,
+        optionItems: optionItemsForSave,
+        optionsMode: question.optionType || "text",
+      }
+    })
+
     try {
       toast.promise(
         updateTest({
@@ -145,9 +297,9 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
           name: values.name,
           description: values.description || undefined,
           subCategoryId: values.subCategoryId as Id<"subCategories">,
-          totalQuestions: values.questions.length,
+          totalQuestions: normalizedQuestions.length,
           sections: values.sections,
-          questions: values.questions
+          questions: normalizedQuestions
         }),
         {
           loading: "Updating test...",
@@ -226,7 +378,31 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
     if (!acc[key]) acc[key] = [];
     acc[key].push({ question, index });
     return acc;
-  }, {} as Record<string, { question: { question: string, options: (string | number)[], correctAnswer: number, sectionKey: string, explanation?: string, marks?: string, negativeMarks?: string }; index: number }[]>);
+  }, {} as Record<string, {
+    question: {
+      question: string,
+      options: (string | number)[],
+      optionType?: "text" | "image",
+      optionItems?: QuestionOptionItem[],
+      correctAnswer: number,
+      sectionKey: string,
+      explanation?: string,
+      marks?: string,
+      negativeMarks?: string
+    };
+    index: number
+  }[]>);
+
+  const getOptionValidationMessage = (questionIndex: number, optionIndex: number) => {
+    const questionErrors = form.formState.errors.questions?.[questionIndex]
+    const optionType = form.watch(`questions.${questionIndex}.optionType`) || "text"
+
+    if (optionType === "image") {
+      return questionErrors?.optionItems?.[optionIndex]?.imageStorageId?.message as string | undefined
+    }
+
+    return questionErrors?.options?.[optionIndex]?.message as string | undefined
+  }
 
   if (currentStep === 0 && subCategories === undefined) {
     return <div className="h-[calc(100vh-120px)] flex items-center justify-center">Loading...</div>
@@ -563,11 +739,18 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                             onImport={async (questions) => {
                               try {
                                 questions.forEach((question) => {
+                                  const normalizedOptions = [...(question.options || [])].slice(0, 5)
+                                  while (normalizedOptions.length < 5) normalizedOptions.push("")
+
                                   appendQuestion({
                                     ...question,
                                     question: question.question || "",
+                                    options: normalizedOptions,
                                     marks: question.marks?.toString() || "1",
                                     negativeMarks: question.negativeMarks?.toString() || "0",
+                                    optionType: "text",
+                                    optionItems:
+                                      normalizedOptions.map((text) => ({ type: "text" as const, text })),
                                     sectionKey: sectionKey, // Assign sectionKey to imported questions
                                   });
                                 });
@@ -597,7 +780,15 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                           onClick={() => {
                             appendQuestion({
                               question: "",
-                              options: ["", "", "", ""],
+                              options: ["", "", "", "", ""],
+                              optionType: "text",
+                              optionItems: [
+                                { type: "text" as const, text: "" },
+                                { type: "text" as const, text: "" },
+                                { type: "text" as const, text: "" },
+                                { type: "text" as const, text: "" },
+                                { type: "text" as const, text: "" },
+                              ],
                               correctAnswer: 0,
                               explanation: "",
                               sectionKey: sectionKey, // Assign sectionKey to manually added questions
@@ -659,6 +850,17 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                       ]}
                                       defaultValue={field.question.negativeMarks || "0"}
                                     />
+                                    <SelectElement
+                                      name={`questions.${field.index}.optionType`}
+                                      label="Option Type"
+                                      placeholder="Select option type"
+                                      className="w-[120px] md:w-[180px] h-9"
+                                      options={[
+                                        { label: "Text", value: "text" },
+                                        { label: "Image", value: "image" },
+                                      ]}
+                                      defaultValue={field.question.optionType || "text"}
+                                    />
                                     {questionFields.length > 1 && (
                                       <Button
                                         type="button"
@@ -691,7 +893,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                           value={radioField.value.toString()}
                                           className="space-y-0"
                                         >
-                                          {[0, 1, 2, 3].map((optionIndex) => (
+                                          {[0, 1, 2, 3, 4].map((optionIndex) => (
                                             <div
                                               key={optionIndex}
                                               className="flex items-center space-x-3 border rounded-md p-3 transition-colors"
@@ -701,24 +903,70 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                                 id={`q${field.index}-option${optionIndex}`}
                                               />
                                               <div className="flex-1">
-                                                <Input
-                                                  {...form.register(`questions.${field.index}.options.${optionIndex}`, {
-                                                    required: "Option text is required",
-                                                  })}
-                                                  placeholder={`Option ${optionIndex + 1}`}
-                                                  className="border-0 focus-visible:ring-0 px-2 shadow-none"
-                                                />
+                                                {form.watch(`questions.${field.index}.optionType`) === "image" ? (
+                                                  <div className="flex flex-col gap-2">
+                                                    <Input
+                                                      type="file"
+                                                      accept="image/*"
+                                                      onChange={(event) => {
+                                                        const file = event.target.files?.[0]
+                                                        if (!file) return
+                                                        void optimizeAndUploadOptionImage(field.index, optionIndex, file)
+                                                      }}
+                                                      className="border-0 focus-visible:ring-0 px-2 shadow-none"
+                                                    />
+                                                    {form.watch(`questions.${field.index}.optionItems.${optionIndex}.imageUrl`) && (
+                                                      <Image
+                                                        src={form.watch(`questions.${field.index}.optionItems.${optionIndex}.imageUrl`) as string}
+                                                        alt={`Option ${optionIndex + 1}`}
+                                                        width={192}
+                                                        height={96}
+                                                        className="h-24 w-fit rounded border"
+                                                      />
+                                                    )}
+                                                    <p className="text-xs text-muted-foreground">
+                                                      {uploadingOptionKey === `${field.index}-${optionIndex}`
+                                                        ? "Uploading..."
+                                                        : form.watch(`questions.${field.index}.optionItems.${optionIndex}.imageStorageId`)
+                                                          ? "Image uploaded"
+                                                          : "Upload option image"}
+                                                    </p>
+                                                  </div>
+                                                ) : (
+                                                  <Input
+                                                    {...form.register(`questions.${field.index}.options.${optionIndex}`, {
+                                                      required: "Option text is required",
+                                                    })}
+                                                    onChange={(event) => {
+                                                      form.setValue(
+                                                        `questions.${field.index}.optionItems.${optionIndex}`,
+                                                        { type: "text" as const, text: event.target.value }
+                                                      )
+                                                      form.setValue(
+                                                        `questions.${field.index}.options.${optionIndex}`,
+                                                        event.target.value
+                                                      )
+                                                    }}
+                                                    defaultValue={
+                                                      form.watch(`questions.${field.index}.optionItems.${optionIndex}.text`) ||
+                                                      form.watch(`questions.${field.index}.options.${optionIndex}`) ||
+                                                      ""
+                                                    }
+                                                    placeholder={`Option ${optionIndex + 1}`}
+                                                    className="border-0 focus-visible:ring-0 px-2 shadow-none"
+                                                  />
+                                                )}
+                                                {getOptionValidationMessage(field.index, optionIndex) && (
+                                                  <p className="text-xs text-red-500 mt-1">
+                                                    {getOptionValidationMessage(field.index, optionIndex)}
+                                                  </p>
+                                                )}
                                               </div>
                                             </div>
                                           ))}
                                         </RadioGroup>
                                       )}
                                     />
-                                    {form.formState.errors.questions?.[field.index]?.options && (
-                                      <p className="text-sm text-red-500">
-                                        {form.formState.errors.questions[field.index]?.options?.message || "All options are required"}
-                                      </p>
-                                    )}
                                   </div>
 
                                   <div>

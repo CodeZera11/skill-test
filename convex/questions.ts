@@ -30,6 +30,27 @@ export const create = mutation({
   args: {
     question: v.string(),
     options: v.array(v.string()),
+    optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
+    optionsMode: v.optional(
+      v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
+    ),
+    optionItems: v.optional(
+      v.array(
+        v.object({
+          type: v.union(v.literal("text"), v.literal("image")),
+          text: v.optional(v.string()),
+          imageStorageId: v.optional(v.id("_storage")),
+          imageMeta: v.optional(
+            v.object({
+              width: v.number(),
+              height: v.number(),
+              size: v.number(),
+              mimeType: v.string(),
+            })
+          ),
+        })
+      )
+    ),
     correctAnswer: v.number(),
     sectionId: v.id("sections"),
     explanation: v.optional(v.string()),
@@ -52,6 +73,27 @@ export const update = mutation({
     id: v.id("questions"),
     question: v.string(),
     options: v.array(v.string()),
+    optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
+    optionsMode: v.optional(
+      v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
+    ),
+    optionItems: v.optional(
+      v.array(
+        v.object({
+          type: v.union(v.literal("text"), v.literal("image")),
+          text: v.optional(v.string()),
+          imageStorageId: v.optional(v.id("_storage")),
+          imageMeta: v.optional(
+            v.object({
+              width: v.number(),
+              height: v.number(),
+              size: v.number(),
+              mimeType: v.string(),
+            })
+          ),
+        })
+      )
+    ),
     correctAnswer: v.number(),
     sectionId: v.id("sections"),
     explanation: v.optional(v.string()),
@@ -81,6 +123,27 @@ export const bulkCreate = mutation({
       v.object({
         question: v.string(),
         options: v.array(v.string()),
+        optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
+        optionsMode: v.optional(
+          v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
+        ),
+        optionItems: v.optional(
+          v.array(
+            v.object({
+              type: v.union(v.literal("text"), v.literal("image")),
+              text: v.optional(v.string()),
+              imageStorageId: v.optional(v.id("_storage")),
+              imageMeta: v.optional(
+                v.object({
+                  width: v.number(),
+                  height: v.number(),
+                  size: v.number(),
+                  mimeType: v.string(),
+                })
+              ),
+            })
+          )
+        ),
         correctAnswer: v.number(),
         explanation: v.optional(v.string()),
         marks: v.optional(v.number()),

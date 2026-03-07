@@ -3,6 +3,20 @@ import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { Question } from "./sections";
 
+const deriveOptionsMode = (
+  optionItems:
+    | Array<{
+        type: "text" | "image";
+      }>
+    | undefined
+) => {
+  if (!optionItems || optionItems.length === 0) return "text" as const;
+  const hasText = optionItems.some((item) => item.type === "text");
+  const hasImage = optionItems.some((item) => item.type === "image");
+  if (hasText && hasImage) return "mixed" as const;
+  return hasImage ? ("image" as const) : ("text" as const);
+};
+
 export const startTestAttempt = mutation({
   args: {
     userId: v.id("users"),
@@ -200,6 +214,35 @@ export const getTestAttempt = query({
         throw new Error("No questions found for this test");
       }
 
+      const questionsWithImageUrls = await Promise.all(
+        questions.map(async (question) => {
+          const rawItems =
+            question.optionItems && question.optionItems.length > 0
+              ? question.optionItems
+              : question.options.map((text) => ({
+                  type: "text" as const,
+                  text,
+                  imageStorageId: undefined,
+                  imageMeta: undefined,
+                }));
+
+          const optionItems = await Promise.all(
+            rawItems.map(async (item) => ({
+              ...item,
+              imageUrl: item.imageStorageId
+                ? (await ctx.storage.getUrl(item.imageStorageId)) || undefined
+                : undefined,
+            }))
+          );
+
+          return {
+            ...question,
+            optionsMode: question.optionsMode || deriveOptionsMode(rawItems),
+            optionItems,
+          };
+        })
+      );
+
       return {
         testAttempt: {
           ...testAttempt,
@@ -207,7 +250,7 @@ export const getTestAttempt = query({
         },
         test,
         sections,
-        questions,
+        questions: questionsWithImageUrls,
       };
     } catch (error) {
       console.error("Error fetching test attempt:", error);
@@ -246,9 +289,39 @@ export const getTestAttemptForResultPage = query({
       const detailedAnswers = await Promise.all(
         answers.map(async (answer) => {
           const question = await ctx.db.get(answer.questionId);
+          if (!question) {
+            return {
+              ...answer,
+              question: null,
+            };
+          }
+
+          const rawItems =
+            question.optionItems && question.optionItems.length > 0
+              ? question.optionItems
+              : question.options.map((text) => ({
+                  type: "text" as const,
+                  text,
+                  imageStorageId: undefined,
+                  imageMeta: undefined,
+                }));
+
+          const optionItems = await Promise.all(
+            rawItems.map(async (item) => ({
+              ...item,
+              imageUrl: item.imageStorageId
+                ? (await ctx.storage.getUrl(item.imageStorageId)) || undefined
+                : undefined,
+            }))
+          );
+
           return {
             ...answer,
-            question,
+            question: {
+              ...question,
+              optionsMode: question.optionsMode || deriveOptionsMode(rawItems),
+              optionItems,
+            },
           };
         })
       );

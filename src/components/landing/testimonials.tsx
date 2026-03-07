@@ -6,6 +6,13 @@ const TestimonialsSection = () => {
   const testimonials = [
     {
       quote:
+        "SkillTest.co.in made my preparation structured and focused. The quality mocks and detailed explanations helped me understand concepts clearly and improve my speed. With consistent practice on SkillTest, I cleared SBI PO, IBPS PO, and IBPS Clerk in the same year. Truly grateful for this platform!",
+      name: "Aditya Kumar",
+      designation: "Cleared SBI PO, IBPS PO & IBPS Clerk",
+      src: "/testimonials/aditya-kumar.jpg",
+    },
+    {
+      quote:
         "The attention to detail and innovative features have completely transformed our workflow. This is exactly what we've been looking for.",
       name: "Sarah Chen",
       designation: "Product Manager at TechFlow",
