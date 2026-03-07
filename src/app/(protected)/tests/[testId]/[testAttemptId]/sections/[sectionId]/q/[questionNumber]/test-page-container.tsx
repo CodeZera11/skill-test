@@ -368,6 +368,15 @@ const TestPageContainer = ({
                   Question {currentQuestion} of {sectionQuestions.length}
                 </div>
                 <div className="text-lg font-medium">{currentQuestionData?.question}</div>
+                {currentQuestionData?.questionAttachmentUrl && (
+                  <Image
+                    src={currentQuestionData.questionAttachmentUrl}
+                    alt={`Question ${currentQuestion} attachment`}
+                    width={560}
+                    height={280}
+                    className="max-h-72 w-auto rounded border object-contain"
+                  />
+                )}
               </div>
               <RadioGroup
                 value={answers[currentQuestionData?._id]?.toString() || ""}

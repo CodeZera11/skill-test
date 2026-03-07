@@ -259,6 +259,17 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
                       </div>
 
                       <div className="space-y-2 mb-3">
+                        {answer.question.questionAttachmentUrl && (
+                          <div className="p-2 border rounded-md bg-slate-50 dark:bg-slate-900/40">
+                            <Image
+                              src={answer.question.questionAttachmentUrl}
+                              alt={`Question ${index + 1} attachment`}
+                              width={520}
+                              height={260}
+                              className="max-h-64 w-auto rounded border object-contain"
+                            />
+                          </div>
+                        )}
                         {optionItems.map((option, optionIndex) => {
                           const isSelected = optionIndex === answer.selectedOption
                           const isCorrectOption = optionIndex === answer?.question?.correctAnswer

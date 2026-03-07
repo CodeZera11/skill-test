@@ -81,6 +81,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [openSections, setOpenSections] = useState<number[]>([0])
   const [uploadingOptionKey, setUploadingOptionKey] = useState<string | null>(null)
+  const [uploadingQuestionAttachmentKey, setUploadingQuestionAttachmentKey] = useState<string | null>(null)
 
   const updateTest = useMutation(api.tests.update)
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
@@ -101,6 +102,9 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
       })) || [],
       questions: test?.questions.map((question) => ({
         question: question.question,
+        questionAttachmentStorageId: question.questionAttachmentStorageId,
+        questionAttachmentMeta: question.questionAttachmentMeta,
+        questionAttachmentUrl: question.questionAttachmentUrl,
         options: question.options,
         optionType: question.optionsMode === "image" ? "image" : "text",
         optionItems:
@@ -260,14 +264,75 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
     }
   }
 
+  const optimizeAndUploadQuestionAttachment = async (
+    questionIndex: number,
+    file: File
+  ) => {
+    const key = `${questionIndex}`
+    setUploadingQuestionAttachmentKey(key)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const optimizedResponse = await fetch("/api/optimize-option-image", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!optimizedResponse.ok) {
+        throw new Error("Failed to optimize image")
+      }
+
+      const optimizedBlob = await optimizedResponse.blob()
+      const imageMeta = {
+        width: Number(optimizedResponse.headers.get("X-Image-Width") || 0),
+        height: Number(optimizedResponse.headers.get("X-Image-Height") || 0),
+        size: Number(optimizedResponse.headers.get("X-Image-Size") || optimizedBlob.size),
+        mimeType: optimizedResponse.headers.get("X-Image-MimeType") || "image/webp",
+      }
+
+      const uploadUrl = await generateUploadUrl({})
+      const uploadResult = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": optimizedBlob.type || "image/webp" },
+        body: optimizedBlob,
+      })
+
+      if (!uploadResult.ok) {
+        throw new Error("Failed to upload optimized image")
+      }
+
+      const { storageId } = await uploadResult.json()
+      form.setValue(
+        `questions.${questionIndex}.questionAttachmentStorageId`,
+        storageId as Id<"_storage">,
+        { shouldValidate: true }
+      )
+      form.setValue(`questions.${questionIndex}.questionAttachmentMeta`, imageMeta)
+      form.setValue(
+        `questions.${questionIndex}.questionAttachmentUrl`,
+        URL.createObjectURL(optimizedBlob),
+        { shouldValidate: true }
+      )
+      toast.success("Question attachment uploaded")
+    } catch (error) {
+      console.error(error)
+      toast.error("Failed to upload question attachment")
+    } finally {
+      setUploadingQuestionAttachmentKey(null)
+    }
+  }
+
 
   const handleSubmit = async () => {
     const values = form.getValues();
     const normalizedQuestions = values.questions.map((question) => {
+      const questionWithoutAttachmentUrl = { ...question }
+      delete questionWithoutAttachmentUrl.questionAttachmentUrl
       const optionItems = toQuestionOptionItems(
-        question.optionType || "text",
-        question.options,
-        question.optionItems
+        questionWithoutAttachmentUrl.optionType || "text",
+        questionWithoutAttachmentUrl.options,
+        questionWithoutAttachmentUrl.optionItems
       ).map((item) => {
         const nextItem = { ...item }
         delete nextItem.imageUrl
@@ -284,9 +349,13 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
       }))
 
       return {
-        ...question,
+        ...questionWithoutAttachmentUrl,
+        questionAttachmentStorageId:
+          questionWithoutAttachmentUrl.questionAttachmentStorageId as
+            | Id<"_storage">
+            | undefined,
         optionItems: optionItemsForSave,
-        optionsMode: question.optionType || "text",
+        optionsMode: questionWithoutAttachmentUrl.optionType || "text",
       }
     })
 
@@ -384,6 +453,14 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
       options: (string | number)[],
       optionType?: "text" | "image",
       optionItems?: QuestionOptionItem[],
+      questionAttachmentStorageId?: string,
+      questionAttachmentMeta?: {
+        width: number
+        height: number
+        size: number
+        mimeType: string
+      },
+      questionAttachmentUrl?: string,
       correctAnswer: number,
       sectionKey: string,
       explanation?: string,
@@ -881,6 +958,52 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                     label="Question"
                                     placeholder="Enter your question here"
                                   />
+
+                                  <div className="space-y-2">
+                                    <Label className="text-base">Question Attachment (Optional)</Label>
+                                    <Input
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={(event) => {
+                                        const file = event.target.files?.[0]
+                                        if (!file) return
+                                        void optimizeAndUploadQuestionAttachment(field.index, file)
+                                      }}
+                                      className="max-w-md"
+                                    />
+                                    {form.watch(`questions.${field.index}.questionAttachmentUrl`) && (
+                                      <Image
+                                        src={form.watch(`questions.${field.index}.questionAttachmentUrl`) as string}
+                                        alt="Question attachment"
+                                        width={320}
+                                        height={160}
+                                        className="max-h-40 w-auto rounded border"
+                                      />
+                                    )}
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-xs text-muted-foreground">
+                                        {uploadingQuestionAttachmentKey === `${field.index}`
+                                          ? "Uploading..."
+                                          : form.watch(`questions.${field.index}.questionAttachmentStorageId`)
+                                            ? "Attachment uploaded"
+                                            : "Upload image to show below question text"}
+                                      </p>
+                                      {form.watch(`questions.${field.index}.questionAttachmentStorageId`) && (
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => {
+                                            form.setValue(`questions.${field.index}.questionAttachmentStorageId`, undefined)
+                                            form.setValue(`questions.${field.index}.questionAttachmentMeta`, undefined)
+                                            form.setValue(`questions.${field.index}.questionAttachmentUrl`, undefined)
+                                          }}
+                                        >
+                                          Remove
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
 
                                   <div className="space-y-1">
                                     <Label className="text-base">Options</Label>

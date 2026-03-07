@@ -15,6 +15,13 @@ type OptionItemInput = {
   };
 };
 
+type AttachmentMetaInput = {
+  width: number;
+  height: number;
+  size: number;
+  mimeType: string;
+};
+
 const optionItemValidator = v.object({
   type: v.union(v.literal("text"), v.literal("image")),
   text: v.optional(v.string()),
@@ -27,6 +34,13 @@ const optionItemValidator = v.object({
       mimeType: v.string(),
     })
   ),
+});
+
+const attachmentMetaValidator = v.object({
+  width: v.number(),
+  height: v.number(),
+  size: v.number(),
+  mimeType: v.string(),
 });
 
 const deriveOptionsMode = (items: OptionItemInput[] | undefined) => {
@@ -88,6 +102,9 @@ export type TestWithDetails = {
   questions: {
     _id: Id<"questions">;
     question: string;
+    questionAttachmentStorageId?: Id<"_storage">;
+    questionAttachmentMeta?: AttachmentMetaInput;
+    questionAttachmentUrl?: string;
     options: string[];
     optionType?: "text" | "image";
     optionsMode?: "text" | "image" | "mixed";
@@ -310,6 +327,10 @@ export const getTestWithDetails = query({
 
           return {
             ...question,
+            questionAttachmentUrl: question.questionAttachmentStorageId
+              ? (await ctx.storage.getUrl(question.questionAttachmentStorageId)) ||
+                undefined
+              : undefined,
             optionType:
               question.optionType ||
               (question.optionsMode === "image" ? "image" : "text"),
@@ -353,6 +374,8 @@ export const create = mutation({
     questions: v.array(
       v.object({
         question: v.string(),
+        questionAttachmentStorageId: v.optional(v.id("_storage")),
+        questionAttachmentMeta: v.optional(attachmentMetaValidator),
         options: v.array(v.any()),
         optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
         optionsMode: v.optional(
@@ -424,6 +447,8 @@ export const create = mutation({
 
             return await ctx.db.insert("questions", {
               question: question.question,
+              questionAttachmentStorageId: question.questionAttachmentStorageId,
+              questionAttachmentMeta: question.questionAttachmentMeta,
               options: normalizedOptions,
               optionType:
                 question.optionType ||
@@ -456,6 +481,8 @@ export const update = mutation({
     questions: v.array(
       v.object({
         question: v.string(),
+        questionAttachmentStorageId: v.optional(v.id("_storage")),
+        questionAttachmentMeta: v.optional(attachmentMetaValidator),
         options: v.array(v.any()),
         optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
         optionsMode: v.optional(
@@ -558,6 +585,8 @@ export const update = mutation({
 
             return await ctx.db.insert("questions", {
               question: question.question,
+              questionAttachmentStorageId: question.questionAttachmentStorageId,
+              questionAttachmentMeta: question.questionAttachmentMeta,
               options: normalizedOptions,
               optionType:
                 question.optionType ||

@@ -16,7 +16,16 @@ export type Question = {
   _id: Id<"questions">;
   sectionId: Id<"sections">;
   question: string;
+  questionAttachmentStorageId?: Id<"_storage">;
+  questionAttachmentMeta?: {
+    width: number;
+    height: number;
+    size: number;
+    mimeType: string;
+  };
+  questionAttachmentUrl?: string;
   options: string[];
+  optionType?: "text" | "image";
   optionsMode?: "text" | "image" | "mixed";
   optionItems?: {
     type: "text" | "image";

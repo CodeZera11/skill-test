@@ -158,6 +158,15 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-lg font-medium">{currentQuestion?.question}</div>
+              {currentQuestion?.questionAttachmentUrl && (
+                <Image
+                  src={currentQuestion.questionAttachmentUrl}
+                  alt={`Question ${questionNumber} attachment`}
+                  width={560}
+                  height={280}
+                  className="max-h-72 w-auto rounded border object-contain"
+                />
+              )}
               <RadioGroup
                 value={answers[currentQuestion._id]?.toString() || ""}
                 onValueChange={handleAnswerChange}

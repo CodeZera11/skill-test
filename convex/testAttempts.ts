@@ -237,6 +237,10 @@ export const getTestAttempt = query({
 
           return {
             ...question,
+            questionAttachmentUrl: question.questionAttachmentStorageId
+              ? (await ctx.storage.getUrl(question.questionAttachmentStorageId)) ||
+                undefined
+              : undefined,
             optionsMode: question.optionsMode || deriveOptionsMode(rawItems),
             optionItems,
           };
@@ -319,6 +323,10 @@ export const getTestAttemptForResultPage = query({
             ...answer,
             question: {
               ...question,
+              questionAttachmentUrl: question.questionAttachmentStorageId
+                ? (await ctx.storage.getUrl(question.questionAttachmentStorageId)) ||
+                  undefined
+                : undefined,
               optionsMode: question.optionsMode || deriveOptionsMode(rawItems),
               optionItems,
             },

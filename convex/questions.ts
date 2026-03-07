@@ -29,6 +29,15 @@ export const getById = query({
 export const create = mutation({
   args: {
     question: v.string(),
+    questionAttachmentStorageId: v.optional(v.id("_storage")),
+    questionAttachmentMeta: v.optional(
+      v.object({
+        width: v.number(),
+        height: v.number(),
+        size: v.number(),
+        mimeType: v.string(),
+      })
+    ),
     options: v.array(v.string()),
     optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
     optionsMode: v.optional(
@@ -72,6 +81,15 @@ export const update = mutation({
   args: {
     id: v.id("questions"),
     question: v.string(),
+    questionAttachmentStorageId: v.optional(v.id("_storage")),
+    questionAttachmentMeta: v.optional(
+      v.object({
+        width: v.number(),
+        height: v.number(),
+        size: v.number(),
+        mimeType: v.string(),
+      })
+    ),
     options: v.array(v.string()),
     optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
     optionsMode: v.optional(
@@ -122,6 +140,15 @@ export const bulkCreate = mutation({
     questions: v.array(
       v.object({
         question: v.string(),
+        questionAttachmentStorageId: v.optional(v.id("_storage")),
+        questionAttachmentMeta: v.optional(
+          v.object({
+            width: v.number(),
+            height: v.number(),
+            size: v.number(),
+            mimeType: v.string(),
+          })
+        ),
         options: v.array(v.string()),
         optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
         optionsMode: v.optional(

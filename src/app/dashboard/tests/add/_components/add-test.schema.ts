@@ -18,6 +18,16 @@ const QuestionOptionItemSchema = z.object({
 const QuestionSchema = z
   .object({
     question: z.string().min(1, { message: "Question text is required" }),
+    questionAttachmentStorageId: z.string().optional(),
+    questionAttachmentMeta: z
+      .object({
+        width: z.number(),
+        height: z.number(),
+        size: z.number(),
+        mimeType: z.string(),
+      })
+      .optional(),
+    questionAttachmentUrl: z.string().optional(),
     options: z
       .array(z.union([z.string(), z.number()]))
       .length(5, { message: "Exactly 5 options are required" }),
