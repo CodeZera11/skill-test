@@ -34,6 +34,24 @@ export const startTestAttempt = mutation({
       throw new Error("Test not found");
     }
 
+    const sections = await db
+      .query("sections")
+      .filter((q) => q.eq(q.field("testId"), testId))
+      .collect();
+
+    if (sections.length === 0) {
+      throw new Error("This test has no sections configured yet");
+    }
+
+    const questions = await db
+      .query("questions")
+      .filter((q) => q.eq(q.field("testId"), testId))
+      .collect();
+
+    if (questions.length === 0) {
+      throw new Error("This test has no questions configured yet");
+    }
+
     await db.patch(testId, {
       attempts: test?.attempts ? test.attempts + 1 : 1,
     });

@@ -86,12 +86,13 @@ const AddTestForm = () => {
   const createTest = useMutation(api.tests.create)
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const subCategories = useQuery(api.subCategories.list)
+  const draftStoragePrefix = `${pathname}:draft:`
 
   const form = useForm<AddTestRequest>({
     resolver: zodResolver(AddTestSchema),
     defaultValues: {
       name: "",
-      subCategoryId: JSON.parse(localStorage.getItem("basic-information") || "{}")?.subCategoryId,
+      subCategoryId: JSON.parse(sessionStorage.getItem(`${draftStoragePrefix}basic-information`) || "{}")?.subCategoryId,
       description: "",
       sections: [{
         name: "",
@@ -114,14 +115,14 @@ const AddTestForm = () => {
   useEffect(() => {
     const keys = steps.map(step => step.key);
     keys.forEach((key) => {
-      const stepData = localStorage.getItem(key)
+      const stepData = sessionStorage.getItem(`${draftStoragePrefix}${key}`)
       if (!stepData) return;
       const parsedData = JSON.parse(stepData);
       Object.keys(parsedData).forEach((key) => {
         form.setValue(key as FieldName, parsedData[key]);
       })
     })
-  }, [currentStep, form])
+  }, [currentStep, draftStoragePrefix, form])
 
   const watchedQuestions = form.watch("questions")
 
@@ -344,11 +345,8 @@ const AddTestForm = () => {
           success: () => {
 
             steps.forEach((step) => {
-              localStorage.removeItem(step.key)
+              sessionStorage.removeItem(`${draftStoragePrefix}${step.key}`)
             })
-
-            localStorage.removeItem("basic-information")
-            localStorage.removeItem("section-configuration")
 
             router.push(PageRoutes.DASHBOARD.TESTS)
             return "Test created successfully"
@@ -384,7 +382,7 @@ const AddTestForm = () => {
       currentStepFields?.forEach((field) => {
         currentStepData[field] = form.getValues(field as FieldName);
       })
-      localStorage.setItem(currentStepKey, JSON.stringify(currentStepData))
+      sessionStorage.setItem(`${draftStoragePrefix}${currentStepKey}`, JSON.stringify(currentStepData))
       router.push(pathname + `?step=${steps[currentStep + 1]?.key}`)
       setCurrentStep((prev) => prev + 1)
     }

@@ -11,8 +11,8 @@ const NewsTape = () => {
   const [latestNews, setLatestNews] = useState<RssNewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const FAST_DURATION = 75; // Fast scrolling speed
-  const SLOW_DURATION = 75; // Slow scrolling speed
+  const FAST_DURATION = 500;
+  const SLOW_DURATION = 750;
 
   const [duration, setDuration] = useState(FAST_DURATION);
   const [ref, { width }] = useMeasure(); // Measure the width of the tape

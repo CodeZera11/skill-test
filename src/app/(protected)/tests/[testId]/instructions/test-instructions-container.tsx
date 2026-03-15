@@ -18,6 +18,23 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
   const attemptTest = useMutation(api.testAttempts.startTestAttempt)
 
   const { user, isAuthenticated } = useCurrentUser()
+  const hasSections = Boolean(test?.sections?.length)
+  const hasQuestions = Boolean((test?.totalQuestions || 0) > 0)
+  const canStartTest = Boolean(agreedToTerms && hasSections && hasQuestions)
+
+  const clearTestLocalState = () => {
+    const keysToRemove: string[] = []
+
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i)
+      if (!key) continue
+      if (key.startsWith(`test_${testId}_`)) {
+        keysToRemove.push(key)
+      }
+    }
+
+    keysToRemove.forEach((key) => localStorage.removeItem(key))
+  }
 
   const startTest = async () => {
     if (!isAuthenticated || !user) {
@@ -26,6 +43,16 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
     }
 
     if (!agreedToTerms || !test) {
+      return
+    }
+
+    if (!hasSections) {
+      toast.error("This test cannot be started because it has no sections.")
+      return
+    }
+
+    if (!hasQuestions) {
+      toast.error("This test cannot be started because it has no questions.")
       return
     }
 
@@ -62,18 +89,25 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
         userId: user._id,
       })
 
-      localStorage.clear()
+      clearTestLocalState()
 
       const firstSectionId = test.sections[0]?._id
+      if (!firstSectionId) {
+        throw new Error("First section not found")
+      }
       const url = `/tests/${testId}/${testAttemptId}?sectionId=${firstSectionId}`
 
       // 4️⃣ Navigate already-open popup
       popup.location.href = url
 
       toast.success("Test started successfully")
-    } catch {
+    } catch (error) {
       popup.close()
-      toast.error("Failed to start test. Please try again.")
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to start test. Please try again."
+      )
     }
   }
 
@@ -128,6 +162,16 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
                 </li>
               ))}
             </ul>
+            {!hasSections && (
+              <p className="text-sm text-red-500 mt-2">
+                This test has no sections configured yet.
+              </p>
+            )}
+            {!hasQuestions && (
+              <p className="text-sm text-red-500 mt-2">
+                This test has no questions configured yet.
+              </p>
+            )}
           </div>
 
           <div>
@@ -161,7 +205,7 @@ const TestInstructionsContainer = ({ testId }: { testId: Id<"tests"> }) => {
           <Link href={`/tests/${testId}`}>
             <Button variant="outline">Back</Button>
           </Link>
-          <Button onClick={startTest} disabled={!agreedToTerms}>
+          <Button onClick={startTest} disabled={!canStartTest}>
             Start Test
           </Button>
         </CardFooter>

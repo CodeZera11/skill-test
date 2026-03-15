@@ -86,6 +86,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
   const updateTest = useMutation(api.tests.update)
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const subCategories = useQuery(api.subCategories.list)
+  const draftStoragePrefix = `${pathname}:draft:`
 
 
   const form = useForm<AddTestRequest>({
@@ -137,22 +138,22 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
   useEffect(() => {
     const keys = steps.map(step => step.key);
     keys.forEach((key) => {
-      const stepData = localStorage.getItem(key)
+      const stepData = sessionStorage.getItem(`${draftStoragePrefix}${key}`)
       if (!stepData) return;
       const parsedData = JSON.parse(stepData);
       Object.keys(parsedData).forEach((key) => {
         form.setValue(key as FieldName, parsedData[key]);
       })
     })
-  }, [form])
+  }, [draftStoragePrefix, form])
 
   useEffect(() => {
     if (test) {
       steps.forEach((step) => {
-        localStorage.removeItem(step.key)
+        sessionStorage.removeItem(`${draftStoragePrefix}${step.key}`)
       })
     }
-  }, [test])
+  }, [draftStoragePrefix, test])
 
   const watchedQuestions = form.watch("questions")
 
@@ -374,7 +375,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
           loading: "Updating test...",
           success: () => {
             steps.forEach((step) => {
-              localStorage.removeItem(step.key)
+              sessionStorage.removeItem(`${draftStoragePrefix}${step.key}`)
             })
             router.push("/dashboard/tests")
             return "Test updated successfully"
@@ -409,7 +410,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
       currentStepFields?.forEach((field) => {
         currentStepData[field] = form.getValues(field as FieldName);
       })
-      localStorage.setItem(currentStepKey, JSON.stringify(currentStepData))
+      sessionStorage.setItem(`${draftStoragePrefix}${currentStepKey}`, JSON.stringify(currentStepData))
       router.push(pathname + `?step=${steps[currentStep + 1]?.key}`)
       setCurrentStep((prev) => prev + 1)
     }
