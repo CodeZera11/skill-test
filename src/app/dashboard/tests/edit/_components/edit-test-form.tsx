@@ -184,7 +184,12 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
     if (optionItems && optionItems.length > 0) {
       return optionItems.map((item, index) => ({
         type: item.type,
-        text: item.type === "text" ? item.text || String(options[index] || "") : item.text,
+        text:
+          item.type === "text"
+            ? String(item.text ?? options[index] ?? "")
+            : item.text !== undefined
+              ? String(item.text)
+              : undefined,
         imageStorageId: item.imageStorageId,
         imageMeta: item.imageMeta,
         imageUrl: item.imageUrl,
@@ -324,7 +329,6 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
     }
   }
 
-
   const handleSubmit = async () => {
     const values = form.getValues();
     const normalizedQuestions = values.questions.map((question) => {
@@ -344,7 +348,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
       })
       const optionItemsForSave = optionItems.map((item) => ({
         type: item.type,
-        text: item.text,
+        text: item.text !== undefined ? String(item.text) : undefined,
         imageStorageId: item.imageStorageId as Id<"_storage"> | undefined,
         imageMeta: item.imageMeta,
       }))
@@ -353,8 +357,8 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
         ...questionWithoutAttachmentUrl,
         questionAttachmentStorageId:
           questionWithoutAttachmentUrl.questionAttachmentStorageId as
-            | Id<"_storage">
-            | undefined,
+          | Id<"_storage">
+          | undefined,
         optionItems: optionItemsForSave,
         optionsMode: questionWithoutAttachmentUrl.optionType || "text",
       }
@@ -394,7 +398,15 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
     const output = await form.trigger(fields as FieldName[], {
       shouldFocus: true
     })
-    if (!output) return;
+    if (!output) {
+      console.error("Edit Test form validation failed", {
+        step: steps[currentStep]?.key,
+        fields,
+        errors: form.formState.errors,
+        values: form.getValues(),
+      })
+      return;
+    }
     if (currentStep <= steps.length - 1) {
       if (currentStep === steps.length - 1) {
         await handleSubmit();

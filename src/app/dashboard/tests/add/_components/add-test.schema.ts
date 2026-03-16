@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const QuestionOptionItemSchema = z.object({
   type: z.enum(["text", "image"]),
-  text: z.string().optional(),
+  text: z.coerce.string().optional(),
   imageStorageId: z.string().optional(),
   imageMeta: z
     .object({
