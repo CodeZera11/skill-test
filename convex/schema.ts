@@ -27,6 +27,25 @@ export default defineSchema({
     filterFields: ["isPublished", "publishedAt", "createdAt"],
   }),
 
+  tickerTapeItems: defineTable({
+    title: v.string(),
+    link: v.optional(v.string()),
+    isPublished: v.boolean(),
+    publishedAt: v.optional(v.number()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).searchIndex("search_title", {
+    searchField: "title",
+    filterFields: ["isPublished", "publishedAt", "createdAt"],
+  }),
+
+  tickerTapeConfig: defineTable({
+    speed: v.number(),
+    itemsToShow: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }),
+
   // --------------------
   // Topics
   // --------------------

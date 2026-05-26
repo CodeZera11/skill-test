@@ -14,5 +14,6 @@ export const PageRoutes = {
     SUB_CATEGORIES: "/dashboard/sub-categories",
     TESTS: "/dashboard/tests",
     NEWS: "/dashboard/news",
+    TICKER_TAPE: "/dashboard/ticker-tape",
   },
 }

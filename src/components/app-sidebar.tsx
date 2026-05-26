@@ -8,6 +8,7 @@ import {
   FolderTree,
   GraduationCap,
   Newspaper,
+  Radio,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -77,6 +78,17 @@ export function AppSidebar() {
             <Newspaper className="size-4" />
             <span>
               News
+            </span>
+          </Link>
+        </SidebarMenuButton>
+        <SidebarMenuButton
+          asChild
+          isActive={pathname.includes("/dashboard/ticker-tape")}
+        >
+          <Link href={PageRoutes.DASHBOARD.TICKER_TAPE} className="flex items-center gap-2">
+            <Radio className="size-4" />
+            <span>
+              Ticker Tape
             </span>
           </Link>
         </SidebarMenuButton>
