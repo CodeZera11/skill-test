@@ -21,7 +21,7 @@ const TickerTapeConfigForm = () => {
   const form = useForm<TickerTapeConfigRequest>({
     resolver: zodResolver(TickerTapeConfigSchema),
     defaultValues: {
-      speed: 500,
+      speed: 40,
       itemsToShow: 10,
     },
   });

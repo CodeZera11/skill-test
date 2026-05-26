@@ -2,7 +2,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
-const DEFAULT_TICKER_SPEED = 500;
+const DEFAULT_TICKER_SPEED = 40;
 const DEFAULT_TICKER_ITEMS_TO_SHOW = 10;
 
 const getDefaultConfig = () => ({
