@@ -22,6 +22,8 @@ import type * as search from "../search.js";
 import type * as sections from "../sections.js";
 import type * as subCategories from "../subCategories.js";
 import type * as testAttempts from "../testAttempts.js";
+import type * as testTranslationHelpers from "../testTranslationHelpers.js";
+import type * as testTranslations from "../testTranslations.js";
 import type * as tests from "../tests.js";
 import type * as tickerTape from "../tickerTape.js";
 import type * as topics from "../topics.js";
@@ -45,6 +47,8 @@ declare const fullApi: ApiFromModules<{
   sections: typeof sections;
   subCategories: typeof subCategories;
   testAttempts: typeof testAttempts;
+  testTranslationHelpers: typeof testTranslationHelpers;
+  testTranslations: typeof testTranslations;
   tests: typeof tests;
   tickerTape: typeof tickerTape;
   topics: typeof topics;

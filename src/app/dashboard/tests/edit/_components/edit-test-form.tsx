@@ -26,7 +26,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Input } from "@/components/ui/input"
 import { TestWithDetails } from "~/convex/tests"
 import ImportQuestionsDialog from "../../add/_components/import-questions-dialog"
-import { QuestionOptionItem } from "@/types/question-options"
+import {
+  QuestionOptionItem,
+  QuestionOptionItemTranslation,
+} from "@/types/question-options"
 import Image from "next/image"
 
 interface FormStep {
@@ -82,8 +85,10 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
   const [openSections, setOpenSections] = useState<number[]>([0])
   const [uploadingOptionKey, setUploadingOptionKey] = useState<string | null>(null)
   const [uploadingQuestionAttachmentKey, setUploadingQuestionAttachmentKey] = useState<string | null>(null)
+  const [questionLanguage, setQuestionLanguage] = useState<"en" | "hi">("en")
 
   const updateTest = useMutation(api.tests.update)
+  const retranslateToHindi = useMutation(api.tests.retranslateToHindi)
   const generateUploadUrl = useMutation(api.files.generateUploadUrl)
   const subCategories = useQuery(api.subCategories.list)
   const draftStoragePrefix = `${pathname}:draft:`
@@ -103,10 +108,15 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
       })) || [],
       questions: test?.questions.map((question) => ({
         question: question.question,
+        questionHi: question.questionHi || "",
         questionAttachmentStorageId: question.questionAttachmentStorageId,
         questionAttachmentMeta: question.questionAttachmentMeta,
         questionAttachmentUrl: question.questionAttachmentUrl,
         options: question.options,
+        optionsHi:
+          question.optionsHi && question.optionsHi.length === 5
+            ? question.optionsHi
+            : ["", "", "", "", ""],
         optionType: question.optionsMode === "image" ? "image" : "text",
         optionItems:
           question.optionItems && question.optionItems.length > 0
@@ -118,9 +128,25 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
               imageUrl: item.imageUrl,
             }))
             : question.options.map((text) => ({ type: "text" as const, text })),
+        optionItemsHi:
+          question.optionItemsHi && question.optionItemsHi.length === 5
+            ? question.optionItemsHi.map((item) => ({
+              type: item.type,
+              text: item.text || "",
+            }))
+            : (question.optionItems && question.optionItems.length > 0
+              ? question.optionItems.map((item) => ({
+                type: item.type,
+                text: "",
+              }))
+              : question.options.map(() => ({
+                type: "text" as const,
+                text: "",
+              }))),
         correctAnswer: question.correctAnswer,
         sectionKey: question.sectionKey,
         explanation: question.explanation,
+        explanationHi: question.explanationHi || "",
         marks: `${question.marks}`,
         negativeMarks: `${question.negativeMarks}`,
       })) || [],
@@ -173,6 +199,26 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
           }))
         )
       }
+
+      if (!question.optionsHi || question.optionsHi.length === 0) {
+        form.setValue(
+          `questions.${questionIndex}.optionsHi`,
+          ["", "", "", "", ""]
+        )
+      }
+
+      if (!question.optionItemsHi || question.optionItemsHi.length === 0) {
+        form.setValue(
+          `questions.${questionIndex}.optionItemsHi`,
+          (question.optionItems || question.options || []).map((option) => ({
+            type:
+              typeof option === "object" && option && "type" in option
+                ? option.type
+                : "text",
+            text: "",
+          }))
+        )
+      }
     })
   }, [form, watchedQuestions])
 
@@ -207,6 +253,37 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
       type: "text" as const,
       text: String(value || ""),
     }));
+  }
+
+  const toQuestionOptionItemTranslations = (
+    optionType: "text" | "image",
+    optionsHi: string[],
+    optionItems?: QuestionOptionItem[],
+    optionItemsHi?: QuestionOptionItemTranslation[]
+  ): QuestionOptionItemTranslation[] => {
+    if (optionItemsHi && optionItemsHi.length > 0) {
+      return optionItemsHi.map((item, index) => ({
+        type: item.type,
+        text:
+          item.type === "text"
+            ? String(item.text ?? optionsHi[index] ?? "")
+            : item.text !== undefined
+              ? String(item.text)
+              : undefined,
+      }))
+    }
+
+    if (optionType === "image") {
+      return (optionItems || []).map((item) => ({
+        type: item.type,
+        text: "",
+      }))
+    }
+
+    return optionsHi.map((value) => ({
+      type: "text" as const,
+      text: String(value || ""),
+    }))
   }
 
   const optimizeAndUploadOptionImage = async (
@@ -352,6 +429,12 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
         imageStorageId: item.imageStorageId as Id<"_storage"> | undefined,
         imageMeta: item.imageMeta,
       }))
+      const optionItemsHi = toQuestionOptionItemTranslations(
+        questionWithoutAttachmentUrl.optionType || "text",
+        questionWithoutAttachmentUrl.optionsHi || ["", "", "", "", ""],
+        optionItems,
+        questionWithoutAttachmentUrl.optionItemsHi
+      )
 
       return {
         ...questionWithoutAttachmentUrl,
@@ -359,7 +442,14 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
           questionWithoutAttachmentUrl.questionAttachmentStorageId as
           | Id<"_storage">
           | undefined,
+        questionHi: questionWithoutAttachmentUrl.questionHi || undefined,
         optionItems: optionItemsForSave,
+        optionsHi:
+          questionWithoutAttachmentUrl.optionsHi?.map((option) =>
+            option !== undefined ? String(option) : ""
+          ) || ["", "", "", "", ""],
+        optionItemsHi,
+        explanationHi: questionWithoutAttachmentUrl.explanationHi || undefined,
         optionsMode: questionWithoutAttachmentUrl.optionType || "text",
       }
     })
@@ -463,9 +553,12 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
   }, {} as Record<string, {
     question: {
       question: string,
+      questionHi?: string,
       options: (string | number)[],
+      optionsHi?: string[],
       optionType?: "text" | "image",
       optionItems?: QuestionOptionItem[],
+      optionItemsHi?: QuestionOptionItemTranslation[],
       questionAttachmentStorageId?: string,
       questionAttachmentMeta?: {
         width: number
@@ -477,6 +570,7 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
       correctAnswer: number,
       sectionKey: string,
       explanation?: string,
+      explanationHi?: string,
       marks?: string,
       negativeMarks?: string
     };
@@ -824,7 +918,42 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                     <div key={sectionIndex} className="space-y-4 border rounded-md p-4">
                       <h2 className="text-lg font-semibold">{section.name || `Section ${sectionIndex + 1}`}</h2>
                       <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center gap-2 rounded-md border p-1">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={questionLanguage === "en" ? "default" : "ghost"}
+                              onClick={() => setQuestionLanguage("en")}
+                            >
+                              English
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant={questionLanguage === "hi" ? "default" : "ghost"}
+                              onClick={() => setQuestionLanguage("hi")}
+                            >
+                              Hindi
+                            </Button>
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            Hindi status: {test.translationStatus || "not_requested"}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                              toast.promise(retranslateToHindi({ id: test._id }), {
+                                loading: "Queueing Hindi translation...",
+                                success: "Hindi translation queued",
+                                error: "Failed to queue Hindi translation",
+                              })
+                            }}
+                            disabled={test.translationStatus === "queued" || test.translationStatus === "processing"}
+                          >
+                            Retranslate to Hindi
+                          </Button>
                           <ImportQuestionsDialog
                             onImport={async (questions) => {
                               try {
@@ -836,11 +965,14 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                     ...question,
                                     question: question.question || "",
                                     options: normalizedOptions,
+                                    optionsHi: ["", "", "", "", ""],
                                     marks: question.marks?.toString() || "1",
                                     negativeMarks: question.negativeMarks?.toString() || "0",
                                     optionType: "text",
                                     optionItems:
                                       normalizedOptions.map((text) => ({ type: "text" as const, text })),
+                                    optionItemsHi:
+                                      normalizedOptions.map(() => ({ type: "text" as const, text: "" })),
                                     sectionKey: sectionKey, // Assign sectionKey to imported questions
                                   });
                                 });
@@ -870,7 +1002,9 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                           onClick={() => {
                             appendQuestion({
                               question: "",
+                              questionHi: "",
                               options: ["", "", "", "", ""],
+                              optionsHi: ["", "", "", "", ""],
                               optionType: "text",
                               optionItems: [
                                 { type: "text" as const, text: "" },
@@ -879,8 +1013,16 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                 { type: "text" as const, text: "" },
                                 { type: "text" as const, text: "" },
                               ],
+                              optionItemsHi: [
+                                { type: "text" as const, text: "" },
+                                { type: "text" as const, text: "" },
+                                { type: "text" as const, text: "" },
+                                { type: "text" as const, text: "" },
+                                { type: "text" as const, text: "" },
+                              ],
                               correctAnswer: 0,
                               explanation: "",
+                              explanationHi: "",
                               sectionKey: sectionKey, // Assign sectionKey to manually added questions
                               marks: `1`,
                               negativeMarks: `0`,
@@ -967,23 +1109,26 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
 
                                 <div className="space-y-6 pt-4">
                                   <InputElement
-                                    name={`questions.${field.index}.question`}
-                                    label="Question"
-                                    placeholder="Enter your question here"
+                                    key={`question-${field.index}-${questionLanguage}`}
+                                    name={`questions.${field.index}.${questionLanguage === "hi" ? "questionHi" : "question"}`}
+                                    label={questionLanguage === "hi" ? "Question (Hindi)" : "Question"}
+                                    placeholder={questionLanguage === "hi" ? "Enter Hindi question here" : "Enter your question here"}
                                   />
 
                                   <div className="space-y-2">
                                     <Label className="text-base">Question Attachment (Optional)</Label>
-                                    <Input
-                                      type="file"
-                                      accept="image/*"
-                                      onChange={(event) => {
-                                        const file = event.target.files?.[0]
-                                        if (!file) return
-                                        void optimizeAndUploadQuestionAttachment(field.index, file)
-                                      }}
-                                      className="max-w-md"
-                                    />
+                                    {questionLanguage === "en" && (
+                                      <Input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(event) => {
+                                          const file = event.target.files?.[0]
+                                          if (!file) return
+                                          void optimizeAndUploadQuestionAttachment(field.index, file)
+                                        }}
+                                        className="max-w-md"
+                                      />
+                                    )}
                                     {form.watch(`questions.${field.index}.questionAttachmentUrl`) && (
                                       <Image
                                         src={form.watch(`questions.${field.index}.questionAttachmentUrl`) as string}
@@ -995,13 +1140,15 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                     )}
                                     <div className="flex items-center gap-2">
                                       <p className="text-xs text-muted-foreground">
-                                        {uploadingQuestionAttachmentKey === `${field.index}`
-                                          ? "Uploading..."
-                                          : form.watch(`questions.${field.index}.questionAttachmentStorageId`)
-                                            ? "Attachment uploaded"
-                                            : "Upload image to show below question text"}
+                                        {questionLanguage === "hi"
+                                          ? "Attachment is shared across languages"
+                                          : uploadingQuestionAttachmentKey === `${field.index}`
+                                            ? "Uploading..."
+                                            : form.watch(`questions.${field.index}.questionAttachmentStorageId`)
+                                              ? "Attachment uploaded"
+                                              : "Upload image to show below question text"}
                                       </p>
-                                      {form.watch(`questions.${field.index}.questionAttachmentStorageId`) && (
+                                      {questionLanguage === "en" && form.watch(`questions.${field.index}.questionAttachmentStorageId`) && (
                                         <Button
                                           type="button"
                                           variant="ghost"
@@ -1041,16 +1188,18 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                               <div className="flex-1">
                                                 {form.watch(`questions.${field.index}.optionType`) === "image" ? (
                                                   <div className="flex flex-col gap-2">
-                                                    <Input
-                                                      type="file"
-                                                      accept="image/*"
-                                                      onChange={(event) => {
-                                                        const file = event.target.files?.[0]
-                                                        if (!file) return
-                                                        void optimizeAndUploadOptionImage(field.index, optionIndex, file)
-                                                      }}
-                                                      className="border-0 focus-visible:ring-0 px-2 shadow-none"
-                                                    />
+                                                    {questionLanguage === "en" && (
+                                                      <Input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(event) => {
+                                                          const file = event.target.files?.[0]
+                                                          if (!file) return
+                                                          void optimizeAndUploadOptionImage(field.index, optionIndex, file)
+                                                        }}
+                                                        className="border-0 focus-visible:ring-0 px-2 shadow-none"
+                                                      />
+                                                    )}
                                                     {form.watch(`questions.${field.index}.optionItems.${optionIndex}.imageUrl`) && (
                                                       <Image
                                                         src={form.watch(`questions.${field.index}.optionItems.${optionIndex}.imageUrl`) as string}
@@ -1061,38 +1210,68 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
                                                       />
                                                     )}
                                                     <p className="text-xs text-muted-foreground">
-                                                      {uploadingOptionKey === `${field.index}-${optionIndex}`
-                                                        ? "Uploading..."
-                                                        : form.watch(`questions.${field.index}.optionItems.${optionIndex}.imageStorageId`)
-                                                          ? "Image uploaded"
-                                                          : "Upload option image"}
+                                                      {questionLanguage === "hi"
+                                                        ? "Image is shared across languages"
+                                                        : uploadingOptionKey === `${field.index}-${optionIndex}`
+                                                          ? "Uploading..."
+                                                          : form.watch(`questions.${field.index}.optionItems.${optionIndex}.imageStorageId`)
+                                                            ? "Image uploaded"
+                                                            : "Upload option image"}
                                                     </p>
                                                   </div>
                                                 ) : (
                                                   <Input
-                                                    {...form.register(`questions.${field.index}.options.${optionIndex}`, {
+                                                    key={`option-${field.index}-${optionIndex}-${questionLanguage}`}
+                                                    {...form.register(`questions.${field.index}.${questionLanguage === "hi" ? "optionsHi" : "options"}.${optionIndex}`, {
                                                       required: "Option text is required",
                                                     })}
                                                     onChange={(event) => {
-                                                      form.setValue(
-                                                        `questions.${field.index}.optionItems.${optionIndex}`,
-                                                        { type: "text" as const, text: event.target.value }
-                                                      )
-                                                      form.setValue(
-                                                        `questions.${field.index}.options.${optionIndex}`,
-                                                        event.target.value
-                                                      )
+                                                      if (questionLanguage === "hi") {
+                                                        form.setValue(
+                                                          `questions.${field.index}.optionItemsHi.${optionIndex}`,
+                                                          { type: "text" as const, text: event.target.value }
+                                                        )
+                                                        form.setValue(
+                                                          `questions.${field.index}.optionsHi.${optionIndex}`,
+                                                          event.target.value
+                                                        )
+                                                      } else {
+                                                        form.setValue(
+                                                          `questions.${field.index}.optionItems.${optionIndex}`,
+                                                          { type: "text" as const, text: event.target.value }
+                                                        )
+                                                        form.setValue(
+                                                          `questions.${field.index}.options.${optionIndex}`,
+                                                          event.target.value
+                                                        )
+                                                      }
                                                     }}
                                                     defaultValue={
-                                                      form.watch(`questions.${field.index}.optionItems.${optionIndex}.text`) ||
-                                                      form.watch(`questions.${field.index}.options.${optionIndex}`) ||
-                                                      ""
+                                                      questionLanguage === "hi"
+                                                        ? form.watch(`questions.${field.index}.optionItemsHi.${optionIndex}.text`) ||
+                                                          form.watch(`questions.${field.index}.optionsHi.${optionIndex}`) ||
+                                                          ""
+                                                        : form.watch(`questions.${field.index}.optionItems.${optionIndex}.text`) ||
+                                                          form.watch(`questions.${field.index}.options.${optionIndex}`) ||
+                                                          ""
                                                     }
-                                                    placeholder={`Option ${optionIndex + 1}`}
+                                                    placeholder={questionLanguage === "hi" ? `Option ${optionIndex + 1} (Hindi)` : `Option ${optionIndex + 1}`}
                                                     className="border-0 focus-visible:ring-0 px-2 shadow-none"
                                                   />
                                                 )}
-                                                {getOptionValidationMessage(field.index, optionIndex) && (
+                                                {form.watch(`questions.${field.index}.optionType`) === "image" && questionLanguage === "hi" && (
+                                                  <Input
+                                                    key={`image-option-hi-${field.index}-${optionIndex}`}
+                                                    {...form.register(`questions.${field.index}.optionItemsHi.${optionIndex}.text`)}
+                                                    defaultValue={
+                                                      form.watch(`questions.${field.index}.optionItemsHi.${optionIndex}.text`) ||
+                                                      ""
+                                                    }
+                                                    placeholder={`Image option ${optionIndex + 1} label in Hindi (optional)`}
+                                                    className="border-0 focus-visible:ring-0 px-2 shadow-none"
+                                                  />
+                                                )}
+                                                {questionLanguage === "en" && getOptionValidationMessage(field.index, optionIndex) && (
                                                   <p className="text-xs text-red-500 mt-1">
                                                     {getOptionValidationMessage(field.index, optionIndex)}
                                                   </p>
@@ -1107,12 +1286,13 @@ const EditTestForm = ({ test }: { test: TestWithDetails }) => {
 
                                   <div>
                                     <TextareaElement
-                                      name={`questions.${field.index}.explanation`}
-                                      label="Explanation (Optional)"
-                                      placeholder="Explain the correct answer (optional)"
+                                      key={`explanation-${field.index}-${questionLanguage}`}
+                                      name={`questions.${field.index}.${questionLanguage === "hi" ? "explanationHi" : "explanation"}`}
+                                      label={questionLanguage === "hi" ? "Explanation (Hindi, Optional)" : "Explanation (Optional)"}
+                                      placeholder={questionLanguage === "hi" ? "Explain the correct answer in Hindi (optional)" : "Explain the correct answer (optional)"}
                                     />
                                     <div className="text-xs text-gray-500 mt-1">
-                                      {form.watch(`questions.${field.index}.explanation`)?.length || 0}/500 characters
+                                      {form.watch(`questions.${field.index}.${questionLanguage === "hi" ? "explanationHi" : "explanation"}`)?.length || 0}/500 characters
                                     </div>
                                   </div>
                                 </div>

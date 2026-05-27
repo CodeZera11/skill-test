@@ -2,6 +2,7 @@ import { mutation, query } from "./_generated/server";
 import { Doc } from "./_generated/dataModel";
 import { v } from "convex/values";
 import { Id } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 
 type OptionItemInput = {
   type: "text" | "image";
@@ -13,6 +14,11 @@ type OptionItemInput = {
     size: number;
     mimeType: string;
   };
+};
+
+type OptionItemTranslationInput = {
+  type: "text" | "image";
+  text?: string;
 };
 
 type AttachmentMetaInput = {
@@ -41,6 +47,11 @@ const attachmentMetaValidator = v.object({
   height: v.number(),
   size: v.number(),
   mimeType: v.string(),
+});
+
+const optionItemTranslationValidator = v.object({
+  type: v.union(v.literal("text"), v.literal("image")),
+  text: v.optional(v.string()),
 });
 
 const deriveOptionsMode = (items: OptionItemInput[] | undefined) => {
@@ -83,6 +94,10 @@ export type TestWithDetails = {
   subCategoryId: Id<"subCategories">;
   totalQuestions: number;
   duration?: number;
+  translationStatus?: "not_requested" | "queued" | "processing" | "completed" | "failed";
+  translatedLanguages?: string[];
+  translationError?: string;
+  translationUpdatedAt?: number;
   createdAt: number;
   updatedAt: number;
   subCategory: {
@@ -102,16 +117,20 @@ export type TestWithDetails = {
   questions: {
     _id: Id<"questions">;
     question: string;
+    questionHi?: string;
     questionAttachmentStorageId?: Id<"_storage">;
     questionAttachmentMeta?: AttachmentMetaInput;
     questionAttachmentUrl?: string;
     options: string[];
+    optionsHi?: string[];
     optionType?: "text" | "image";
     optionsMode?: "text" | "image" | "mixed";
     optionItems?: (OptionItemInput & { imageUrl?: string })[];
+    optionItemsHi?: OptionItemTranslationInput[];
     correctAnswer: number;
     sectionId: Id<"sections">;
     explanation?: string;
+    explanationHi?: string;
     marks?: number;
     sectionKey: string | undefined;
     negativeMarks?: number;
@@ -374,17 +393,21 @@ export const create = mutation({
     questions: v.array(
       v.object({
         question: v.string(),
+        questionHi: v.optional(v.string()),
         questionAttachmentStorageId: v.optional(v.id("_storage")),
         questionAttachmentMeta: v.optional(attachmentMetaValidator),
         options: v.array(v.any()),
+        optionsHi: v.optional(v.array(v.string())),
         optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
         optionsMode: v.optional(
           v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
         ),
         optionItems: v.optional(v.array(optionItemValidator)),
+        optionItemsHi: v.optional(v.array(optionItemTranslationValidator)),
         correctAnswer: v.number(),
         sectionKey: v.string(),
         explanation: v.optional(v.string()),
+        explanationHi: v.optional(v.string()),
         marks: v.optional(v.string()),
         negativeMarks: v.optional(v.string()),
       })
@@ -417,6 +440,9 @@ export const create = mutation({
       createdAt: timestamp,
       updatedAt: timestamp,
       isPublished: false,
+      translationStatus: "queued",
+      translatedLanguages: [],
+      translationUpdatedAt: timestamp,
     });
 
     await Promise.all(
@@ -447,17 +473,21 @@ export const create = mutation({
 
             return await ctx.db.insert("questions", {
               question: question.question,
+              questionHi: question.questionHi,
               questionAttachmentStorageId: question.questionAttachmentStorageId,
               questionAttachmentMeta: question.questionAttachmentMeta,
               options: normalizedOptions,
+              optionsHi: question.optionsHi,
               optionType:
                 question.optionType ||
                 (question.optionsMode === "image" ? "image" : "text"),
               optionsMode: question.optionsMode || optionsMode,
               optionItems: normalizedItems,
+              optionItemsHi: question.optionItemsHi,
               correctAnswer: question.correctAnswer,
               sectionId,
               explanation: question.explanation || undefined,
+              explanationHi: question.explanationHi || undefined,
               marks: Number(question.marks),
               negativeMarks: Number(question.negativeMarks),
               createdAt: timestamp,
@@ -468,6 +498,10 @@ export const create = mutation({
         );
       })
     );
+
+    await ctx.scheduler.runAfter(0, internal.testTranslations.translateTestToHindi, {
+      testId: test,
+    });
   },
 });
 
@@ -481,17 +515,21 @@ export const update = mutation({
     questions: v.array(
       v.object({
         question: v.string(),
+        questionHi: v.optional(v.string()),
         questionAttachmentStorageId: v.optional(v.id("_storage")),
         questionAttachmentMeta: v.optional(attachmentMetaValidator),
         options: v.array(v.any()),
+        optionsHi: v.optional(v.array(v.string())),
         optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
         optionsMode: v.optional(
           v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
         ),
         optionItems: v.optional(v.array(optionItemValidator)),
+        optionItemsHi: v.optional(v.array(optionItemTranslationValidator)),
         correctAnswer: v.number(),
         sectionKey: v.string(),
         explanation: v.optional(v.string()),
+        explanationHi: v.optional(v.string()),
         marks: v.optional(v.string()),
         negativeMarks: v.optional(v.string()),
       })
@@ -585,17 +623,21 @@ export const update = mutation({
 
             return await ctx.db.insert("questions", {
               question: question.question,
+              questionHi: question.questionHi,
               questionAttachmentStorageId: question.questionAttachmentStorageId,
               questionAttachmentMeta: question.questionAttachmentMeta,
               options: normalizedOptions,
+              optionsHi: question.optionsHi,
               optionType:
                 question.optionType ||
                 (question.optionsMode === "image" ? "image" : "text"),
               optionsMode: question.optionsMode || optionsMode,
               optionItems: normalizedItems,
+              optionItemsHi: question.optionItemsHi,
               correctAnswer: question.correctAnswer,
               sectionId,
               explanation: question.explanation || undefined,
+              explanationHi: question.explanationHi || undefined,
               marks: Number(question.marks),
               negativeMarks: Number(question.negativeMarks),
               createdAt: Date.now(),
@@ -626,6 +668,28 @@ export const togglePublishStatus = mutation({
     return await ctx.db.patch(id, {
       isPublished: publishStatus,
       updatedAt: Date.now(),
+    });
+  },
+});
+
+export const retranslateToHindi = mutation({
+  args: {
+    id: v.id("tests"),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db.get(args.id);
+    if (!existing) {
+      throw new Error("Test not found");
+    }
+
+    await ctx.db.patch(args.id, {
+      translationStatus: "queued",
+      translationError: undefined,
+      translationUpdatedAt: Date.now(),
+    });
+
+    await ctx.scheduler.runAfter(0, internal.testTranslations.translateTestToHindi, {
+      testId: args.id,
     });
   },
 });

@@ -26,6 +26,7 @@ import Image from "next/image"
 
 const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempts">, testId: Id<"tests"> }) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedLanguage, setSelectedLanguage] = useState<"en" | "hi">("en");
 
   // Fetch test attempt details from Convex
   const data = useQuery(api.testAttempts.getTestAttemptForResultPage, { id: testAttemptId });
@@ -34,12 +35,35 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
   const test = data?.test;
   const sections = data?.sections;
   const testAttempt = data?.testAttempt;
+  const supportsHindi =
+    test?.translationStatus === "completed" &&
+    test?.translatedLanguages?.includes("hi");
 
   useEffect(() => {
     if (testAttempt && test && sections) {
       setIsLoading(false);
     }
   }, [testAttempt, test, sections]);
+
+  useEffect(() => {
+    if (!test?._id) return;
+    const savedLanguage = localStorage.getItem(`test_${test._id}_language`);
+    if (savedLanguage === "en" || savedLanguage === "hi") {
+      setSelectedLanguage(savedLanguage);
+    }
+  }, [test?._id]);
+
+  useEffect(() => {
+    if (!test?._id) return;
+
+    if (!supportsHindi && selectedLanguage === "hi") {
+      setSelectedLanguage("en");
+      localStorage.setItem(`test_${test._id}_language`, "en");
+      return;
+    }
+
+    localStorage.setItem(`test_${test._id}_language`, selectedLanguage);
+  }, [selectedLanguage, supportsHindi, test?._id]);
 
   if (isLoading) {
     return (
@@ -83,8 +107,6 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
   const durationInSeconds = test?.durationInSeconds || 0
   const detailedAnswers = testAttempt.answers;
 
-
-
   return (
     <div className="container mx-auto px-4 py-12">
       {/* Header */}
@@ -109,6 +131,26 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {supportsHindi && (
+            <>
+              <Button
+                type="button"
+                size="sm"
+                variant={selectedLanguage === "en" ? "default" : "outline"}
+                onClick={() => setSelectedLanguage("en")}
+              >
+                English
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={selectedLanguage === "hi" ? "default" : "outline"}
+                onClick={() => setSelectedLanguage("hi")}
+              >
+                Hindi
+              </Button>
+            </>
+          )}
           {/* <Button variant="outline" size="sm" className="gap-2">
             <Share2 className="h-4 w-4" />
             Share
@@ -234,6 +276,26 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
                     answer.question.optionItems && answer.question.optionItems.length > 0
                       ? answer.question.optionItems
                       : answer.question.options.map((text: string) => ({ type: "text" as const, text }));
+                  const optionItemsHi = answer.question.optionItemsHi || [];
+                  const localizedQuestionText =
+                    selectedLanguage === "hi"
+                      ? answer.question.questionHi || answer.question.question
+                      : answer.question.question;
+                  const getLocalizedOptionText = (optionIndex: number) => {
+                    if (selectedLanguage === "hi") {
+                      return (
+                        optionItemsHi[optionIndex]?.text ||
+                        answer.question.optionsHi?.[optionIndex] ||
+                        optionItems[optionIndex]?.text ||
+                        answer.question.options[optionIndex]
+                      );
+                    }
+
+                    return (
+                      optionItems[optionIndex]?.text ||
+                      answer.question.options[optionIndex]
+                    );
+                  };
 
                   const isUnattempted = answer.selectedOption == null;
 
@@ -241,7 +303,7 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
                     <div key={answer.questionId || index} className="border p-4 rounded-lg bg-background shadow-sm">
                       <div className="flex justify-between items-start mb-3">
                         <h4 className="font-semibold text-md">
-                          Question {index + 1}: {answer?.question?.question}
+                          Question {index + 1}: {localizedQuestionText}
                         </h4>
                         {isUnattempted ? (
                           <Badge variant="warning" className="shrink-0">
@@ -309,7 +371,7 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
                                   className="max-h-28 rounded border object-contain"
                                 />
                               ) : (
-                                <span>{option.text || answer?.question?.options[optionIndex]}</span>
+                                <span>{getLocalizedOptionText(optionIndex)}</span>
                               )}
                               {indicatorIcon}
                             </div>
@@ -323,15 +385,18 @@ const ResultPageContainer = ({ testAttemptId }: { testAttemptId: Id<"testAttempt
                             Correct Answer: {String.fromCharCode(65 + answer?.question?.correctAnswer || 0)}.{" "}
                             {optionItems[answer.question.correctAnswer]?.type === "image"
                               ? "Image Option"
-                              : optionItems[answer.question.correctAnswer]?.text ||
-                                answer?.question?.options[answer.question.correctAnswer]}
+                              : getLocalizedOptionText(answer.question.correctAnswer)}
                           </p>
                         </div>
                       )}
-                      {answer?.question.explanation && (
+                      {(answer?.question.explanation || answer?.question.explanationHi) && (
                         <div className="mt-3 text-xs p-3 rounded-md bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-muted-foreground">
                           <p className="font-medium mb-1">Explanation:</p>
-                          <p>{answer.question.explanation}</p>
+                          <p>
+                            {selectedLanguage === "hi"
+                              ? answer.question.explanationHi || answer.question.explanation
+                              : answer.question.explanation}
+                          </p>
                         </div>
                       )}
                       <div className="mt-2 text-xs text-muted-foreground flex justify-end space-x-4">

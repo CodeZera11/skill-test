@@ -16,6 +16,7 @@ export type Question = {
   _id: Id<"questions">;
   sectionId: Id<"sections">;
   question: string;
+  questionHi?: string;
   questionAttachmentStorageId?: Id<"_storage">;
   questionAttachmentMeta?: {
     width: number;
@@ -25,6 +26,7 @@ export type Question = {
   };
   questionAttachmentUrl?: string;
   options: string[];
+  optionsHi?: string[];
   optionType?: "text" | "image";
   optionsMode?: "text" | "image" | "mixed";
   optionItems?: {
@@ -39,7 +41,12 @@ export type Question = {
     };
     imageUrl?: string;
   }[];
+  optionItemsHi?: {
+    type: "text" | "image";
+    text?: string;
+  }[];
   correctAnswer: number;
+  explanationHi?: string;
   createdAt: number;
   updatedAt: number;
 }

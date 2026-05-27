@@ -15,9 +15,15 @@ const QuestionOptionItemSchema = z.object({
   imageUrl: z.string().optional(),
 });
 
+const QuestionOptionItemTranslationSchema = z.object({
+  type: z.enum(["text", "image"]),
+  text: z.coerce.string().optional(),
+});
+
 const QuestionSchema = z
   .object({
     question: z.string().min(1, { message: "Question text is required" }),
+    questionHi: z.string().optional(),
     questionAttachmentStorageId: z.string().optional(),
     questionAttachmentMeta: z
       .object({
@@ -31,13 +37,22 @@ const QuestionSchema = z
     options: z
       .array(z.union([z.string(), z.number()]))
       .length(5, { message: "Exactly 5 options are required" }),
+    optionsHi: z.array(z.coerce.string()).length(5).optional(),
     optionType: z.enum(["text", "image"]).optional(),
     optionItems: z
       .array(QuestionOptionItemSchema)
       .length(5, { message: "Exactly 5 option items are required" }),
+    optionItemsHi: z
+      .array(QuestionOptionItemTranslationSchema)
+      .length(5)
+      .optional(),
     correctAnswer: z.number(),
     sectionKey: z.string().min(1, { message: "Section is required" }),
     explanation: z
+      .string()
+      .max(500, { message: "Explanation must be less than 500 characters" })
+      .optional(),
+    explanationHi: z
       .string()
       .max(500, { message: "Explanation must be less than 500 characters" })
       .optional(),

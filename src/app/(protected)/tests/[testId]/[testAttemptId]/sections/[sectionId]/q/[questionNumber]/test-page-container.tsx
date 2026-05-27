@@ -44,12 +44,16 @@ const TestPageContainer = ({
   const [sectionTimer, setSectionTimer] = useState<number | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState<number>(questionNumber)
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<"en" | "hi">("en")
 
   // New states for review and visited
   const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>({})
   const [visited, setVisited] = useState<Record<string, boolean>>({})
 
   const submitTestMutation = useMutation(api.testAttempts.submitTestAttempt)
+  const supportsHindi =
+    attempt?.test.translationStatus === "completed" &&
+    attempt?.test.translatedLanguages?.includes("hi")
 
   const currentSectionDurationInSeconds = attempt?.sections.find(s => s._id === sectionId)?.durationInSeconds || 0;
   const totalTestDurationInSeconds = attempt?.sections.reduce(
@@ -62,11 +66,15 @@ const TestPageContainer = ({
     const savedCurrentQuestion = localStorage.getItem(`test_${testId}_currentQuestion`);
     const savedMarkedForReview = localStorage.getItem(`test_${testId}_markedForReview`);
     const savedVisited = localStorage.getItem(`test_${testId}_visited`);
+    const savedLanguage = localStorage.getItem(`test_${testId}_language`);
 
     if (savedAnswers) setAnswers(JSON.parse(savedAnswers));
     if (savedCurrentQuestion) setCurrentQuestion(Number(savedCurrentQuestion));
     if (savedMarkedForReview) setMarkedForReview(JSON.parse(savedMarkedForReview));
     if (savedVisited) setVisited(JSON.parse(savedVisited));
+    if (savedLanguage === "en" || savedLanguage === "hi") {
+      setSelectedLanguage(savedLanguage)
+    }
   }, [testId]);
 
   useEffect(() => {
@@ -84,6 +92,17 @@ const TestPageContainer = ({
   useEffect(() => {
     localStorage.setItem(`test_${testId}_visited`, JSON.stringify(visited));
   }, [visited, testId]);
+
+  useEffect(() => {
+    if (!supportsHindi && selectedLanguage === "hi") {
+      setSelectedLanguage("en")
+      localStorage.setItem(`test_${testId}_language`, "en")
+    }
+  }, [selectedLanguage, supportsHindi, testId])
+
+  useEffect(() => {
+    localStorage.setItem(`test_${testId}_language`, selectedLanguage)
+  }, [selectedLanguage, testId])
 
 
   useEffect(() => {
@@ -323,6 +342,23 @@ const TestPageContainer = ({
     currentQuestionData?.optionItems && currentQuestionData.optionItems.length > 0
       ? currentQuestionData.optionItems
       : (currentQuestionData?.options || []).map((text) => ({ type: "text" as const, text }))
+  const currentOptionItemsHi = currentQuestionData?.optionItemsHi || []
+  const localizedQuestionText =
+    selectedLanguage === "hi"
+      ? currentQuestionData?.questionHi || currentQuestionData?.question
+      : currentQuestionData?.question
+  const getLocalizedOptionText = (index: number) => {
+    if (selectedLanguage === "hi") {
+      return (
+        currentOptionItemsHi[index]?.text ||
+        currentQuestionData?.optionsHi?.[index] ||
+        currentOptionItems[index]?.text ||
+        currentQuestionData?.options?.[index]
+      )
+    }
+
+    return currentOptionItems[index]?.text || currentQuestionData?.options?.[index]
+  }
 
   return (
     <div className="container mx-auto py-6 px-2">
@@ -352,6 +388,26 @@ const TestPageContainer = ({
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-row-reverse md:flex-row justify-between w-full md:justify-end">
+                {supportsHindi && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={selectedLanguage === "en" ? "default" : "outline"}
+                      onClick={() => setSelectedLanguage("en")}
+                    >
+                      English
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={selectedLanguage === "hi" ? "default" : "outline"}
+                      onClick={() => setSelectedLanguage("hi")}
+                    >
+                      Hindi
+                    </Button>
+                  </div>
+                )}
                 <TestTimer
                   remainingTime={sectionTimer}
                   onTimeUp={handleSectionTimeUp}
@@ -367,7 +423,7 @@ const TestPageContainer = ({
                 <div className="text-sm">
                   Question {currentQuestion} of {sectionQuestions.length}
                 </div>
-                <div className="text-lg font-medium">{currentQuestionData?.question}</div>
+                <div className="text-lg font-medium">{localizedQuestionText}</div>
                 {currentQuestionData?.questionAttachmentUrl && (
                   <Image
                     src={currentQuestionData.questionAttachmentUrl}
@@ -396,7 +452,7 @@ const TestPageContainer = ({
                           className="max-h-32 w-fit rounded border object-contain"
                         />
                       ) : (
-                        option.text || currentQuestionData?.options?.[index]
+                        getLocalizedOptionText(index)
                       )}
                     </Label>
                   </div>

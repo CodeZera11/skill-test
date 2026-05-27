@@ -29,6 +29,7 @@ export const getById = query({
 export const create = mutation({
   args: {
     question: v.string(),
+    questionHi: v.optional(v.string()),
     questionAttachmentStorageId: v.optional(v.id("_storage")),
     questionAttachmentMeta: v.optional(
       v.object({
@@ -39,6 +40,7 @@ export const create = mutation({
       })
     ),
     options: v.array(v.string()),
+    optionsHi: v.optional(v.array(v.string())),
     optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
     optionsMode: v.optional(
       v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
@@ -60,9 +62,18 @@ export const create = mutation({
         })
       )
     ),
+    optionItemsHi: v.optional(
+      v.array(
+        v.object({
+          type: v.union(v.literal("text"), v.literal("image")),
+          text: v.optional(v.string()),
+        })
+      )
+    ),
     correctAnswer: v.number(),
     sectionId: v.id("sections"),
     explanation: v.optional(v.string()),
+    explanationHi: v.optional(v.string()),
     marks: v.optional(v.number()),
     negativeMarks: v.optional(v.number()),
     testId: v.id("tests"),
@@ -81,6 +92,7 @@ export const update = mutation({
   args: {
     id: v.id("questions"),
     question: v.string(),
+    questionHi: v.optional(v.string()),
     questionAttachmentStorageId: v.optional(v.id("_storage")),
     questionAttachmentMeta: v.optional(
       v.object({
@@ -91,6 +103,7 @@ export const update = mutation({
       })
     ),
     options: v.array(v.string()),
+    optionsHi: v.optional(v.array(v.string())),
     optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
     optionsMode: v.optional(
       v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
@@ -112,9 +125,18 @@ export const update = mutation({
         })
       )
     ),
+    optionItemsHi: v.optional(
+      v.array(
+        v.object({
+          type: v.union(v.literal("text"), v.literal("image")),
+          text: v.optional(v.string()),
+        })
+      )
+    ),
     correctAnswer: v.number(),
     sectionId: v.id("sections"),
     explanation: v.optional(v.string()),
+    explanationHi: v.optional(v.string()),
     marks: v.optional(v.number()),
     negativeMarks: v.optional(v.number()),
   },
@@ -140,6 +162,7 @@ export const bulkCreate = mutation({
     questions: v.array(
       v.object({
         question: v.string(),
+        questionHi: v.optional(v.string()),
         questionAttachmentStorageId: v.optional(v.id("_storage")),
         questionAttachmentMeta: v.optional(
           v.object({
@@ -150,6 +173,7 @@ export const bulkCreate = mutation({
           })
         ),
         options: v.array(v.string()),
+        optionsHi: v.optional(v.array(v.string())),
         optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
         optionsMode: v.optional(
           v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
@@ -171,8 +195,17 @@ export const bulkCreate = mutation({
             })
           )
         ),
+        optionItemsHi: v.optional(
+          v.array(
+            v.object({
+              type: v.union(v.literal("text"), v.literal("image")),
+              text: v.optional(v.string()),
+            })
+          )
+        ),
         correctAnswer: v.number(),
         explanation: v.optional(v.string()),
+        explanationHi: v.optional(v.string()),
         marks: v.optional(v.number()),
         negativeMarks: v.optional(v.number()),
       })

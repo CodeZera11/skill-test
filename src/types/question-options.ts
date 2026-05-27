@@ -12,3 +12,8 @@ export type QuestionOptionItem = {
   };
   imageUrl?: string;
 };
+
+export type QuestionOptionItemTranslation = {
+  type: QuestionOptionType;
+  text?: string;
+};

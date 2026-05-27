@@ -104,6 +104,18 @@ export default defineSchema({
     totalMarks: v.optional(v.number()),
     durationInSeconds: v.optional(v.number()),
     attempts: v.optional(v.number()),
+    translationStatus: v.optional(
+      v.union(
+        v.literal("not_requested"),
+        v.literal("queued"),
+        v.literal("processing"),
+        v.literal("completed"),
+        v.literal("failed")
+      )
+    ),
+    translatedLanguages: v.optional(v.array(v.string())),
+    translationError: v.optional(v.string()),
+    translationUpdatedAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   }).searchIndex("search_name", {
@@ -132,6 +144,7 @@ export default defineSchema({
   // --------------------
   questions: defineTable({
     question: v.string(),
+    questionHi: v.optional(v.string()),
     questionAttachmentStorageId: v.optional(v.id("_storage")),
     questionAttachmentMeta: v.optional(
       v.object({
@@ -142,6 +155,7 @@ export default defineSchema({
       })
     ),
     options: v.array(v.string()),
+    optionsHi: v.optional(v.array(v.string())),
     optionType: v.optional(v.union(v.literal("text"), v.literal("image"))),
     optionsMode: v.optional(
       v.union(v.literal("text"), v.literal("image"), v.literal("mixed"))
@@ -163,10 +177,19 @@ export default defineSchema({
         })
       )
     ),
+    optionItemsHi: v.optional(
+      v.array(
+        v.object({
+          type: v.union(v.literal("text"), v.literal("image")),
+          text: v.optional(v.string()),
+        })
+      )
+    ),
     correctAnswer: v.number(),
     sectionId: v.id("sections"),
     testId: v.id("tests"),
     explanation: v.optional(v.string()),
+    explanationHi: v.optional(v.string()),
     marks: v.optional(v.number()),
     negativeMarks: v.optional(v.number()),
     createdAt: v.number(),

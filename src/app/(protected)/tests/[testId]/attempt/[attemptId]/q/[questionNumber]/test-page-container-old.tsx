@@ -23,6 +23,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
 
   const [answers, setAnswers] = useState<Record<string, number | null>>({})
   const [markedForReview, setMarkedForReview] = useState<Record<string, boolean>>({})
+  const [selectedLanguage, setSelectedLanguage] = useState<"en" | "hi">("en")
   // const submitTestAttempt = useMutation(api.testAttempts.submitTestAttempt);
 
   const saveAnswerToLocalStorage = (questionId: string, answerIndex: number | null) => {
@@ -58,6 +59,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
   useEffect(() => {
     const savedAnswers = localStorage.getItem(`test_${testId}_answers`)
     const savedMarkedForReview = localStorage.getItem(`test_${testId}_marked`)
+    const savedLanguage = localStorage.getItem(`test_${testId}_language`)
 
     if (savedAnswers) {
       setAnswers(JSON.parse(savedAnswers))
@@ -66,7 +68,14 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
     if (savedMarkedForReview) {
       setMarkedForReview(JSON.parse(savedMarkedForReview))
     }
+    if (savedLanguage === "en" || savedLanguage === "hi") {
+      setSelectedLanguage(savedLanguage)
+    }
   }, [testId])
+
+  useEffect(() => {
+    localStorage.setItem(`test_${testId}_language`, selectedLanguage)
+  }, [selectedLanguage, testId])
 
   const handleAnswerChange = (value: string) => {
     saveAnswerToLocalStorage(currentQuestion._id, Number.parseInt(value))
@@ -132,11 +141,31 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
 
   const questions = attempt?.questions;
   // const test = attempt?.test;
+  const supportsHindi =
+    attempt?.test.translationStatus === "completed" &&
+    attempt?.test.translatedLanguages?.includes("hi")
   const currentQuestion = questions[questionNumber - 1]
   const currentOptionItems =
     currentQuestion?.optionItems && currentQuestion.optionItems.length > 0
       ? currentQuestion.optionItems
       : (currentQuestion?.options || []).map((text) => ({ type: "text" as const, text }))
+  const currentOptionItemsHi = currentQuestion?.optionItemsHi || []
+  const localizedQuestionText =
+    selectedLanguage === "hi"
+      ? currentQuestion?.questionHi || currentQuestion?.question
+      : currentQuestion?.question
+  const getLocalizedOptionText = (index: number) => {
+    if (selectedLanguage === "hi") {
+      return (
+        currentOptionItemsHi[index]?.text ||
+        currentQuestion?.optionsHi?.[index] ||
+        currentOptionItems[index]?.text ||
+        currentQuestion?.options?.[index]
+      )
+    }
+
+    return currentOptionItems[index]?.text || currentQuestion?.options?.[index]
+  }
 
   return (
     <div className="container mx-auto py-6 px-2">
@@ -148,6 +177,26 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                 Question {questionNumber} of {questions.length}
               </CardTitle>
               <div className="flex items-center gap-2 flex-row-reverse md:flex-row justify-between w-full md:justify-end">
+                {supportsHindi && (
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={selectedLanguage === "en" ? "default" : "outline"}
+                      onClick={() => setSelectedLanguage("en")}
+                    >
+                      English
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={selectedLanguage === "hi" ? "default" : "outline"}
+                      onClick={() => setSelectedLanguage("hi")}
+                    >
+                      Hindi
+                    </Button>
+                  </div>
+                )}
                 {markedForReview[currentQuestion?._id] && (
                   <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
                     Marked for Review
@@ -157,7 +206,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="text-lg font-medium">{currentQuestion?.question}</div>
+              <div className="text-lg font-medium">{localizedQuestionText}</div>
               {currentQuestion?.questionAttachmentUrl && (
                 <Image
                   src={currentQuestion.questionAttachmentUrl}
@@ -185,7 +234,7 @@ const TestPageContainer = ({ testId, questionNumber, attemptId }: { questionNumb
                           className="max-h-32 rounded border object-contain"
                         />
                       ) : (
-                        option.text || currentQuestion.options[index]
+                        getLocalizedOptionText(index)
                       )}
                     </Label>
                   </div>
